@@ -9,6 +9,8 @@ defineProps<{
     title: string;
     zone: ReplayZone;
     cards: ReplayCard[];
+    /** Optional line under each card, keyed by card id. */
+    captions?: Map<number, string> | null;
     position: ZonePopoverPosition;
 }>();
 
@@ -48,14 +50,11 @@ const { showPreview, hidePreview } = useReplayContext();
                 {{ REPLAY_ZONES[zone].empty }}
             </div>
             <div v-else class="grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-1.5 overflow-y-auto p-2.5">
-                <div
-                    v-for="card in cards"
-                    :key="card.Id"
-                    class="relative aspect-[63/88] rounded"
-                    @mouseenter="showPreview($event, card)"
-                    @mouseleave="hidePreview"
-                >
-                    <ReplayCardImage :name="card.name" :image="card.image" />
+                <div v-for="card in cards" :key="card.Id" class="flex min-w-0 flex-col gap-1">
+                    <div class="relative aspect-[63/88] rounded" @mouseenter="showPreview($event, card)" @mouseleave="hidePreview">
+                        <ReplayCardImage :name="card.name" :image="card.image" />
+                    </div>
+                    <span v-if="captions?.get(card.Id)" class="truncate text-center text-[11px] text-muted-foreground">{{ captions.get(card.Id) }}</span>
                 </div>
             </div>
         </div>

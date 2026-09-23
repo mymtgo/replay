@@ -5,10 +5,11 @@ export type ReplayKeyboardActions = {
     step: (delta: number) => void;
     jumpTurn: (direction: -1 | 1) => void;
     toggleLog: () => void;
+    toggleFullscreen: () => void;
     dismiss: () => void;
 };
 
-/** Space play/pause, arrows step, Shift+arrows jump turns, L log, Escape closes overlays. */
+/** Space play/pause, arrows step, Shift+arrows jump turns, L log, F fullscreen, Escape closes overlays. */
 export function useReplayKeyboard(actions: ReplayKeyboardActions) {
     function onKeydown(event: KeyboardEvent) {
         if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable]')) {
@@ -42,6 +43,10 @@ export function useReplayKeyboard(actions: ReplayKeyboardActions) {
             case 'l':
             case 'L':
                 actions.toggleLog();
+                break;
+            case 'f':
+            case 'F':
+                actions.toggleFullscreen();
                 break;
             case 'Escape':
                 actions.dismiss();

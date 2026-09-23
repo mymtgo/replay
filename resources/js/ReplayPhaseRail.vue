@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef, watch } from 'vue';
-import ReplayStack from './ReplayStack.vue';
 import { REPLAY_PHASES, REPLAY_STEP_ORDER, stepLabel, type ReplayStepKey } from './replayPhases';
-import type { ReplayCard } from './types';
 
 const props = defineProps<{
     turnNumber: number | null;
@@ -11,8 +9,6 @@ const props = defineProps<{
     step: ReplayStepKey | null;
     /** Whether any frame in this game carries phase data (sidecar games do, older games do not). */
     phasesRecorded: boolean;
-    stack: ReplayCard[];
-    playerName: (id: number | undefined) => string;
 }>();
 
 const missingText = computed(() => {
@@ -50,7 +46,7 @@ watch(
 </script>
 
 <template>
-    <div class="relative order-1 flex h-12 flex-none items-center gap-4 px-2">
+    <div class="relative order-1 flex h-12 flex-none items-center justify-center px-2 @7xl:col-span-3 @7xl:row-start-3 @7xl:-mx-2">
         <!-- The line between the two halves of the board; the rail straddles it. -->
         <div aria-hidden="true" class="absolute inset-x-0 top-1/2 -translate-y-px border-t border-b border-t-black border-b-white/5" />
 
@@ -95,6 +91,9 @@ watch(
             </div>
         </div>
 
-        <ReplayStack v-if="stack.length" :items="stack" :player-name="playerName" />
+        <!-- Floats over the board's left edge, its middle on the centre line. -->
+        <div v-if="$slots.default" class="absolute top-1/2 left-2 z-30 flex max-h-80 -translate-y-1/2">
+            <slot />
+        </div>
     </div>
 </template>

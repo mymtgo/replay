@@ -51,74 +51,87 @@ const zones = computed(() => hudZones(props.opponent));
 </script>
 
 <template>
-    <ReplayPanel class="h-11.5 flex-none flex-row items-center gap-3.5 px-3.5 py-0">
-        <div
-            class="grid size-6.5 flex-none place-items-center rounded-full text-xs font-bold transition-shadow"
-            :class="[
-                opponent ? 'bg-accent text-foreground' : 'bg-primary text-primary-foreground',
-                active ? 'ring-2 ring-primary ring-offset-2 ring-offset-transparent' : '',
-            ]"
-        >
-            {{ player.Name.charAt(0).toUpperCase() }}
+    <!--
+        A bar across the board by default. Once the viewer is wide enough it
+        becomes a column beside the board, handing the bar's height to the cards.
+        The groups are display:contents in bar mode, so the bar lays out flat.
+    -->
+    <ReplayPanel
+        class="h-11.5 flex-none flex-row items-center gap-3.5 px-3.5 py-0 @7xl:h-auto @7xl:max-h-full @7xl:w-60 @7xl:flex-col @7xl:items-stretch @7xl:gap-3 @7xl:overflow-y-auto @7xl:p-3"
+    >
+        <div class="contents @7xl:flex @7xl:min-w-0 @7xl:items-center @7xl:gap-2.5">
+            <div
+                class="grid size-6.5 flex-none place-items-center rounded-full text-xs font-bold transition-shadow"
+                :class="[
+                    opponent ? 'bg-accent text-foreground' : 'bg-primary text-primary-foreground',
+                    active ? 'ring-2 ring-primary ring-offset-2 ring-offset-transparent' : '',
+                ]"
+            >
+                {{ player.Name.charAt(0).toUpperCase() }}
+            </div>
+
+            <div class="flex min-w-0 flex-[0_1_auto] items-baseline gap-1.5 overflow-hidden @7xl:flex-1">
+                <span class="truncate text-sm font-semibold">{{ player.Name }}</span>
+                <span v-if="player.IsLocal" class="text-[11px] text-muted-foreground">you</span>
+            </div>
+
+            <!-- Always laid out so the stats beside it never shift as priority passes. -->
+            <span
+                title="Holds priority"
+                :aria-hidden="!priority"
+                class="inline-flex h-5 flex-none items-center gap-1.25 rounded-full bg-primary/15 px-1.75 text-[11px] font-semibold transition-opacity duration-150"
+                :class="priority ? 'opacity-100' : 'opacity-0'"
+            >
+                <span class="size-1.5 animate-pulse rounded-full bg-primary" />
+                Priority
+            </span>
         </div>
 
-        <div class="flex min-w-0 flex-[0_1_auto] items-baseline gap-1.5 overflow-hidden">
-            <span class="truncate text-sm font-semibold">{{ player.Name }}</span>
-            <span v-if="player.IsLocal" class="text-[11px] text-muted-foreground">you</span>
+        <div class="contents @7xl:flex @7xl:flex-wrap @7xl:items-center @7xl:gap-x-3.5 @7xl:gap-y-2">
+            <div v-if="player.Life != null" title="Life" class="flex flex-none items-center gap-1.25">
+                <Heart :size="15" class="text-[#e5484d]" />
+                <span class="min-w-[2ch] text-[17px] font-bold tabular-nums" :class="player.Life <= 5 ? 'text-[#e5484d]' : ''">{{ player.Life }}</span>
+            </div>
+
+            <div v-if="clock" title="Chess clock" class="flex flex-none items-center gap-1" :class="clockClass">
+                <Timer :size="14" />
+                <span class="min-w-[5ch] font-mono text-[12.5px] tabular-nums">{{ clock }}</span>
+            </div>
+
+            <div v-if="player.HandCount != null" title="Cards in hand" class="flex flex-none items-center gap-1 text-muted-foreground">
+                <Hand :size="14" />
+                <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.HandCount }}</span>
+            </div>
+
+            <div v-if="player.LibraryCount != null" title="Cards in library" class="flex flex-none items-center gap-1 text-muted-foreground">
+                <Layers :size="14" />
+                <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.LibraryCount }}</span>
+            </div>
+
+            <div v-if="winner" title="Won this game" class="flex flex-none items-center gap-1 text-[12.5px] font-semibold text-yellow-400">
+                <Trophy :size="14" />
+                <span>Winner</span>
+            </div>
+
+            <div v-if="pool.length" title="Mana pool" class="flex flex-none items-center gap-0.75">
+                <ManaSymbol v-for="(symbol, i) in pool" :key="`${symbol}-${i}`" :symbol="symbol" class="size-4.25" />
+            </div>
         </div>
 
-        <!-- Always laid out so the stats to its right never shift as priority passes. -->
-        <span
-            title="Holds priority"
-            :aria-hidden="!priority"
-            class="inline-flex h-5 flex-none items-center gap-1.25 rounded-full bg-primary/15 px-1.75 text-[11px] font-semibold transition-opacity duration-150"
-            :class="priority ? 'opacity-100' : 'opacity-0'"
-        >
-            <span class="size-1.5 animate-pulse rounded-full bg-primary" />
-            Priority
-        </span>
+        <div class="min-w-0 flex-1 @7xl:hidden" />
 
-        <div v-if="player.Life != null" title="Life" class="flex flex-none items-center gap-1.25">
-            <Heart :size="15" class="text-[#e5484d]" />
-            <span class="min-w-[2ch] text-[17px] font-bold tabular-nums" :class="player.Life <= 5 ? 'text-[#e5484d]' : ''">{{ player.Life }}</span>
+        <div class="contents @7xl:flex @7xl:flex-wrap @7xl:gap-1.5">
+            <ReplayToggleButton
+                v-for="item in zones"
+                :key="item.zone"
+                :active="openZone === item.zone"
+                :icon="item.icon"
+                :title="item.zone === 'Hand' ? 'Revealed cards in hand' : undefined"
+                @click="emit('toggleZone', item.zone, $event)"
+            >
+                <span>{{ item.label }}</span>
+                <span class="text-muted-foreground tabular-nums">{{ zoneCounts[item.zone] }}</span>
+            </ReplayToggleButton>
         </div>
-
-        <div v-if="clock" title="Chess clock" class="flex flex-none items-center gap-1" :class="clockClass">
-            <Timer :size="14" />
-            <span class="min-w-[5ch] font-mono text-[12.5px] tabular-nums">{{ clock }}</span>
-        </div>
-
-        <div v-if="player.HandCount != null" title="Cards in hand" class="flex flex-none items-center gap-1 text-muted-foreground">
-            <Hand :size="14" />
-            <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.HandCount }}</span>
-        </div>
-
-        <div v-if="player.LibraryCount != null" title="Cards in library" class="flex flex-none items-center gap-1 text-muted-foreground">
-            <Layers :size="14" />
-            <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.LibraryCount }}</span>
-        </div>
-
-        <div v-if="winner" title="Won this game" class="flex flex-none items-center gap-1 text-[12.5px] font-semibold text-yellow-400">
-            <Trophy :size="14" />
-            <span>Winner</span>
-        </div>
-
-        <div v-if="pool.length" title="Mana pool" class="flex flex-none items-center gap-0.75">
-            <ManaSymbol v-for="(symbol, i) in pool" :key="`${symbol}-${i}`" :symbol="symbol" class="size-4.25" />
-        </div>
-
-        <div class="min-w-0 flex-1" />
-
-        <ReplayToggleButton
-            v-for="item in zones"
-            :key="item.zone"
-            :active="openZone === item.zone"
-            :icon="item.icon"
-            :title="item.zone === 'Hand' ? 'Revealed cards in hand' : undefined"
-            @click="emit('toggleZone', item.zone, $event)"
-        >
-            <span>{{ item.label }}</span>
-            <span class="text-muted-foreground tabular-nums">{{ zoneCounts[item.zone] }}</span>
-        </ReplayToggleButton>
     </ReplayPanel>
 </template>

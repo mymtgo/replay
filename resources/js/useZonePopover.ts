@@ -4,8 +4,11 @@ import type { ReplayCard, ReplayZone, ZonePopoverPosition } from './types';
 const MAX_WIDTH_PX = 320;
 const MIN_HEIGHT_PX = 160;
 
-/** Graveyard and exile browser anchored to the HUD button that opened it. */
-export function useZonePopover(root: Readonly<Ref<HTMLElement | null>>, cards: Ref<ReplayCard[]>) {
+/**
+ * Zone browser anchored to the HUD button that opened it. The hand zone lists
+ * `revealed` instead, since an opponent's reveals vanish from later frames.
+ */
+export function useZonePopover(root: Readonly<Ref<HTMLElement | null>>, cards: Ref<ReplayCard[]>, revealed: Ref<ReplayCard[]>) {
     const open = shallowRef<{ player: number; zone: ReplayZone; position: ZonePopoverPosition } | null>(null);
 
     /** Opponent HUD sits at the top, so its popover opens downward; yours opens upward. */
@@ -40,7 +43,15 @@ export function useZonePopover(root: Readonly<Ref<HTMLElement | null>>, cards: R
     const zoneCards = computed(() => {
         const state = open.value;
 
-        return state ? cards.value.filter((card) => card.Zone === state.zone && card.Owner === state.player).reverse() : [];
+        if (!state) {
+            return [];
+        }
+
+        if (state.zone === 'Hand') {
+            return revealed.value;
+        }
+
+        return cards.value.filter((card) => card.Zone === state.zone && card.Owner === state.player).reverse();
     });
 
     return { open: readonly(open), zoneCards, toggle, close };

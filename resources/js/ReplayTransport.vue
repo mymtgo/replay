@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Pause, Play, ScrollText, SkipBack, SkipForward } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, Maximize, Minimize, Pause, Play, ScrollText, SkipBack, SkipForward } from 'lucide-vue-next';
 import ReplayGamePicker from './ReplayGamePicker.vue';
 import ReplayScrubber from './ReplayScrubber.vue';
 import ReplayToggleButton from './ReplayToggleButton.vue';
@@ -17,6 +17,9 @@ defineProps<{
     timestamp: string;
     localId: number | null;
     logOpen: boolean;
+    /** False until mounted, and on hosts that forbid fullscreen, which hides the button. */
+    fullscreenSupported: boolean;
+    fullscreen: boolean;
     gameId: number;
     matchGames: ReplayMatchGame[];
     playerName: (id: number | undefined) => string;
@@ -30,6 +33,7 @@ const emit = defineEmits<{
     scrubStart: [];
     setSpeed: [speed: number];
     toggleLog: [];
+    toggleFullscreen: [];
     hover: [payload: ScrubHover | null];
 }>();
 
@@ -99,6 +103,18 @@ const iconButton = 'grid size-8 cursor-pointer place-items-center rounded-md hov
             <ReplayToggleButton class="order-5" title="Game log (L)" :active="logOpen" :icon="ScrollText" @click="emit('toggleLog')">
                 <span>Log</span>
             </ReplayToggleButton>
+
+            <button
+                v-if="fullscreenSupported"
+                type="button"
+                :title="fullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'"
+                class="order-5"
+                :class="iconButton"
+                @click="emit('toggleFullscreen')"
+            >
+                <Minimize v-if="fullscreen" :size="16" />
+                <Maximize v-else :size="16" />
+            </button>
 
             <div v-if="$slots.actions" class="order-6 flex flex-none items-center gap-2">
                 <slot name="actions" />

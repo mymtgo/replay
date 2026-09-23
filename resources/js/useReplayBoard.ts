@@ -1,5 +1,6 @@
 import { computed, type Ref } from 'vue';
 import { normaliseStep } from './replayPhases';
+import { collectReveals } from './replayReveals';
 import { turnAt } from './replayTimeline';
 import type { ReplayCard, ReplayFrame, ReplayPlayer, ReplayTurn, ReplayZone } from './types';
 
@@ -9,7 +10,7 @@ export type ReplaySideView = {
     active: boolean;
     priority: boolean;
     battlefield: ReplayCard[];
-    /** Visible cards per zone; an opponent's hand counts only revealed cards. */
+    /** Visible cards per zone; an opponent's hand counts every card revealed so far. */
     zoneCounts: Record<ReplayZone, number>;
 };
 
@@ -76,6 +77,13 @@ export function useReplayBoard(frames: Ref<ReplayFrame[]>, current: Readonly<Ref
 
     const hand = computed(() => cards.value.filter((card) => card.Zone === 'Hand' && card.Owner === local.value?.Id));
 
+    /** Everything the opponent has shown from hand up to this frame, newest first. */
+    const reveals = computed(() => collectReveals(frames.value, turns.value));
+    const revealedSoFar = computed(() => reveals.value.filter((reveal) => reveal.frame <= current.value).toReversed());
+
+    /** Only the opponent's currently revealed cards; the rest of their hand is face down. */
+    const opponentHand = computed(() => cards.value.filter((card) => card.Zone === 'Hand' && card.Owner === opponent.value?.Id));
+
     const sides = computed<ReplaySideView[]>(() =>
         [opponent.value, local.value]
             .filter((player): player is ReplayPlayer => player !== null)
@@ -86,12 +94,12 @@ export function useReplayBoard(frames: Ref<ReplayFrame[]>, current: Readonly<Ref
                 priority: content.value?.Priority === player.Id,
                 battlefield: cards.value.filter((card) => card.Zone === 'Battlefield' && (card.Controller ?? card.Owner) === player.Id),
                 zoneCounts: {
-                    Hand: zoneCount(player.Id, 'Hand'),
+                    Hand: player.Id === local.value?.Id ? zoneCount(player.Id, 'Hand') : revealedSoFar.value.length,
                     Graveyard: zoneCount(player.Id, 'Graveyard'),
                     Exile: zoneCount(player.Id, 'Exile'),
                 },
             })),
     );
 
-    return { frame, local, cards, cardsById, turn, activeId, step, pairs, stack, hand, sides, playerName };
+    return { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName };
 }

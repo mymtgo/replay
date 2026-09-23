@@ -8,6 +8,7 @@ import ReplayLogDrawer from './ReplayLogDrawer.vue';
 import ReplayPhaseRail from './ReplayPhaseRail.vue';
 import ReplayScrubTooltip from './ReplayScrubTooltip.vue';
 import ReplaySide from './ReplaySide.vue';
+import ReplayStack from './ReplayStack.vue';
 import ReplayTransport from './ReplayTransport.vue';
 import ReplayZonePopover from './ReplayZonePopover.vue';
 import { replayContextKey } from './replayContext';
@@ -17,6 +18,7 @@ import type { ReplayFrame, ReplayLogEntry, ReplayMatchGame } from './types';
 import { useCardPreview } from './useCardPreview';
 import { useReplayBoard } from './useReplayBoard';
 import { useReplayClocks } from './useReplayClocks';
+import { useReplayFullscreen } from './useReplayFullscreen';
 import { useReplayKeyboard } from './useReplayKeyboard';
 import { useReplayPlayback } from './useReplayPlayback';
 import { useScrubTooltip } from './useScrubTooltip';
@@ -54,7 +56,11 @@ const logItems = computed(() => buildLogItems(props.frames, props.log, turns.val
 const playback = useReplayPlayback(frames, turns);
 const { current, playing, speed } = playback;
 
-const { frame, local, cards, cardsById, turn, activeId, step, pairs, stack, hand, sides, playerName } = useReplayBoard(frames, current, turns);
+const { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName } = useReplayBoard(
+    frames,
+    current,
+    turns,
+);
 
 const clocks = useReplayClocks(frames, current, playing, speed);
 
@@ -68,7 +74,8 @@ provide(replayContextKey, {
     selectGame: props.onSelectGame ?? null,
 });
 
-const popover = useZonePopover(root, cards);
+const revealedCards = computed(() => revealedSoFar.value.map((reveal) => reveal.card));
+const popover = useZonePopover(root, cards, revealedCards);
 const { open: openZone, zoneCards } = popover;
 
 const { tooltip, setHover } = useScrubTooltip(root, frames, turns, logItems);
@@ -90,7 +97,16 @@ function dismissOverlays() {
     logOpen.value = false;
 }
 
-useReplayKeyboard({ toggle: playback.toggle, step: playback.step, jumpTurn: playback.jumpTurn, toggleLog, dismiss: dismissOverlays });
+const fullscreen = useReplayFullscreen(root);
+
+useReplayKeyboard({
+    toggle: playback.toggle,
+    step: playback.step,
+    jumpTurn: playback.jumpTurn,
+    toggleLog,
+    toggleFullscreen: fullscreen.toggle,
+    dismiss: dismissOverlays,
+});
 
 const activeName = computed(() => (activeId.value !== null ? playerName(activeId.value) : null));
 const activeIsLocal = computed(() => activeId.value !== null && activeId.value === local.value?.Id);
@@ -125,16 +141,39 @@ watch(atEnd, (value) => {
 });
 
 const localId = computed(() => local.value?.Id ?? null);
+/** Reveals stay listed after MTGO hides them again, so each says whether it is still showing. */
+const popoverCaptions = computed(() => {
+    if (openZone.value?.zone !== 'Hand') {
+        return null;
+    }
+
+    return new Map(
+        revealedSoFar.value.map((reveal) => {
+            if (cardsById.value.get(reveal.card.Id)?.Zone === 'Hand') {
+                return [reveal.card.Id, 'In hand'];
+            }
+
+            return [reveal.card.Id, reveal.turn !== null ? `Seen turn ${reveal.turn}` : 'Seen before turn 1'];
+        }),
+    );
+});
 const popoverTitle = computed(() => (openZone.value ? `${playerName(openZone.value.player)} · ${REPLAY_ZONES[openZone.value.zone].label}` : ''));
 </script>
 
 <template>
-    <div ref="root" class="replay-theme replay-texture-bg relative flex size-full min-h-0 flex-col overflow-hidden text-[13px] leading-snug text-foreground select-none">
+    <div ref="root" class="replay-theme replay-texture-bg @container relative flex size-full min-h-0 flex-col overflow-hidden text-[13px] leading-snug text-foreground select-none">
         <ReplayEmptyState v-if="!total" />
 
         <template v-else>
             <div class="relative flex min-h-0 flex-1">
-                <div class="relative flex min-w-0 flex-1 flex-col">
+                <!--
+                    Wide viewers: HUDs and the stack in the left column, the board and
+                    both hands in the middle, and an empty right column mirroring the left so
+                    the board centres on the same line as the phase rail.
+                -->
+                <div
+                    class="relative flex min-w-0 flex-1 flex-col @7xl:grid @7xl:grid-cols-[15rem_minmax(0,1fr)_15rem] @7xl:grid-rows-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto] @7xl:gap-x-2 @7xl:px-2"
+                >
                     <ReplaySide
                         v-for="side in sides"
                         :key="side.player.Id"
@@ -158,11 +197,13 @@ const popoverTitle = computed(() => (openZone.value ? `${playerName(openZone.val
                         :active-is-local="activeIsLocal"
                         :step="step"
                         :phases-recorded="phasesRecorded"
-                        :stack="stack"
-                        :player-name="playerName"
-                    />
+                    >
+                        <ReplayStack v-if="stack.length" :items="stack" :player-name="playerName" />
+                    </ReplayPhaseRail>
 
-                    <ReplayHand :cards="hand" :count="local?.HandCount ?? hand.length" />
+                    <ReplayHand v-if="opponent" :cards="opponentHand" :count="opponent.HandCount ?? opponentHand.length" opponent />
+
+                    <ReplayHand :cards="hand" :count="local?.HandCount ?? hand.length" :opponent="false" />
                 </div>
 
                 <ReplayLogDrawer
@@ -185,6 +226,8 @@ const popoverTitle = computed(() => (openZone.value ? `${playerName(openZone.val
                 :timestamp="frame?.timestamp ?? ''"
                 :local-id="localId"
                 :log-open="logOpen"
+                :fullscreen-supported="fullscreen.supported.value"
+                :fullscreen="fullscreen.active.value"
                 :game-id="gameId"
                 :match-games="matchGames"
                 :player-name="playerName"
@@ -195,6 +238,7 @@ const popoverTitle = computed(() => (openZone.value ? `${playerName(openZone.val
                 @scrub-start="playback.pause"
                 @set-speed="playback.setSpeed"
                 @toggle-log="toggleLog"
+                @toggle-fullscreen="fullscreen.toggle"
                 @hover="setHover"
             >
                 <template v-if="$slots.actions" #actions>
@@ -218,6 +262,7 @@ const popoverTitle = computed(() => (openZone.value ? `${playerName(openZone.val
                 :title="popoverTitle"
                 :zone="openZone.zone"
                 :cards="zoneCards"
+                :captions="popoverCaptions"
                 :position="openZone.position"
                 @close="popover.close"
             />
