@@ -15,6 +15,12 @@ export function useReplayKeyboard(actions: ReplayKeyboardActions) {
             return;
         }
 
+        // A host dialog over the viewer (sharing, for one) owns the keyboard
+        // while it is open: arrows must not scrub the replay behind it.
+        if (document.querySelector('[role="dialog"][aria-modal="true"], [role="dialog"][data-state="open"], [role="alertdialog"]')) {
+            return;
+        }
+
         switch (event.key) {
             case ' ':
                 event.preventDefault();

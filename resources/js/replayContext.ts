@@ -9,6 +9,8 @@ export type ReplayContext = {
     gameHref: ((id: number) => string) | null;
     /** Element or component that renders game links, so a host can keep in-app navigation. */
     linkComponent: Component | string;
+    /** Switches game in place, for a host that holds the whole match on one page. Null when games are links. */
+    selectGame: ((id: number) => void) | null;
 };
 
 export const replayContextKey: InjectionKey<ReplayContext> = Symbol('replay');

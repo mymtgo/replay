@@ -8,9 +8,9 @@ use Mymtgo\Replay\ReplaySnapshot;
 class ValidateReplaySnapshot
 {
     /**
-     * Check a snapshot's structure in one pass. Frames are walked by hand
-     * rather than with wildcard rules: a game holds hundreds of frames that
-     * each carry every card, which wildcard expansion handles slowly.
+     * Check a match snapshot's structure in one pass. Frames are walked by
+     * hand rather than with wildcard rules: a game holds hundreds of frames
+     * that each carry every card, which wildcard expansion handles slowly.
      *
      * Card images must be remote https URLs, since a desktop-local image URL
      * points at the player's own machine and is dead for anyone else.
@@ -32,13 +32,8 @@ class ValidateReplaySnapshot
             $fail('version', 'Unsupported snapshot version.');
         }
 
-        if (! array_key_exists('won', $snapshot) || ! (is_bool($snapshot['won']) || $snapshot['won'] === null)) {
-            $fail('won', 'Must be true, false or null.');
-        }
-
         self::meta($snapshot['meta'] ?? null, $fail);
-        self::frames($snapshot['frames'] ?? null, $fail);
-        self::log($snapshot['log'] ?? null, $fail);
+        self::games($snapshot['games'] ?? null, $fail);
 
         if ($errors !== []) {
             throw ValidationException::withMessages($errors);
@@ -59,10 +54,8 @@ class ValidateReplaySnapshot
             $fail('meta.played_at', 'Must be a string.');
         }
 
-        foreach (['game_number', 'games_in_match'] as $key) {
-            if (! is_int($meta[$key] ?? null) || $meta[$key] < 1) {
-                $fail("meta.{$key}", 'Must be a positive integer.');
-            }
+        if (! is_int($meta['games_in_match'] ?? null) || $meta['games_in_match'] < 1) {
+            $fail('meta.games_in_match', 'Must be a positive integer.');
         }
 
         foreach (['format', 'local_archetype', 'opponent_archetype'] as $key) {
@@ -72,29 +65,57 @@ class ValidateReplaySnapshot
         }
     }
 
-    private static function frames(mixed $frames, callable $fail): void
+    private static function games(mixed $games, callable $fail): void
+    {
+        if (! is_array($games) || ! array_is_list($games) || $games === []) {
+            $fail('games', 'Must be a non-empty list.');
+
+            return;
+        }
+
+        foreach ($games as $g => $game) {
+            if (! is_array($game)) {
+                $fail("games.{$g}", 'Must be an object.');
+
+                continue;
+            }
+
+            if (! is_int($game['game_number'] ?? null) || $game['game_number'] < 1) {
+                $fail("games.{$g}.game_number", 'Must be a positive integer.');
+            }
+
+            if (! array_key_exists('won', $game) || ! (is_bool($game['won']) || $game['won'] === null)) {
+                $fail("games.{$g}.won", 'Must be true, false or null.');
+            }
+
+            self::frames($game['frames'] ?? null, "games.{$g}.frames", $fail);
+            self::log($game['log'] ?? null, "games.{$g}.log", $fail);
+        }
+    }
+
+    private static function frames(mixed $frames, string $path, callable $fail): void
     {
         if (! is_array($frames) || ! array_is_list($frames) || $frames === []) {
-            $fail('frames', 'Must be a non-empty list.');
+            $fail($path, 'Must be a non-empty list.');
 
             return;
         }
 
         foreach ($frames as $f => $frame) {
             if (! is_string($frame['timestamp'] ?? null)) {
-                $fail("frames.{$f}.timestamp", 'Must be a string.');
+                $fail("{$path}.{$f}.timestamp", 'Must be a string.');
             }
 
             $content = $frame['content'] ?? null;
 
             if (! is_array($content)) {
-                $fail("frames.{$f}.content", 'Required.');
+                $fail("{$path}.{$f}.content", 'Required.');
 
                 continue;
             }
 
-            self::players($content['Players'] ?? null, "frames.{$f}.content.Players", $fail);
-            self::cards($content['Cards'] ?? null, "frames.{$f}.content.Cards", $fail);
+            self::players($content['Players'] ?? null, "{$path}.{$f}.content.Players", $fail);
+            self::cards($content['Cards'] ?? null, "{$path}.{$f}.content.Cards", $fail);
         }
     }
 
@@ -144,21 +165,21 @@ class ValidateReplaySnapshot
         }
     }
 
-    private static function log(mixed $log, callable $fail): void
+    private static function log(mixed $log, string $path, callable $fail): void
     {
         if (! is_array($log) || ! array_is_list($log)) {
-            $fail('log', 'Must be a list.');
+            $fail($path, 'Must be a list.');
 
             return;
         }
 
         foreach ($log as $l => $entry) {
             if (! is_string($entry['timestamp'] ?? null)) {
-                $fail("log.{$l}.timestamp", 'Must be a string.');
+                $fail("{$path}.{$l}.timestamp", 'Must be a string.');
             }
 
             if (! is_string($entry['message'] ?? null)) {
-                $fail("log.{$l}.message", 'Must be a string.');
+                $fail("{$path}.{$l}.message", 'Must be a string.');
             }
         }
     }

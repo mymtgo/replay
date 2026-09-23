@@ -18,7 +18,7 @@ const emit = defineEmits<{
     dismiss: [];
 }>();
 
-const { gameHref, linkComponent } = useReplayContext();
+const { gameHref, linkComponent, selectGame } = useReplayContext();
 
 const heading = computed(() => (props.game ? `Game ${props.game.number} complete` : 'Game complete'));
 
@@ -58,6 +58,10 @@ const result = computed(() => {
                     Watch again
                 </ReplayButton>
                 <ReplayButton v-if="next && gameHref" :as="linkComponent" :href="gameHref(next.id)">
+                    Watch game {{ next.number }}
+                    <ChevronRight />
+                </ReplayButton>
+                <ReplayButton v-else-if="next && selectGame" @click="selectGame(next.id)">
                     Watch game {{ next.number }}
                     <ChevronRight />
                 </ReplayButton>

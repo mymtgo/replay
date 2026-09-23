@@ -33,7 +33,7 @@ const emit = defineEmits<{
     hover: [payload: ScrubHover | null];
 }>();
 
-const { gameHref } = useReplayContext();
+const { gameHref, selectGame } = useReplayContext();
 
 const iconButton = 'grid size-8 cursor-pointer place-items-center rounded-md hover:bg-accent';
 </script>
@@ -70,7 +70,7 @@ const iconButton = 'grid size-8 cursor-pointer place-items-center rounded-md hov
                 <span class="text-[11px] text-muted-foreground tabular-nums">{{ current + 1 }} / {{ total }}</span>
             </div>
 
-            <ReplayGamePicker v-if="gameHref && matchGames.length > 1" class="order-2" :games="matchGames" :game-id="gameId" />
+            <ReplayGamePicker v-if="(gameHref || selectGame) && matchGames.length > 1" class="order-2" :games="matchGames" :game-id="gameId" />
 
             <ReplayScrubber
                 :turns="turns"

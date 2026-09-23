@@ -35,6 +35,11 @@ const props = withDefaults(
         gameHref?: (id: number) => string;
         /** Renders game links; pass Inertia's Link to keep navigation in the window. */
         linkComponent?: Component | string;
+        /**
+         * Listener for `@select-game`. A host with the whole match on one page
+         * listens instead of passing `gameHref`, and the picker switches in place.
+         */
+        onSelectGame?: (id: number) => void;
     }>(),
     { gameHref: undefined, linkComponent: 'a' },
 );
@@ -60,6 +65,7 @@ provide(replayContextKey, {
     hidePreview: preview.hidePreview,
     gameHref: props.gameHref ?? null,
     linkComponent: props.linkComponent,
+    selectGame: props.onSelectGame ?? null,
 });
 
 const popover = useZonePopover(root, cards);
@@ -102,7 +108,7 @@ const winnerId = computed(() => {
 const gameIndex = computed(() => props.matchGames.findIndex((item) => item.id === props.gameId));
 const matchGame = computed(() => props.matchGames[gameIndex.value] ?? null);
 const nextGame = computed(() => {
-    if (!props.gameHref || gameIndex.value < 0) {
+    if ((!props.gameHref && !props.onSelectGame) || gameIndex.value < 0) {
         return null;
     }
 
@@ -123,7 +129,7 @@ const popoverTitle = computed(() => (openZone.value ? `${playerName(openZone.val
 </script>
 
 <template>
-    <div ref="root" class="replay-texture-bg relative flex size-full min-h-0 flex-col overflow-hidden text-[13px] leading-snug text-foreground select-none">
+    <div ref="root" class="replay-theme replay-texture-bg relative flex size-full min-h-0 flex-col overflow-hidden text-[13px] leading-snug text-foreground select-none">
         <ReplayEmptyState v-if="!total" />
 
         <template v-else>

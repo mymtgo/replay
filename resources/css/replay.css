@@ -3,6 +3,31 @@
  * with a host's own .texture-bg or .bevel, which differ between hosts.
  */
 @layer {
+    /*
+     * The desktop app's dark palette, set on the viewer's own root. Both hosts
+     * map bg-accent, text-muted-foreground and the rest to these variables,
+     * so the viewer looks the same wherever it is mounted.
+     */
+    .replay-theme {
+        --background: var(--color-neutral-900);
+        --foreground: oklch(0.985 0 0);
+        --card: oklch(0.205 0 0);
+        --card-foreground: oklch(0.985 0 0);
+        --popover: oklch(0.269 0 0);
+        --popover-foreground: oklch(0.985 0 0);
+        --primary: oklch(0.52 0.12 235);
+        --primary-foreground: oklch(0.97 0.01 235);
+        --secondary: oklch(0.269 0.01 230);
+        --secondary-foreground: oklch(0.985 0 0);
+        --muted: oklch(0.269 0 0);
+        --muted-foreground: oklch(0.708 0 0);
+        --accent: oklch(0.30 0.02 230);
+        --accent-foreground: oklch(0.985 0 0);
+        --border: oklch(1 0 0 / 10%);
+        --input: oklch(1 0 0 / 15%);
+        --ring: oklch(0.60 0.12 230);
+    }
+
     .replay-texture-bg {
         @apply bg-background;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%239C92AC' fill-opacity='0.02' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");

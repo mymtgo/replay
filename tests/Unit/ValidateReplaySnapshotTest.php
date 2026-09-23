@@ -11,26 +11,26 @@ it('accepts a valid snapshot and returns it unchanged', function () {
 
 it('accepts a card with no image', function () {
     $snapshot = replaySnapshot();
-    $snapshot['frames'][0]['content']['Cards'][0]['image'] = null;
+    $snapshot['games'][0]['frames'][0]['content']['Cards'][0]['image'] = null;
 
     expect(ValidateReplaySnapshot::run($snapshot))->toBe($snapshot);
 });
 
 it('accepts a frame with no cards and an empty log', function () {
     $snapshot = replaySnapshot();
-    $snapshot['frames'][0]['content']['Cards'] = [];
-    $snapshot['log'] = [];
+    $snapshot['games'][0]['frames'][0]['content']['Cards'] = [];
+    $snapshot['games'][0]['log'] = [];
 
     expect(ValidateReplaySnapshot::run($snapshot))->toBe($snapshot);
 });
 
 it('rejects a snapshot with the wrong version', function () {
-    ValidateReplaySnapshot::run(replaySnapshot(['version' => 2]));
+    ValidateReplaySnapshot::run(replaySnapshot(['version' => 1]));
 })->throws(ValidationException::class);
 
 it('rejects a snapshot with no frames', function () {
     $snapshot = replaySnapshot();
-    $snapshot['frames'] = [];
+    $snapshot['games'][0]['frames'] = [];
 
     ValidateReplaySnapshot::run($snapshot);
 })->throws(ValidationException::class);
@@ -40,7 +40,31 @@ it('rejects a snapshot with missing top-level keys', function (string $key) {
     unset($snapshot[$key]);
 
     ValidateReplaySnapshot::run($snapshot);
-})->with(['version', 'won', 'meta', 'frames', 'log'])->throws(ValidationException::class);
+})->with(['version', 'meta', 'games'])->throws(ValidationException::class);
+
+it('rejects a match with no games', function () {
+    $snapshot = replaySnapshot();
+    $snapshot['games'] = [];
+
+    ValidateReplaySnapshot::run($snapshot);
+})->throws(ValidationException::class);
+
+it('rejects a game missing its own keys', function (string $key) {
+    $snapshot = replaySnapshot();
+    unset($snapshot['games'][0][$key]);
+
+    ValidateReplaySnapshot::run($snapshot);
+})->with(['game_number', 'won', 'frames', 'log'])->throws(ValidationException::class);
+
+it('accepts several games', function () {
+    $snapshot = replaySnapshot();
+    $second = $snapshot['games'][0];
+    $second['game_number'] = 2;
+    $second['won'] = null;
+    $snapshot['games'][] = $second;
+
+    expect(ValidateReplaySnapshot::run($snapshot))->toBe($snapshot);
+});
 
 it('rejects bad meta', function (string $key, mixed $value) {
     $snapshot = replaySnapshot();
@@ -49,14 +73,14 @@ it('rejects bad meta', function (string $key, mixed $value) {
     ValidateReplaySnapshot::run($snapshot);
 })->with([
     ['played_at', null],
-    ['game_number', 0],
+    ['games_in_match', 0],
     ['games_in_match', 'three'],
     ['format', 12],
 ])->throws(ValidationException::class);
 
 it('rejects a player without an integer Id or string Name', function (array $player) {
     $snapshot = replaySnapshot();
-    $snapshot['frames'][0]['content']['Players'][0] = $player;
+    $snapshot['games'][0]['frames'][0]['content']['Players'][0] = $player;
 
     ValidateReplaySnapshot::run($snapshot);
 })->with([
@@ -66,14 +90,14 @@ it('rejects a player without an integer Id or string Name', function (array $pla
 
 it('rejects a card missing a required key', function (string $key) {
     $snapshot = replaySnapshot();
-    unset($snapshot['frames'][0]['content']['Cards'][0][$key]);
+    unset($snapshot['games'][0]['frames'][0]['content']['Cards'][0][$key]);
 
     ValidateReplaySnapshot::run($snapshot);
 })->with(['Id', 'CatalogID', 'Zone', 'Owner'])->throws(ValidationException::class);
 
 it('rejects a card image that is not a remote https url', function (string $image) {
     $snapshot = replaySnapshot();
-    $snapshot['frames'][0]['content']['Cards'][0]['image'] = $image;
+    $snapshot['games'][0]['frames'][0]['content']['Cards'][0]['image'] = $image;
 
     ValidateReplaySnapshot::run($snapshot);
 })->with([
@@ -84,19 +108,19 @@ it('rejects a card image that is not a remote https url', function (string $imag
 
 it('rejects a log entry without a message', function () {
     $snapshot = replaySnapshot();
-    unset($snapshot['log'][0]['message']);
+    unset($snapshot['games'][0]['log'][0]['message']);
 
     ValidateReplaySnapshot::run($snapshot);
 })->throws(ValidationException::class);
 
 it('names the offending path in the error', function () {
     $snapshot = replaySnapshot();
-    unset($snapshot['frames'][0]['content']['Cards'][0]['Zone']);
+    unset($snapshot['games'][0]['frames'][0]['content']['Cards'][0]['Zone']);
 
     try {
         ValidateReplaySnapshot::run($snapshot);
     } catch (ValidationException $e) {
-        expect($e->errors())->toHaveKey('frames.0.content.Cards.0.Zone');
+        expect($e->errors())->toHaveKey('games.0.frames.0.content.Cards.0.Zone');
 
         return;
     }
