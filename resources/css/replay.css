@@ -1,0 +1,44 @@
+/*
+ * Surface treatments for the replay viewer. Namespaced so they never collide
+ * with a host's own .texture-bg or .bevel, which differ between hosts.
+ */
+@layer {
+    .replay-texture-bg {
+        @apply bg-background;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%239C92AC' fill-opacity='0.02' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+    }
+
+    .replay-bevel {
+        @apply relative;
+        @apply after:shadow-[0_1px_0_0_rgba(0,0,0,0.1)];
+        @apply after:bg-transparent;
+        @apply after:content-[''];
+        @apply after:block;
+        @apply after:inset-0;
+        @apply after:absolute;
+        @apply after:bottom-0;
+        @apply after:rounded-[inherit];
+        @apply before:shadow-[0_-1px_0_0_rgba(255,255,255,0.1)];
+        @apply before:bg-transparent;
+        @apply before:content-[''];
+        @apply before:block;
+        @apply before:inset-0;
+        @apply before:absolute;
+        @apply before:bottom-0;
+        @apply before:rounded-[inherit];
+        @apply after:translate-y-[-1px];
+        @apply before:translate-y-[1px];
+        @apply active:translate-y-[1px];
+        @apply active:translate-x-[1px];
+    }
+
+    /* Pressed-in selection state. */
+    .replay-inset {
+        @apply border border-black/50 bg-black/10 text-foreground shadow-inner shadow-black/50 outline outline-white/5;
+    }
+
+    .replay-glow {
+        color: #38bdf8;
+        filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.7)) drop-shadow(0 0 8px rgba(56, 189, 248, 0.35));
+    }
+}

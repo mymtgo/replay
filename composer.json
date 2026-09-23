@@ -1,0 +1,33 @@
+{
+    "name": "mymtgo/replay",
+    "description": "Replay snapshot contract and viewer shared by the myMTGO desktop app and mymtgo.com.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^13.0",
+        "illuminate/validation": "^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^4.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mymtgo\\Replay\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Mymtgo\\Replay\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
