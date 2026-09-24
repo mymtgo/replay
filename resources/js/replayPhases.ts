@@ -65,3 +65,12 @@ export function normaliseStep(step: string | undefined, phase: string | undefine
 export function stepLabel(key: ReplayStepKey | null): string {
     return REPLAY_PHASES.flat().find((step) => step.key === key)?.label ?? '';
 }
+
+/** What the phase rail says when there is no step to show. */
+export function phaseMissingText(phasesRecorded: boolean, turnNumber: number | null): string {
+    if (phasesRecorded) {
+        return turnNumber === null ? 'Before the first turn' : '';
+    }
+
+    return turnNumber !== null ? 'Phase and priority not recorded for this game' : 'Turn, phase and priority not recorded for this game';
+}

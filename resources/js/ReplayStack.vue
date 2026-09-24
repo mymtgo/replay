@@ -11,7 +11,7 @@ defineProps<{
     playerName: (id: number | undefined) => string;
 }>();
 
-const { showPreview, hidePreview } = useReplayContext();
+const { showPreview, hidePreview, pinPreview } = useReplayContext();
 </script>
 
 <template>
@@ -49,6 +49,7 @@ const { showPreview, hidePreview } = useReplayContext();
                             :class="i === 0 ? 'bg-white/5' : ''"
                             @mouseenter="showPreview($event, item)"
                             @mouseleave="hidePreview"
+                            @click="pinPreview($event, item)"
                         >
                             <div class="relative aspect-[63/88] w-8 flex-none overflow-hidden rounded-[3px] shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
                                 <ReplayCardImage :name="item.name" :type="item.type" :image="item.image" />

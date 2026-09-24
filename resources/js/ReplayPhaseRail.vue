@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef, watch } from 'vue';
-import { REPLAY_PHASES, REPLAY_STEP_ORDER, stepLabel, type ReplayStepKey } from './replayPhases';
+import { phaseMissingText, REPLAY_PHASES, REPLAY_STEP_ORDER, stepLabel, type ReplayStepKey } from './replayPhases';
 
 const props = defineProps<{
     turnNumber: number | null;
@@ -11,13 +11,7 @@ const props = defineProps<{
     phasesRecorded: boolean;
 }>();
 
-const missingText = computed(() => {
-    if (props.phasesRecorded) {
-        return props.turnNumber === null ? 'Before the first turn' : '';
-    }
-
-    return props.turnNumber !== null ? 'Phase and priority not recorded for this game' : 'Turn, phase and priority not recorded for this game';
-});
+const missingText = computed(() => phaseMissingText(props.phasesRecorded, props.turnNumber));
 
 const currentIndex = computed(() => (props.step ? REPLAY_STEP_ORDER.indexOf(props.step) : -1));
 

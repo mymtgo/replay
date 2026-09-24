@@ -1,4 +1,4 @@
-import { computed, shallowRef, type Ref } from 'vue';
+import { computed, readonly, shallowRef, type Ref } from 'vue';
 import { counterLabel, isFrontRow } from './replayCards';
 import type { CardPreviewPosition, ReplayCard } from './types';
 
@@ -15,11 +15,14 @@ export function useCardPreview(
     root: Readonly<Ref<HTMLElement | null>>,
     cardsById: Ref<Map<number, ReplayCard>>,
     playerName: (id: number | undefined) => string,
+    /** Type of the latest press on the viewer; a tap pins the preview, a mouse click does not. */
+    lastPointer: Readonly<Ref<string | null>>,
 ) {
-    const hovered = shallowRef<{ id: number; position: CardPreviewPosition } | null>(null);
+    const hovered = shallowRef<{ card: ReplayCard; position: CardPreviewPosition } | null>(null);
+    const pinned = shallowRef(false);
 
     function showPreview(event: MouseEvent, card: ReplayCard) {
-        if (!root.value) {
+        if (!root.value || pinned.value) {
             return;
         }
 
@@ -39,15 +42,45 @@ export function useCardPreview(
         const centred = target.top - bounds.top + target.height / 2 - height / 2;
         const top = Math.min(Math.max(EDGE_PX, centred), bounds.height - height - EDGE_PX);
 
-        hovered.value = { id: card.Id, position: { left, top, width } };
+        hovered.value = { card, position: { left, top, width } };
     }
 
     function hidePreview() {
+        if (!pinned.value) {
+            hovered.value = null;
+        }
+    }
+
+    /**
+     * Touch has no hover, so a tap opens the preview centred and as large as
+     * fits, and it stays until tapped away.
+     */
+    function pinPreview(event: MouseEvent, card: ReplayCard) {
+        if (!root.value || lastPointer.value === 'mouse') {
+            return;
+        }
+
+        event.stopPropagation();
+
+        const bounds = root.value.getBoundingClientRect();
+        const width = Math.max(120, Math.min(300, bounds.width - 32, ((bounds.height - 32 - INFO_HEIGHT_PX) * 63) / 88));
+        const height = (width * 88) / 63 + INFO_HEIGHT_PX;
+
+        hovered.value = { card, position: { left: (bounds.width - width) / 2, top: Math.max(EDGE_PX, (bounds.height - height) / 2), width } };
+        pinned.value = true;
+    }
+
+    function unpin() {
+        pinned.value = false;
         hovered.value = null;
     }
 
-    /** Re-read from the current frame so scrubbing while hovering keeps the preview live. */
-    const card = computed(() => (hovered.value ? (cardsById.value.get(hovered.value.id) ?? null) : null));
+    /**
+     * Re-read from the current frame so scrubbing while hovering keeps the
+     * preview live. A known opponent hand card is absent from later frames,
+     * so it falls back to the card as it was hovered.
+     */
+    const card = computed(() => (hovered.value ? (cardsById.value.get(hovered.value.card.Id) ?? hovered.value.card) : null));
     const position = computed(() => hovered.value?.position ?? null);
 
     const chips = computed(() => {
@@ -88,5 +121,5 @@ export function useCardPreview(
         return chips;
     });
 
-    return { card, position, chips, showPreview, hidePreview };
+    return { card, position, chips, pinned: readonly(pinned), showPreview, hidePreview, pinPreview, unpin };
 }

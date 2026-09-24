@@ -67,3 +67,28 @@
         filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.7)) drop-shadow(0 0 8px rgba(56, 189, 248, 0.35));
     }
 }
+
+/*
+ * Bottom sheet enter and leave: the backdrop fades while the panel slides.
+ * Vue's Transition puts the class on the sheet's root for the first and
+ * last frame, and the children's own transitions do the moving.
+ */
+@layer {
+    .replay-sheet-backdrop,
+    .replay-sheet {
+        transition-duration: 200ms;
+        transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .replay-sheet-backdrop {
+        transition-property: opacity;
+    }
+
+    .replay-sheet-hidden .replay-sheet-backdrop {
+        opacity: 0;
+    }
+
+    .replay-sheet-hidden .replay-sheet {
+        transform: translateY(100%) !important;
+    }
+}

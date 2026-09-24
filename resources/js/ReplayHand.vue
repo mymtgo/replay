@@ -13,7 +13,7 @@ const props = defineProps<{
     opponent: boolean;
 }>();
 
-const { showPreview, hidePreview } = useReplayContext();
+const { showPreview, hidePreview, pinPreview } = useReplayContext();
 
 const hidden = computed(() => Math.max(0, props.count - props.cards.length));
 const slots = computed(() => props.cards.length + hidden.value);
@@ -45,6 +45,7 @@ const slots = computed(() => props.cards.length + hidden.value);
                     :style="{ flex: `0 ${i === slots - 1 ? 0 : 1} auto` }"
                     @mouseenter="showPreview($event, card)"
                     @mouseleave="hidePreview"
+                    @click="pinPreview($event, card)"
                 >
                     <div class="absolute top-0 left-0 aspect-[63/88] h-full rounded shadow-[0_1px_4px_rgba(0,0,0,.35)]">
                         <ReplayCardImage :name="card.name" :image="card.image" />

@@ -5,6 +5,8 @@ import type { ReplayCard } from './types';
 export type ReplayContext = {
     showPreview: (event: MouseEvent, card: ReplayCard) => void;
     hidePreview: () => void;
+    /** Opens the preview from a tap; mouse clicks are ignored, since hover already shows it. */
+    pinPreview: (event: MouseEvent, card: ReplayCard) => void;
     /** URL of another game in the match; null when the host has no per-game pages. */
     gameHref: ((id: number) => string) | null;
     /** Element or component that renders game links, so a host can keep in-app navigation. */

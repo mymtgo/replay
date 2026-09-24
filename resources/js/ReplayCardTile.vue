@@ -18,7 +18,7 @@ const props = defineProps<{
     last: boolean;
 }>();
 
-const { showPreview, hidePreview } = useReplayContext();
+const { showPreview, hidePreview, pinPreview } = useReplayContext();
 
 const tapped = computed(() => !!props.card.Tapped);
 const attacking = computed(() => props.card.Attacking != null);
@@ -48,6 +48,7 @@ const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5
             }"
             @mouseenter="showPreview($event, card)"
             @mouseleave="hidePreview"
+            @click="pinPreview($event, card)"
         >
             <ReplayCardImage :name="card.name" :type="card.type" :image="card.image" show-type />
 

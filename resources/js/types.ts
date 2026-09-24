@@ -76,8 +76,6 @@ export type ReplayZone = 'Hand' | 'Graveyard' | 'Exile';
 
 export type CardPreviewPosition = { left: number; top: number; width: number };
 
-export type ZonePopoverPosition = { left: number; top?: number; bottom?: number; width: number; maxHeight: number };
-
 export type ScrubTooltipView = { left: number; bottom: number; title: string; time: string; sub: string };
 
 export type ScrubHover = { frame: number; clientX: number; trackTop: number };

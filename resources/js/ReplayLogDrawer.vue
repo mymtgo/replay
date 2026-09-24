@@ -9,6 +9,8 @@ const props = defineProps<{
     current: number;
     localId: number | null;
     playerName: (id: number | undefined) => string;
+    /** Compact viewers are too narrow for a side drawer, so it covers the board. */
+    wide?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -63,8 +65,8 @@ watch(
 
 <template>
     <aside
-        class="absolute inset-y-0 right-0 z-70 flex w-85 flex-col overflow-hidden border-l border-border bg-card transition-[transform,visibility] duration-200 ease-out"
-        :class="open ? 'visible translate-x-0 shadow-[-12px_0_32px_rgba(0,0,0,.28)]' : 'invisible translate-x-[105%]'"
+        class="absolute inset-y-0 right-0 z-70 flex flex-col overflow-hidden border-l border-border bg-card transition-[transform,visibility] duration-200 ease-out"
+        :class="[wide ? 'w-full' : 'w-85', open ? 'visible translate-x-0 shadow-[-12px_0_32px_rgba(0,0,0,.28)]' : 'invisible translate-x-[105%]']"
     >
         <div class="flex h-11 flex-none items-center gap-2 border-b border-border pr-2 pl-3.5">
             <span class="text-[11px] font-bold tracking-wider uppercase">Game log</span>

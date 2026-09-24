@@ -1,4 +1,5 @@
 import { computed, type Ref } from 'vue';
+import { knownOpponentHands } from './replayKnownHand';
 import { normaliseStep } from './replayPhases';
 import { collectReveals } from './replayReveals';
 import { turnAt } from './replayTimeline';
@@ -81,8 +82,11 @@ export function useReplayBoard(frames: Ref<ReplayFrame[]>, current: Readonly<Ref
     const reveals = computed(() => collectReveals(frames.value, turns.value));
     const revealedSoFar = computed(() => reveals.value.filter((reveal) => reveal.frame <= current.value).toReversed());
 
-    /** Only the opponent's currently revealed cards; the rest of their hand is face down. */
-    const opponentHand = computed(() => cards.value.filter((card) => card.Zone === 'Hand' && card.Owner === opponent.value?.Id));
+    /** Computed once per game; playback only indexes into it. */
+    const knownHands = computed(() => knownOpponentHands(frames.value));
+
+    /** Cards of theirs we know are in hand: a reveal stays face up until the card is seen leaving. */
+    const opponentHand = computed(() => knownHands.value[current.value] ?? []);
 
     const sides = computed<ReplaySideView[]>(() =>
         [opponent.value, local.value]

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { Hand, Heart, Layers, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
-import ReplayToggleButton from './ReplayToggleButton.vue';
-import ManaSymbol from './ui/ManaSymbol.vue';
-import ReplayPanel from './ui/ReplayPanel.vue';
 import { poolSymbols } from './replayCards';
+import ReplayToggleButton from './ReplayToggleButton.vue';
 import { hudZones } from './replayZones';
 import type { ReplayPlayer, ReplayZone } from './types';
+import ManaSymbol from './ui/ManaSymbol.vue';
+import ReplayPanel from './ui/ReplayPanel.vue';
 
 const LOW_CLOCK_MS = 5 * 60 * 1000;
 
@@ -20,7 +20,8 @@ const props = defineProps<{
     /** Won this game. */
     winner: boolean;
     zoneCounts: Record<ReplayZone, number>;
-    openZone: ReplayZone | null;
+    /** Zones of this player with a window open. */
+    openZones: ReplayZone[];
 }>();
 
 const emit = defineEmits<{
@@ -90,7 +91,9 @@ const zones = computed(() => hudZones(props.opponent));
         <div class="contents @7xl:flex @7xl:flex-wrap @7xl:items-center @7xl:gap-x-3.5 @7xl:gap-y-2">
             <div v-if="player.Life != null" title="Life" class="flex flex-none items-center gap-1.25">
                 <Heart :size="15" class="text-[#e5484d]" />
-                <span class="min-w-[2ch] text-[17px] font-bold tabular-nums" :class="player.Life <= 5 ? 'text-[#e5484d]' : ''">{{ player.Life }}</span>
+                <span class="min-w-[2ch] text-[17px] font-bold tabular-nums" :class="player.Life <= 5 ? 'text-[#e5484d]' : ''">{{
+                    player.Life
+                }}</span>
             </div>
 
             <div v-if="clock" title="Chess clock" class="flex flex-none items-center gap-1" :class="clockClass">
@@ -124,7 +127,7 @@ const zones = computed(() => hudZones(props.opponent));
             <ReplayToggleButton
                 v-for="item in zones"
                 :key="item.zone"
-                :active="openZone === item.zone"
+                :active="openZones.includes(item.zone)"
                 :icon="item.icon"
                 :title="item.zone === 'Hand' ? 'Revealed cards in hand' : undefined"
                 @click="emit('toggleZone', item.zone, $event)"
