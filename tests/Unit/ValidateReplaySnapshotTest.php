@@ -127,3 +127,26 @@ it('names the offending path in the error', function () {
 
     $this->fail('Expected a ValidationException.');
 });
+
+it('accepts a game carrying your sideboard', function () {
+    $snapshot = replaySnapshot();
+    $snapshot['games'][0]['sideboard'] = [
+        ['catalog_id' => 1234, 'quantity' => 2, 'name' => 'Duress', 'type' => 'Sorcery', 'image' => 'https://cards.scryfall.io/d.jpg'],
+        ['catalog_id' => 5678, 'quantity' => 1, 'name' => null, 'type' => null, 'image' => null],
+    ];
+
+    expect(ValidateReplaySnapshot::run($snapshot))->toBe($snapshot);
+});
+
+it('rejects a malformed sideboard', function (mixed $sideboard) {
+    $snapshot = replaySnapshot();
+    $snapshot['games'][0]['sideboard'] = $sideboard;
+
+    ValidateReplaySnapshot::run($snapshot);
+})->with([
+    'not a list' => [['a' => 1]],
+    'zero quantity' => [[['catalog_id' => 1, 'quantity' => 0, 'name' => null, 'type' => null, 'image' => null]]],
+    'string id' => [[['catalog_id' => '1', 'quantity' => 1, 'name' => null, 'type' => null, 'image' => null]]],
+    'local image' => [[['catalog_id' => 1, 'quantity' => 1, 'name' => null, 'type' => null, 'image' => 'http://127.0.0.1/x.jpg']]],
+    'numeric name' => [[['catalog_id' => 1, 'quantity' => 1, 'name' => 5, 'type' => null, 'image' => null]]],
+])->throws(ValidationException::class);

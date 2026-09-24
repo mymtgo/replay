@@ -14,6 +14,8 @@ const props = defineProps<{
     timeLeft: number | null;
     winner: boolean;
     zoneCounts: Record<ReplayZone, number>;
+    /** Offer the sideboard; only yours, and only when the game recorded one. */
+    sideboard: boolean;
     /** Landscape phones stack the HUD in a narrow rail beside the board. */
     stacked: boolean;
 }>();
@@ -32,7 +34,7 @@ const clock = computed(() => {
     return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 });
 
-const zones = computed(() => hudZones(props.opponent));
+const zones = computed(() => hudZones(props.opponent, props.sideboard));
 </script>
 
 <template>

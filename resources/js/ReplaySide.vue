@@ -12,6 +12,7 @@ defineProps<{
     timeLeft: number | null;
     winner: boolean;
     zoneCounts: Record<ReplayZone, number>;
+    sideboard: boolean;
     openZones: ReplayZone[];
     pairs: Map<number, number>;
 }>();
@@ -41,6 +42,7 @@ const emit = defineEmits<{
             :time-left="timeLeft"
             :winner="winner"
             :zone-counts="zoneCounts"
+            :sideboard="sideboard"
             :open-zones="openZones"
             @toggle-zone="(zone, event) => emit('toggleZone', zone, event)"
         />

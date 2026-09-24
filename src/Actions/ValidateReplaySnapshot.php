@@ -90,6 +90,42 @@ class ValidateReplaySnapshot
 
             self::frames($game['frames'] ?? null, "games.{$g}.frames", $fail);
             self::log($game['log'] ?? null, "games.{$g}.log", $fail);
+
+            if (array_key_exists('sideboard', $game)) {
+                self::sideboard($game['sideboard'], "games.{$g}.sideboard", $fail);
+            }
+        }
+    }
+
+    /** Your sideboard as the game began; optional, since older snapshots predate it. */
+    private static function sideboard(mixed $sideboard, string $path, callable $fail): void
+    {
+        if (! is_array($sideboard) || ! array_is_list($sideboard)) {
+            $fail($path, 'Must be a list.');
+
+            return;
+        }
+
+        foreach ($sideboard as $s => $entry) {
+            if (! is_int($entry['catalog_id'] ?? null)) {
+                $fail("{$path}.{$s}.catalog_id", 'Must be an integer.');
+            }
+
+            if (! is_int($entry['quantity'] ?? null) || $entry['quantity'] < 1) {
+                $fail("{$path}.{$s}.quantity", 'Must be a positive integer.');
+            }
+
+            foreach (['name', 'type'] as $key) {
+                if (! array_key_exists($key, $entry) || ! (is_string($entry[$key]) || $entry[$key] === null)) {
+                    $fail("{$path}.{$s}.{$key}", 'Must be a string or null.');
+                }
+            }
+
+            $image = $entry['image'] ?? null;
+
+            if ($image !== null && (! is_string($image) || ! str_starts_with($image, 'https://'))) {
+                $fail("{$path}.{$s}.image", 'Must be a remote https URL or null.');
+            }
         }
     }
 

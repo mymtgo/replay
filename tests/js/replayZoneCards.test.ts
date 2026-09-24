@@ -18,3 +18,12 @@ test('the hand zone lists what was revealed', () => {
 
     assert.equal(zoneCardsFor([card(1, 'Graveyard')], revealed, 2, 'Hand'), revealed);
 });
+
+test('the sideboard lists its cards by name', () => {
+    const cards = [{ ...card(9, 'Sideboard'), name: 'Wear // Tear' }, { ...card(3, 'Sideboard'), name: 'Duress' }, { ...card(5, 'Sideboard', 1), name: 'Abrade' }];
+
+    assert.deepEqual(
+        zoneCardsFor(cards, [], 2, 'Sideboard').map((item) => item.name),
+        ['Duress', 'Wear // Tear'],
+    );
+});

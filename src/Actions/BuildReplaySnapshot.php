@@ -20,7 +20,13 @@ class BuildReplaySnapshot
      * numbering the desktop picker uses, so a game with no recorded frames
      * leaves a gap rather than renumbering the rest.
      *
-     * @param  array{format: ?string, played_at: string, local_archetype: ?string, opponent_archetype: ?string, games: list<array{won: ?bool, local_username: ?string, timeline: list<array{timestamp: string, content: array<string, mixed>}>, log: list<array{timestamp: string, message: string}>}>}  $match
+     * A game's `sideboard` is your sideboard as it began, one entry per card
+     * with its quantity; given, it travels resolved like frame cards, so the
+     * viewer can show what you sided in and out whatever recorded the frames.
+     * Only yours: the opponent's is never known, and your main deck stays
+     * home. Left out when empty, since an empty list means it went unrecorded.
+     *
+     * @param  array{format: ?string, played_at: string, local_archetype: ?string, opponent_archetype: ?string, games: list<array{won: ?bool, local_username: ?string, timeline: list<array{timestamp: string, content: array<string, mixed>}>, log: list<array{timestamp: string, message: string}>, sideboard?: list<array{mtgo_id: int, quantity: int}>|null}>}  $match
      * @param  callable(list<int>): array<int, array{name: ?string, type: ?string, image: ?string}>  $cards
      * @return array<string, mixed>
      */
@@ -33,12 +39,21 @@ class BuildReplaySnapshot
                 continue;
             }
 
-            $snapshots[] = [
+            $sideboard = $game['sideboard'] ?? [];
+            $resolved = self::resolve($game['timeline'], $sideboard, $cards);
+
+            $snapshot = [
                 'game_number' => $index + 1,
                 'won' => $game['won'],
-                'frames' => self::frames($game['timeline'], $game['local_username'], $cards),
+                'frames' => self::frames($game['timeline'], $game['local_username'], $resolved),
                 'log' => $game['log'],
             ];
+
+            if ($sideboard !== []) {
+                $snapshot['sideboard'] = self::sideboard($sideboard, $resolved);
+            }
+
+            $snapshots[] = $snapshot;
         }
 
         $format = self::formatKey($match['format']);
@@ -74,15 +89,14 @@ class BuildReplaySnapshot
     }
 
     /**
-     * A game's timeline as the viewer consumes it: every card carries its
-     * name, type and image, and every player whether they are the local one.
-     * Only https images survive, since anything else points at the sharer's
-     * own machine.
+     * Name, type and image for every card a game mentions, frames and
+     * sideboard alike, in one call to the host's resolver.
      *
      * @param  list<array{timestamp: string, content: array<string, mixed>}>  $timeline
-     * @return list<array{timestamp: string, content: array<string, mixed>}>
+     * @param  list<array{mtgo_id: int, quantity: int}>  $sideboard
+     * @return array<int, array{name: ?string, type: ?string, image: ?string}>
      */
-    private static function frames(array $timeline, ?string $localUsername, callable $cards): array
+    private static function resolve(array $timeline, array $sideboard, callable $cards): array
     {
         $catalogIds = [];
 
@@ -92,7 +106,25 @@ class BuildReplaySnapshot
             }
         }
 
-        $resolved = $catalogIds === [] ? [] : $cards(array_keys($catalogIds));
+        foreach ($sideboard as $entry) {
+            $catalogIds[(int) $entry['mtgo_id']] = true;
+        }
+
+        return $catalogIds === [] ? [] : $cards(array_keys($catalogIds));
+    }
+
+    /**
+     * A game's timeline as the viewer consumes it: every card carries its
+     * name, type and image, and every player whether they are the local one.
+     * Only https images survive, since anything else points at the sharer's
+     * own machine.
+     *
+     * @param  list<array{timestamp: string, content: array<string, mixed>}>  $timeline
+     * @param  array<int, array{name: ?string, type: ?string, image: ?string}>  $resolved
+     * @return list<array{timestamp: string, content: array<string, mixed>}>
+     */
+    private static function frames(array $timeline, ?string $localUsername, array $resolved): array
+    {
         $frames = [];
 
         foreach ($timeline as $event) {
@@ -115,5 +147,29 @@ class BuildReplaySnapshot
         }
 
         return $frames;
+    }
+
+    /**
+     * Your sideboard with each card's name, type and image, https images only.
+     *
+     * @param  list<array{mtgo_id: int, quantity: int}>  $sideboard
+     * @param  array<int, array{name: ?string, type: ?string, image: ?string}>  $resolved
+     * @return list<array{catalog_id: int, quantity: int, name: ?string, type: ?string, image: ?string}>
+     */
+    private static function sideboard(array $sideboard, array $resolved): array
+    {
+
+        return array_map(function (array $entry) use ($resolved) {
+            $known = $resolved[(int) $entry['mtgo_id']] ?? null;
+            $image = $known['image'] ?? null;
+
+            return [
+                'catalog_id' => (int) $entry['mtgo_id'],
+                'quantity' => (int) $entry['quantity'],
+                'name' => $known['name'] ?? null,
+                'type' => $known['type'] ?? null,
+                'image' => is_string($image) && str_starts_with($image, 'https://') ? $image : null,
+            ];
+        }, $sideboard);
     }
 }

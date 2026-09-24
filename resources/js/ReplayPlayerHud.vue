@@ -20,6 +20,8 @@ const props = defineProps<{
     /** Won this game. */
     winner: boolean;
     zoneCounts: Record<ReplayZone, number>;
+    /** Offer the sideboard; only yours, and only when the game recorded one. */
+    sideboard: boolean;
     /** Zones of this player with a window open. */
     openZones: ReplayZone[];
 }>();
@@ -48,7 +50,7 @@ const clockClass = computed(() => {
     return props.priority ? 'text-foreground' : 'text-muted-foreground';
 });
 
-const zones = computed(() => hudZones(props.opponent));
+const zones = computed(() => hudZones(props.opponent, props.sideboard));
 </script>
 
 <template>

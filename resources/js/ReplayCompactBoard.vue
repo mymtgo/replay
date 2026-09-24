@@ -49,6 +49,7 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
                     :time-left="clocks.get(side.player.Id) ?? null"
                     :winner="side.player.Id === winnerId"
                     :zone-counts="side.zoneCounts"
+                    :sideboard="side.sideboard"
                     stacked
                     @open-zone="(zone, event) => emit('openZone', side.player.Id, zone, event)"
                 />
@@ -65,6 +66,7 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
                 :time-left="clocks.get(opponentSide.player.Id) ?? null"
                 :winner="opponentSide.player.Id === winnerId"
                 :zone-counts="opponentSide.zoneCounts"
+                :sideboard="opponentSide.sideboard"
                 :stacked="false"
                 @open-zone="(zone, event) => emit('openZone', opponentSide!.player.Id, zone, event)"
             />
@@ -106,6 +108,7 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
                 :time-left="clocks.get(localSide.player.Id) ?? null"
                 :winner="localSide.player.Id === winnerId"
                 :zone-counts="localSide.zoneCounts"
+                :sideboard="localSide.sideboard"
                 :stacked="false"
                 class="mb-1.5"
                 @open-zone="(zone, event) => emit('openZone', localSide!.player.Id, zone, event)"

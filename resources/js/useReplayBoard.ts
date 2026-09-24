@@ -2,8 +2,9 @@ import { computed, type Ref } from 'vue';
 import { knownOpponentHands } from './replayKnownHand';
 import { normaliseStep } from './replayPhases';
 import { collectReveals } from './replayReveals';
+import { gameSideboard, sideboardAtStart } from './replaySideboard';
 import { turnAt } from './replayTimeline';
-import type { ReplayCard, ReplayFrame, ReplayPlayer, ReplayTurn, ReplayZone } from './types';
+import type { ReplayCard, ReplayFrame, ReplayPlayer, ReplaySideboardEntry, ReplayTurn, ReplayZone } from './types';
 
 export type ReplaySideView = {
     player: ReplayPlayer;
@@ -13,6 +14,8 @@ export type ReplaySideView = {
     battlefield: ReplayCard[];
     /** Visible cards per zone; an opponent's hand counts every card revealed so far. */
     zoneCounts: Record<ReplayZone, number>;
+    /** Whether the HUD offers a sideboard: yours, when the game recorded one. */
+    sideboard: boolean;
 };
 
 /**
@@ -34,7 +37,12 @@ function resolvePlayedFaces(cards: ReplayCard[]): ReplayCard[] {
 }
 
 /** Everything the board shows for the frame under the cursor. */
-export function useReplayBoard(frames: Ref<ReplayFrame[]>, current: Readonly<Ref<number>>, turns: Ref<ReplayTurn[]>) {
+export function useReplayBoard(
+    frames: Ref<ReplayFrame[]>,
+    current: Readonly<Ref<number>>,
+    turns: Ref<ReplayTurn[]>,
+    sideboardEntries: Readonly<Ref<ReplaySideboardEntry[] | null>>,
+) {
     const frame = computed(() => frames.value[current.value] ?? null);
     const content = computed(() => frame.value?.content ?? null);
     const players = computed(() => content.value?.Players ?? []);
@@ -54,6 +62,23 @@ export function useReplayBoard(frames: Ref<ReplayFrame[]>, current: Readonly<Ref
     function zoneCount(id: number, zone: ReplayZone): number {
         return cards.value.filter((card) => card.Zone === zone && card.Owner === id).length;
     }
+
+    /** Your sideboard as the game began, recorded entries first; computed once per game. */
+    const startingSideboard = computed(() => gameSideboard(frames.value, sideboardEntries.value));
+    /** Whether the frames themselves hold your sideboard; the sidecar's never do. */
+    const framesHoldSideboard = computed(() => sideboardAtStart(frames.value) !== null);
+
+    /**
+     * Your sideboard for the window: live from the frame when the frames hold
+     * it, so a card fetched mid-game leaves, otherwise as the game began.
+     */
+    const sideboard = computed(() => {
+        if (framesHoldSideboard.value) {
+            return cards.value.filter((card) => card.Zone === 'Sideboard' && card.Owner === local.value?.Id);
+        }
+
+        return startingSideboard.value ?? [];
+    });
 
     /** Blockers and the attackers they block share a number. */
     const pairs = computed(() => {
@@ -101,9 +126,11 @@ export function useReplayBoard(frames: Ref<ReplayFrame[]>, current: Readonly<Ref
                     Hand: player.Id === local.value?.Id ? zoneCount(player.Id, 'Hand') : revealedSoFar.value.length,
                     Graveyard: zoneCount(player.Id, 'Graveyard'),
                     Exile: zoneCount(player.Id, 'Exile'),
+                    Sideboard: player.Id === local.value?.Id ? sideboard.value.length : 0,
                 },
+                sideboard: player.Id === local.value?.Id && startingSideboard.value !== null,
             })),
     );
 
-    return { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName };
+    return { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName, startingSideboard, sideboard };
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, provide, shallowRef, useTemplateRef, watch, type Component } from 'vue';
+import { computed, provide, shallowRef, toRef, useTemplateRef, watch, type Component } from 'vue';
 import ReplayCardPreview from './ReplayCardPreview.vue';
 import ReplayCompactBoard from './ReplayCompactBoard.vue';
 import ReplayCompactTransport from './ReplayCompactTransport.vue';
@@ -15,6 +15,8 @@ import { phaseMissingText, stepLabel } from './replayPhases';
 import ReplayScrubber from './ReplayScrubber.vue';
 import ReplayScrubTooltip from './ReplayScrubTooltip.vue';
 import ReplaySheet from './ReplaySheet.vue';
+import ReplaySideboardChanges from './ReplaySideboardChanges.vue';
+import { sideboardCaptions, sideboardChanges, type ReplaySideboardBaseline } from './replaySideboard';
 import ReplaySide from './ReplaySide.vue';
 import ReplayStack from './ReplayStack.vue';
 import { normaliseFrames } from './replayFrames';
@@ -22,7 +24,7 @@ import { buildLogItems, deriveTurns } from './replayTimeline';
 import ReplayTransport from './ReplayTransport.vue';
 import { REPLAY_ZONES } from './replayZones';
 import ReplayZoneWindow from './ReplayZoneWindow.vue';
-import type { ReplayFrame, ReplayLogEntry, ReplayMatchGame, ReplayZone } from './types';
+import type { ReplayCard, ReplayFrame, ReplayLogEntry, ReplayMatchGame, ReplaySideboardEntry, ReplayZone } from './types';
 import { useCardPreview } from './useCardPreview';
 import { useReplayBoard } from './useReplayBoard';
 import { useReplayClocks } from './useReplayClocks';
@@ -52,8 +54,19 @@ const props = withDefaults(
          * listens instead of passing `gameHref`, and the picker switches in place.
          */
         onSelectGame?: (id: number) => void;
+        /**
+         * Your sideboard as the previous recorded game of the match began,
+         * so the sideboard window can show what you sided in and out. Null
+         * for a first game or when the host has no other game.
+         */
+        previousSideboard?: ReplaySideboardBaseline | null;
+        /**
+         * Your sideboard as this game began, when the host recorded it. The
+         * viewer falls back to the frames, which only log-built games fill.
+         */
+        sideboard?: ReplaySideboardEntry[] | null;
     }>(),
-    { gameHref: undefined, linkComponent: 'a' },
+    { gameHref: undefined, linkComponent: 'a', previousSideboard: null, sideboard: null },
 );
 
 const root = useTemplateRef<HTMLElement>('root');
@@ -67,8 +80,8 @@ const logItems = computed(() => buildLogItems(frames.value, props.log, turns.val
 const playback = useReplayPlayback(frames, turns);
 const { current, playing, speed, markers } = playback;
 
-const { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName } =
-    useReplayBoard(frames, current, turns);
+const { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName, startingSideboard, sideboard } =
+    useReplayBoard(frames, current, turns, toRef(props, 'sideboard'));
 
 const clocks = useReplayClocks(frames, current, playing, speed);
 
@@ -208,6 +221,31 @@ const handCaptions = computed(() => {
         }),
     );
 });
+/**
+ * What you sided in and out since the previous game. Both ends are taken as
+ * each game began, so a card fetched from the sideboard mid-game is not
+ * counted; the window's list itself follows the frame.
+ */
+const sideboardDiff = computed(() =>
+    props.previousSideboard && startingSideboard.value ? sideboardChanges(props.previousSideboard.cards, startingSideboard.value) : null,
+);
+/** Your sideboard as the window lists it, by name. */
+const sideboardList = computed(() => [...sideboard.value].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')));
+/** Marks the copies in your sideboard that came out of the deck for this game. */
+const sideboardNotes = computed(() => (sideboardDiff.value ? sideboardCaptions(sideboardList.value, sideboardDiff.value) : null));
+
+function windowCards(player: number, zone: ReplayZone): ReplayCard[] {
+    return zone === 'Sideboard' ? sideboardList.value : zoneCardsFor(cards.value, revealedCards.value, player, zone);
+}
+
+function windowCaptions(zone: ReplayZone): Map<number, string> | null {
+    if (zone === 'Hand') {
+        return handCaptions.value;
+    }
+
+    return zone === 'Sideboard' ? sideboardNotes.value : null;
+}
+
 /** Synced matches carry ISO timestamps; show only the time, as desktop replays do. */
 const clockTime = computed(() => {
     const timestamp = frame.value?.timestamp ?? '';
@@ -285,6 +323,7 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                         :time-left="clocks.get(side.player.Id) ?? null"
                         :winner="side.player.Id === winnerId"
                         :zone-counts="side.zoneCounts"
+                        :sideboard="side.sideboard"
                         :open-zones="openZonesFor(side.player.Id)"
                         :pairs="pairs"
                         @toggle-zone="(zone, event) => toggleZoneWindow(side.player.Id, zone, event, side.opponent)"
@@ -438,11 +477,11 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                     :key="item.key"
                     :title="zoneTitle(item.player, item.zone)"
                     :zone="item.zone"
-                    :cards="zoneCardsFor(cards, revealedCards, item.player, item.zone)"
-                    :captions="item.zone === 'Hand' ? handCaptions : null"
+                    :cards="windowCards(item.player, item.zone)"
+                    :captions="windowCaptions(item.zone)"
                     :left="item.left"
                     :top="item.top"
-                :size="item.size"
+                    :size="item.size"
                     :z="item.z"
                     :compact="compact"
                     @close="zoneWindows.close(item.key)"
@@ -450,7 +489,14 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                     @drag-start="(event, element) => zoneWindows.startDrag(item.key, event, element)"
                     @resize-start="(event, element) => zoneWindows.startResize(item.key, event, element)"
                     @mounted="(element) => zoneWindows.settle(item.key, element)"
-                />
+                >
+                    <ReplaySideboardChanges
+                        v-if="item.zone === 'Sideboard' && sideboardDiff && previousSideboard"
+                        :game="previousSideboard.game"
+                        :changes="sideboardDiff"
+                        :small="compact"
+                    />
+                </ReplayZoneWindow>
             </div>
 
             <ReplayCardPreview

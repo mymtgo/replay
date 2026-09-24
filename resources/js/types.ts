@@ -74,13 +74,19 @@ export type ReplayLogItem = {
     player: number | null;
 };
 
-export type ReplayZone = 'Hand' | 'Graveyard' | 'Exile';
+export type ReplayZone = 'Hand' | 'Graveyard' | 'Exile' | 'Sideboard';
 
 export type CardPreviewPosition = { left: number; top: number; width: number };
 
 export type ScrubTooltipView = { left: number; bottom: number; title: string; time: string; sub: string };
 
 export type ScrubHover = { frame: number; clientX: number; trackTop: number };
+
+/**
+ * One card of your sideboard as a game began, recorded beside the frames
+ * because some recorders never put the sideboard in them.
+ */
+export type ReplaySideboardEntry = { catalog_id: number; quantity: number; name: string | null; type: string | null; image: string | null };
 
 /** One game of the match being replayed; `won` is from your side, null when unknown. */
 export type ReplayMatchGame = { id: number; number: number; won: boolean | null };

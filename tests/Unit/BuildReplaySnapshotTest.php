@@ -134,3 +134,37 @@ it('writes a null format when there is none', function () {
 
     expect($snapshot['meta']['format'])->toBeNull();
 });
+
+it('carries your sideboard as the game began, with card fields filled', function () {
+    $game = buildGameInput([buildTimelineRow()]) + ['sideboard' => [['mtgo_id' => 1234, 'quantity' => 2], ['mtgo_id' => 5678, 'quantity' => 1]]];
+
+    $snapshot = BuildReplaySnapshot::run(buildMatchInput([$game]), buildCardResolver());
+
+    expect($snapshot['games'][0]['sideboard'])->toBe([
+        ['catalog_id' => 1234, 'quantity' => 2, 'name' => 'Ragavan, Nimble Pilferer', 'type' => 'Legendary Creature', 'image' => 'https://cards.scryfall.io/a.jpg'],
+        ['catalog_id' => 5678, 'quantity' => 1, 'name' => 'Island', 'type' => 'Basic Land', 'image' => null],
+    ]);
+});
+
+it('leaves the sideboard out when the game has none recorded', function () {
+    $snapshot = BuildReplaySnapshot::run(buildMatchInput([
+        buildGameInput([buildTimelineRow()]),
+        buildGameInput([buildTimelineRow()]) + ['sideboard' => []],
+    ]), buildCardResolver());
+
+    expect($snapshot['games'][0])->not->toHaveKey('sideboard')
+        ->and($snapshot['games'][1])->not->toHaveKey('sideboard');
+});
+
+it('resolves sideboard cards the timeline never shows', function () {
+    $asked = [];
+    $cards = function (array $ids) use (&$asked) {
+        $asked = $ids;
+
+        return [];
+    };
+
+    BuildReplaySnapshot::run(buildMatchInput([buildGameInput([buildTimelineRow()]) + ['sideboard' => [['mtgo_id' => 999, 'quantity' => 1]]]]), $cards);
+
+    expect($asked)->toContain(999)->toContain(1234);
+});

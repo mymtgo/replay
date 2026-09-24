@@ -79,6 +79,7 @@ const ORDER_HINTS: Partial<Record<ReplayZone, string>> = { Graveyard: 'top first
             </button>
         </div>
         <ReplayZoneCards :zone="zone" :cards="cards" :captions="captions" :small="compact" />
+        <slot />
 
         <!-- Resize grip; a touch target on phones, a small corner on desktop. -->
         <div
