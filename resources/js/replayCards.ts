@@ -3,9 +3,10 @@ import type { ReplayCard } from './types';
 const FRONT_ROW_TYPES = ['Creature', 'Planeswalker', 'Battle'];
 
 /**
- * Whether a permanent belongs on the front row. An impending enchantment
- * creature with time counters is not a creature yet, so it sits back with
- * the lands and other non-creature permanents.
+ * Whether a permanent belongs on the front row. A land that is also a
+ * creature (Dryad Arbor) fights like one, so it sits with the creatures. An
+ * impending enchantment creature with time counters is not a creature yet,
+ * so it sits back with the lands and other non-creature permanents.
  */
 export function isFrontRow(card: ReplayCard): boolean {
     const type = card.type ?? '';
@@ -14,7 +15,7 @@ export function isFrontRow(card: ReplayCard): boolean {
         return card.Power != null;
     }
 
-    if (type.includes('Land')) {
+    if (type.includes('Land') && !type.includes('Creature')) {
         return false;
     }
 

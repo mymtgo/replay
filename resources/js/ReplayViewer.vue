@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, provide, shallowRef, toRef, useTemplateRef, watch, type Component } from 'vue';
+import { computed, provide, shallowRef, useTemplateRef, watch, type Component } from 'vue';
 import ReplayCardPreview from './ReplayCardPreview.vue';
 import ReplayCompactBoard from './ReplayCompactBoard.vue';
 import ReplayCompactTransport from './ReplayCompactTransport.vue';
@@ -17,6 +17,7 @@ import ReplayScrubTooltip from './ReplayScrubTooltip.vue';
 import ReplaySheet from './ReplaySheet.vue';
 import ReplaySide from './ReplaySide.vue';
 import ReplayStack from './ReplayStack.vue';
+import { normaliseFrames } from './replayFrames';
 import { buildLogItems, deriveTurns } from './replayTimeline';
 import ReplayTransport from './ReplayTransport.vue';
 import { REPLAY_ZONES } from './replayZones';
@@ -56,11 +57,12 @@ const props = withDefaults(
 );
 
 const root = useTemplateRef<HTMLElement>('root');
-const frames = toRef(props, 'frames');
+/** Every card in the zone it is really in; see normaliseFrames. */
+const frames = computed(() => normaliseFrames(props.frames));
 
-const total = computed(() => props.frames.length);
-const turns = computed(() => deriveTurns(props.frames, props.log));
-const logItems = computed(() => buildLogItems(props.frames, props.log, turns.value));
+const total = computed(() => frames.value.length);
+const turns = computed(() => deriveTurns(frames.value, props.log));
+const logItems = computed(() => buildLogItems(frames.value, props.log, turns.value));
 
 const playback = useReplayPlayback(frames, turns);
 const { current, playing, speed, markers } = playback;
@@ -161,7 +163,7 @@ useReplayKeyboard({
 
 const activeName = computed(() => (activeId.value !== null ? playerName(activeId.value) : null));
 const activeIsLocal = computed(() => activeId.value !== null && activeId.value === local.value?.Id);
-const phasesRecorded = computed(() => props.frames.some((item) => item.content.Step != null || item.content.Phase != null));
+const phasesRecorded = computed(() => frames.value.some((item) => item.content.Step != null || item.content.Phase != null));
 const atEnd = computed(() => total.value > 0 && current.value === total.value - 1);
 
 /** Seat of the game's winner, held back until the final frame so the replay does not spoil the result. */

@@ -18,6 +18,8 @@ export type ReplayCard = {
     Id: number;
     CatalogID: number;
     Zone: string;
+    /** Where the card really is when MTGO displays it elsewhere, e.g. `Exile` for an imprinted card shown as `Battlefield`. */
+    ActualZone?: string;
     Owner: number;
     Controller?: number;
     Tapped?: boolean;
