@@ -63,7 +63,7 @@ const turns = computed(() => deriveTurns(props.frames, props.log));
 const logItems = computed(() => buildLogItems(props.frames, props.log, turns.value));
 
 const playback = useReplayPlayback(frames, turns);
-const { current, playing, speed } = playback;
+const { current, playing, speed, markers } = playback;
 
 const { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName } =
     useReplayBoard(frames, current, turns);
@@ -206,6 +206,13 @@ const handCaptions = computed(() => {
         }),
     );
 });
+/** Synced matches carry ISO timestamps; show only the time, as desktop replays do. */
+const clockTime = computed(() => {
+    const timestamp = frame.value?.timestamp ?? '';
+
+    return timestamp.includes('T') ? timestamp.slice(timestamp.indexOf('T') + 1).replace(/(Z|[+-]\d{2}:?\d{2})$/, '') : timestamp;
+});
+
 const missingText = computed(() => phaseMissingText(phasesRecorded.value, turn.value?.number ?? null));
 const currentStepLabel = computed(() => (step.value ? stepLabel(step.value) : null));
 
@@ -327,11 +334,12 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
             <ReplayTransport
                 v-else
                 :turns="turns"
+                :markers="markers"
                 :current="current"
                 :total="total"
                 :playing="playing"
                 :speed="speed"
-                :timestamp="frame?.timestamp ?? ''"
+                :timestamp="clockTime"
                 :local-id="localId"
                 :log-open="logOpen"
                 :fullscreen-supported="fullscreen.supported.value"
@@ -372,12 +380,13 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                     />
                     <div v-else-if="sheet === 'timeline'" class="flex flex-col gap-3 px-4 pb-4">
                         <div class="flex items-baseline justify-between gap-2">
-                            <span class="font-mono text-[12.5px] tabular-nums">{{ frame?.timestamp ?? '' }}</span>
+                            <span class="font-mono text-[12.5px] tabular-nums">{{ clockTime }}</span>
                             <span class="text-[11px] text-muted-foreground tabular-nums">{{ current + 1 }} / {{ total }}</span>
                         </div>
                         <div class="flex">
                             <ReplayScrubber
                                 :turns="turns"
+                                :markers="markers"
                                 :current="current"
                                 :total="total"
                                 :local-id="localId"

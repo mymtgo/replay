@@ -5,9 +5,14 @@ const TURN_LINE = /^Turn \d+:?\s*$/;
 /** Two turn-start candidates this close together are the same turn seen by two sources. */
 const SAME_TURN_WINDOW_MS = 2000;
 
-/** Milliseconds since midnight for an `H:i:s` or `H:i:s.v` timestamp. */
+/**
+ * Milliseconds since midnight for an `H:i:s` or `H:i:s.v` timestamp. Frames
+ * from a synced match carry ISO timestamps instead, so a date prefix and a
+ * zone suffix are dropped first; only gaps between frames matter here.
+ */
 export function timestampMs(timestamp: string): number {
-    const [clock, fraction] = timestamp.split('.');
+    const time = timestamp.includes('T') ? timestamp.slice(timestamp.indexOf('T') + 1).replace(/(Z|[+-]\d{2}:?\d{2})$/, '') : timestamp;
+    const [clock, fraction] = time.split('.');
     const [h, m, s] = clock.split(':').map(Number);
 
     return ((h || 0) * 3600 + (m || 0) * 60 + (s || 0)) * 1000 + Number((fraction ?? '0').padEnd(3, '0').slice(0, 3));
@@ -132,4 +137,44 @@ export function buildLogItems(frames: ReplayFrame[], log: ReplayLogEntry[], turn
 /** The turn a frame falls in. */
 export function turnAt(turns: ReplayTurn[], frame: number): ReplayTurn | null {
     return turns.find((turn) => frame >= turn.from && frame < turn.to) ?? null;
+}
+
+/** Whether any turn could be numbered; games recorded from the MTGO log alone carry none. */
+export function hasNumberedTurns(turns: ReplayTurn[]): boolean {
+    return turns.some((turn) => turn.number !== null);
+}
+
+/** Zones where a card arriving is something happening, not hand or library churn. */
+const NOTABLE_ZONES = new Set(['Stack', 'Battlefield']);
+
+/**
+ * Frames where something visible happened: a card reached the stack or the
+ * battlefield, a permanent left the battlefield, or a life total moved.
+ * Without turn data these are what the scrubber marks and what the skip
+ * buttons jump between, so skipping lands on plays rather than on draws.
+ */
+export function notableFrames(frames: ReplayFrame[]): number[] {
+    const notable: number[] = [];
+
+    frames.forEach((frame, index) => {
+        const previous = frames[index - 1];
+
+        if (!previous) {
+            return;
+        }
+
+        const before = new Map(previous.content.Cards.map((card) => [card.Id, card.Zone]));
+        const onBattlefield = new Set(frame.content.Cards.filter((card) => card.Zone === 'Battlefield').map((card) => card.Id));
+        const lives = new Map(previous.content.Players.map((player) => [player.Id, player.Life]));
+
+        const arrived = frame.content.Cards.some((card) => NOTABLE_ZONES.has(card.Zone) && before.get(card.Id) !== card.Zone);
+        const left = [...before].some(([id, zone]) => zone === 'Battlefield' && !onBattlefield.has(id));
+        const lifeMoved = frame.content.Players.some((player) => lives.has(player.Id) && lives.get(player.Id) !== player.Life);
+
+        if (arrived || left || lifeMoved) {
+            notable.push(index);
+        }
+    });
+
+    return notable;
 }

@@ -1,5 +1,5 @@
 import { computed, onUnmounted, readonly, shallowRef, watch, type Ref } from 'vue';
-import { timestampMs } from './replayTimeline';
+import { hasNumberedTurns, notableFrames, timestampMs } from './replayTimeline';
 import type { ReplayFrame, ReplayTurn } from './types';
 
 export const REPLAY_SPEEDS = [0.5, 1, 1.5, 2, 4];
@@ -32,6 +32,14 @@ export function frameDuration(frames: ReplayFrame[], index: number, speed: numbe
 /** Frame cursor, play/pause and turn jumps for a replay. */
 export function useReplayPlayback(frames: Ref<ReplayFrame[]>, turns: Ref<ReplayTurn[]>) {
     const frameCount = computed(() => frames.value.length);
+
+    /**
+     * Where the skip buttons land: turn starts when the game recorded turns,
+     * otherwise every frame where something visible happened, so a game
+     * without turn data skips play by play rather than straight to its end.
+     */
+    const markers = computed(() => (hasNumberedTurns(turns.value) ? [] : notableFrames(frames.value)));
+    const stops = computed(() => (hasNumberedTurns(turns.value) ? turns.value.map((turn) => turn.from) : [0, ...markers.value]));
     const current = shallowRef(0);
     const playing = shallowRef(false);
     const speed = shallowRef(1);
@@ -108,30 +116,30 @@ export function useReplayPlayback(frames: Ref<ReplayFrame[]>, turns: Ref<ReplayT
      */
     function jumpTurn(direction: -1 | 1) {
         pause();
-        const bounds = turns.value;
+        const bounds = stops.value;
 
         if (direction > 0) {
-            const next = bounds.find((turn) => turn.from > current.value);
-            seek(next ? next.from : frameCount.value - 1);
+            const next = bounds.find((from) => from > current.value);
+            seek(next ?? frameCount.value - 1);
 
             return;
         }
 
-        const index = bounds.findLastIndex((turn) => turn.from <= current.value);
-        const turn = bounds[index];
+        const index = bounds.findLastIndex((from) => from <= current.value);
+        const from = bounds[index];
 
-        if (turn && current.value - turn.from > 1) {
-            seek(turn.from);
+        if (from !== undefined && current.value - from > 1) {
+            seek(from);
 
             return;
         }
 
-        seek(bounds[index - 1]?.from ?? 0);
+        seek(bounds[index - 1] ?? 0);
     }
 
     watch(frameCount, () => seek(current.value));
 
     onUnmounted(stopTimer);
 
-    return { current: readonly(current), playing: readonly(playing), speed: readonly(speed), seek, step, toggle, pause, setSpeed, jumpTurn };
+    return { current: readonly(current), playing: readonly(playing), speed: readonly(speed), markers, seek, step, toggle, pause, setSpeed, jumpTurn };
 }

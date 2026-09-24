@@ -12,6 +12,8 @@ const props = defineProps<{
     total: number;
     localId: number | null;
     playerName: (id: number | undefined) => string;
+    /** Frames where something happened, marked when the game has no turns to segment by. */
+    markers?: number[];
 }>();
 
 const emit = defineEmits<{
@@ -42,6 +44,9 @@ const segments = computed(() =>
         };
     }),
 );
+
+/** Past marks read brighter, so the track shows how far into the game's events you are. */
+const ticks = computed(() => (props.markers ?? []).map((frame) => ({ frame, left: ((frame + 0.5) / props.total) * 100, past: frame <= props.current })));
 
 const knob = computed(() => ((props.current + 0.5) / props.total) * 100);
 
@@ -123,6 +128,14 @@ function jump(turn: ReplayTurn) {
                 T{{ segment.turn.number }}
             </button>
         </div>
+        <div
+            v-for="tick in ticks"
+            :key="tick.frame"
+            aria-hidden="true"
+            class="pointer-events-none absolute inset-y-1.5 -ml-px w-0.5 rounded-full"
+            :class="tick.past ? 'bg-foreground/70' : 'bg-foreground/25'"
+            :style="{ left: `${tick.left}%` }"
+        />
         <div
             class="pointer-events-none absolute -inset-y-1 -ml-[1.5px] w-0.75 rounded-sm bg-foreground shadow-[0_0_0_2px_var(--card)] transition-[left] duration-100 ease-linear"
             :style="{ left: `${knob}%` }"

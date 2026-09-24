@@ -10,6 +10,8 @@ import { REPLAY_SPEEDS } from './useReplayPlayback';
 
 defineProps<{
     turns: ReplayTurn[];
+    /** Frames to mark on the scrubber when there are no turns. */
+    markers: number[];
     current: number;
     total: number;
     playing: boolean;
@@ -78,6 +80,7 @@ const iconButton = 'grid size-8 cursor-pointer place-items-center rounded-md hov
 
             <ReplayScrubber
                 :turns="turns"
+                :markers="markers"
                 :current="current"
                 :total="total"
                 :local-id="localId"
