@@ -76,14 +76,89 @@ export function backRowGroups(cards: ReplayCard[]): CardGroup[] {
     return groups;
 }
 
-export function counterLabel(kind: string, count: number): string {
-    return kind === '+1/+1' ? `+${count}/+${count}` : `${count} ${kind.toLowerCase()}`;
+const ptWords: Record<string, number> = { Zero: 0, One: 1, Two: 2 };
+
+/**
+ * What one counter of this kind does to power and toughness, or null when it
+ * is not a P/T counter. MTGO names them `PlusOnePlusOne`, `MinusTwoMinusOne`
+ * and so on; `+1/+1` is how older shared snapshots spelled the common one.
+ */
+export function ptCounterDelta(kind: string): [number, number] | null {
+    const match = /^([+-])(\d)\/([+-])(\d)$/.exec(kind) ?? /^(Plus|Minus)(Zero|One|Two)(Plus|Minus)(Zero|One|Two)$/.exec(kind);
+
+    if (!match) {
+        return null;
+    }
+
+    const sign = (s: string) => (s === '+' || s === 'Plus' ? 1 : -1);
+    const size = (n: string) => ptWords[n] ?? Number(n);
+
+    return [sign(match[1]) * size(match[2]), sign(match[3]) * size(match[4])];
 }
 
-export function counterList(card: ReplayCard): { kind: string; label: string }[] {
-    return Object.entries(card.Counters ?? {})
-        .filter(([, count]) => count > 0)
-        .map(([kind, count]) => ({ kind, label: counterLabel(kind, count) }));
+/** A counter kind as a reader says it: `PlusOnePlusOne` is "+1/+1", `Firststrike` is "first strike". */
+export function counterName(kind: string): string {
+    const pt = ptCounterDelta(kind);
+
+    if (pt) {
+        const signed = (n: number) => (n < 0 ? `${n}` : `+${n}`);
+
+        return `${signed(pt[0])}/${signed(pt[1])}`;
+    }
+
+    const joined: Record<string, string> = { Firststrike: 'first strike', Doublestrike: 'double strike' };
+
+    return joined[kind] ?? kind.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+}
+
+export function counterLabel(kind: string, count: number): string {
+    return `${count} ${counterName(kind)} counter${count === 1 ? '' : 's'}`;
+}
+
+function liveCounters(card: ReplayCard): [string, number][] {
+    return Object.entries(card.Counters ?? {}).filter(([, count]) => count > 0);
+}
+
+/**
+ * Every P/T counter on the card netted into one modifier, "+34/+34", or null
+ * when there are none or they cancel out.
+ */
+export function ptCounterLabel(card: ReplayCard): string | null {
+    let power = 0;
+    let toughness = 0;
+    let any = false;
+
+    liveCounters(card).forEach(([kind, count]) => {
+        const pt = ptCounterDelta(kind);
+
+        if (pt) {
+            power += pt[0] * count;
+            toughness += pt[1] * count;
+            any = true;
+        }
+    });
+
+    if (!any || (power === 0 && toughness === 0)) {
+        return null;
+    }
+
+    const signed = (n: number) => (n < 0 ? `${n}` : `+${n}`);
+
+    return `${signed(power)}/${signed(toughness)}`;
+}
+
+/**
+ * Every other counter as dice, the way it would sit on a real table: one die
+ * per six, the last showing the remainder. The label names the kind for hover.
+ */
+export function counterDice(card: ReplayCard): { kind: string; label: string; faces: number[] }[] {
+    return liveCounters(card)
+        .filter(([kind]) => ptCounterDelta(kind) === null)
+        .map(([kind, count]) => ({
+            kind,
+            label: counterLabel(kind, count),
+            faces: [...Array.from({ length: Math.floor(count / 6) }, () => 6), ...(count % 6 ? [count % 6] : [])],
+        }));
 }
 
 /** Expand a mana pool into one symbol per mana, in WUBRG then colourless order. */

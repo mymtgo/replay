@@ -86,6 +86,25 @@ it('leaves unknown cards with null fields', function () {
     expect($card['name'])->toBeNull()->and($card['type'])->toBeNull()->and($card['image'])->toBeNull();
 });
 
+it('names a card the catalog cannot resolve with the name MTGO gave it', function () {
+    $row = buildTimelineRow(999);
+    $row['content']['Cards'][0]['Name'] = 'Eldrazi Spawn';
+
+    $snapshot = BuildReplaySnapshot::run(buildMatchInput([buildGameInput([$row])]), buildCardResolver());
+    $card = $snapshot['games'][0]['frames'][0]['content']['Cards'][0];
+
+    expect($card['name'])->toBe('Eldrazi Spawn')->and($card)->not->toHaveKey('Name');
+});
+
+it('keeps a hidden card nameless even when MTGO sent a name', function () {
+    $row = buildTimelineRow(0);
+    $row['content']['Cards'][0]['Name'] = 'Ragavan, Nimble Pilferer';
+
+    $snapshot = BuildReplaySnapshot::run(buildMatchInput([buildGameInput([$row])]), buildCardResolver());
+
+    expect($snapshot['games'][0]['frames'][0]['content']['Cards'][0]['name'])->toBeNull();
+});
+
 it('skips frameless games but keeps their place in the numbering', function () {
     $snapshot = BuildReplaySnapshot::run(buildMatchInput([
         buildGameInput([], won: false),

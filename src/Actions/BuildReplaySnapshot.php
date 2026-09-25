@@ -140,13 +140,28 @@ class BuildReplaySnapshot
 
                 $content['Cards'][$i]['image'] = is_string($image) && str_starts_with($image, 'https://') ? $image : null;
                 $content['Cards'][$i]['type'] = $known['type'] ?? null;
-                $content['Cards'][$i]['name'] = $known['name'] ?? null;
+                $content['Cards'][$i]['name'] = $known['name'] ?? self::mtgoName($card);
+                unset($content['Cards'][$i]['Name']);
             }
 
             $frames[] = ['timestamp' => (string) $event['timestamp'], 'content' => $content];
         }
 
         return $frames;
+    }
+
+    /**
+     * The name MTGO itself gave a card, for ids the host's catalog cannot
+     * resolve (most tokens have no Scryfall mtgo_id). Only for a card whose
+     * identity is known: a hidden card has catalog id 0 and must stay nameless.
+     *
+     * @param  array<string, mixed>  $card
+     */
+    private static function mtgoName(array $card): ?string
+    {
+        $name = $card['Name'] ?? null;
+
+        return (int) ($card['CatalogID'] ?? 0) > 0 && is_string($name) && $name !== '' ? $name : null;
     }
 
     /**

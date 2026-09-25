@@ -2,7 +2,8 @@
 import { Shield, Swords } from 'lucide-vue-next';
 import { computed } from 'vue';
 import ReplayCardImage from './ReplayCardImage.vue';
-import { counterList, isCreature } from './replayCards';
+import ReplayDie from './ReplayDie.vue';
+import { counterDice, isCreature, ptCounterLabel } from './replayCards';
 import { useReplayContext } from './replayContext';
 import type { ReplayCard } from './types';
 
@@ -23,7 +24,8 @@ const { showPreview, hidePreview, pinPreview } = useReplayContext();
 const tapped = computed(() => !!props.card.Tapped);
 const attacking = computed(() => props.card.Attacking != null);
 const blocking = computed(() => props.card.Blocking != null);
-const counters = computed(() => counterList(props.card));
+const ptCounters = computed(() => ptCounterLabel(props.card));
+const dice = computed(() => counterDice(props.card));
 const showPt = computed(() => isCreature(props.card) && props.card.Power != null);
 
 const lift = computed(() => (attacking.value ? (props.opponent ? 14 : -14) : 0));
@@ -59,13 +61,15 @@ const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5
                 ×{{ count }}
             </div>
 
-            <div v-if="counters.length" class="absolute top-[16%] left-0.75 flex flex-col items-start gap-0.5">
+            <div v-if="ptCounters || dice.length" class="absolute top-[16%] right-0.75 left-0.75 flex flex-col items-start gap-0.5">
                 <span
-                    v-for="counter in counters"
-                    :key="counter.kind"
-                    class="rounded bg-[#f3eedf] px-1.25 py-px text-[10px] font-bold whitespace-nowrap text-[#1a1a1a] shadow-[0_1px_2px_rgba(0,0,0,.4)]"
+                    v-if="ptCounters"
+                    class="rounded bg-[#f3eedf] px-1.25 py-px font-mono text-[10px] font-bold whitespace-nowrap text-[#1a1a1a] shadow-[0_1px_2px_rgba(0,0,0,.4)]"
                 >
-                    {{ counter.label }}
+                    {{ ptCounters }}
+                </span>
+                <span v-for="counter in dice" :key="counter.kind" :title="counter.label" class="flex flex-wrap gap-0.5">
+                    <ReplayDie v-for="(face, i) in counter.faces" :key="i" :face="face" />
                 </span>
             </div>
 

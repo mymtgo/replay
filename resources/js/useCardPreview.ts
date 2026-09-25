@@ -102,7 +102,7 @@ export function useCardPreview(
 
         Object.entries(current.Counters ?? {})
             .filter(([, count]) => count > 0)
-            .forEach(([kind, count]) => chips.push(`${counterLabel(kind, count)} counter${count > 1 ? 's' : ''}`));
+            .forEach(([kind, count]) => chips.push(counterLabel(kind, count)));
 
         if ((current.Damage ?? 0) > 0) {
             chips.push(`${current.Damage} damage marked`);
