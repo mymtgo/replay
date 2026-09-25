@@ -89,38 +89,51 @@ export function frontRowGroups(cards: ReplayCard[], pairs: Map<number, number>):
     return groups;
 }
 
+/** The most cards a land pile draws: a playset of any nonbasic shows every copy. */
+export const PILE_LAYERS = 4;
+
+/** One side of a land pile: the copies drawn, and how many there are in all. */
+export type PilePart = { tapped: boolean; cards: ReplayCard[]; count: number };
+
+export type LandPile = { key: number; parts: PilePart[] };
+
 /**
- * Back row: lands first, then other non-creature permanents. Identical lands
- * with the same tapped state collapse into one card with a count.
+ * Copies of a land sit in one pile, in the order the lands were first
+ * played: untapped copies, then tapped ones, each drawn as its own card so
+ * tapping one of four shows. Past four copies the pile still draws four,
+ * shared between the two states by how many of each there are (at least one
+ * of each state held), and each part counts its hidden copies.
  */
-export function backRowGroups(cards: ReplayCard[]): CardGroup[] {
-    const groups: CardGroup[] = [];
-    const lands = new Map<string, CardGroup>();
+export function landPiles(cards: ReplayCard[]): LandPile[] {
+    const byCard = new Map<number, ReplayCard[]>();
 
-    [...cards]
-        .sort((a, b) => Number(isLand(b)) - Number(isLand(a)))
-        .forEach((card) => {
-            if (!isLand(card)) {
-                groups.push({ card, count: 1 });
+    cards.forEach((card) => {
+        const copies = byCard.get(card.CatalogID);
 
-                return;
-            }
+        if (copies) {
+            copies.push(card);
+        } else {
+            byCard.set(card.CatalogID, [card]);
+        }
+    });
 
-            const key = `${card.CatalogID}|${card.Tapped ? 1 : 0}`;
-            const existing = lands.get(key);
+    return [...byCard].map(([key, copies]) => {
+        const untapped = copies.filter((card) => !card.Tapped);
+        const tapped = copies.filter((card) => card.Tapped);
+        let tappedLayers = tapped.length;
 
-            if (existing) {
-                existing.count++;
+        if (copies.length > PILE_LAYERS) {
+            tappedLayers = !tapped.length ? 0 : !untapped.length ? PILE_LAYERS : Math.min(PILE_LAYERS - 1, Math.max(1, Math.round((PILE_LAYERS * tapped.length) / copies.length)));
+        }
 
-                return;
-            }
+        const untappedLayers = Math.min(untapped.length, PILE_LAYERS - tappedLayers);
+        const parts = [
+            { tapped: false, cards: untapped.slice(0, untappedLayers), count: untapped.length },
+            { tapped: true, cards: tapped.slice(0, tappedLayers), count: tapped.length },
+        ].filter((part) => part.count > 0);
 
-            const group = { card, count: 1 };
-            lands.set(key, group);
-            groups.push(group);
-        });
-
-    return groups;
+        return { key, parts };
+    });
 }
 
 const ptWords: Record<string, number> = { Zero: 0, One: 1, Two: 2 };

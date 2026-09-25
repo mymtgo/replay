@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { counterDice, counterLabel, frontRowGroups, isFrontRow, previewFaces, ptCounterLabel } from '../../resources/js/replayCards.ts';
+import { counterDice, counterLabel, frontRowGroups, landPiles, isFrontRow, previewFaces, ptCounterLabel } from '../../resources/js/replayCards.ts';
 
 const card = (type: string, extra: Record<string, unknown> = {}) => ({ Id: 1, CatalogID: 1, Zone: 'Battlefield', Owner: 1, type, ...extra });
 
@@ -116,4 +116,48 @@ test('attackers count together when they attack the same player', () => {
         [10, 5],
         [20, 5],
     ]);
+});
+
+const land = (id: number, catalogId: number, tapped = false) => card('Basic Land — Forest', { Id: id, CatalogID: catalogId, Tapped: tapped });
+
+const lands = (from: number, count: number, tapped = false) => Array.from({ length: count }, (_, i) => land(from + i, 300, tapped));
+
+const layout = (cards: ReturnType<typeof land>[]) =>
+    landPiles(cards).map((pile) => pile.parts.map((part) => ({ tapped: part.tapped, ids: part.cards.map((item) => item.Id), count: part.count })));
+
+test('copies of a land share one pile, untapped before tapped', () => {
+    assert.deepEqual(layout([land(1, 300, true), land(2, 300), land(3, 300)]), [
+        [
+            { tapped: false, ids: [2, 3], count: 2 },
+            { tapped: true, ids: [1], count: 1 },
+        ],
+    ]);
+});
+
+test('different lands get their own piles in the order they were played', () => {
+    assert.deepEqual(layout([land(1, 300), land(2, 400), land(3, 300)]), [[{ tapped: false, ids: [1, 3], count: 2 }], [{ tapped: false, ids: [2], count: 1 }]]);
+});
+
+test('a playset draws every copy', () => {
+    assert.deepEqual(layout([...lands(1, 2), ...lands(10, 2, true)]), [
+        [
+            { tapped: false, ids: [1, 2], count: 2 },
+            { tapped: true, ids: [10, 11], count: 2 },
+        ],
+    ]);
+});
+
+test('a pile past four draws four cards, split by how many are tapped, and counts the rest', () => {
+    assert.deepEqual(layout([...lands(1, 15), ...lands(100, 20, true)]), [
+        [
+            { tapped: false, ids: [1, 2], count: 15 },
+            { tapped: true, ids: [100, 101], count: 20 },
+        ],
+    ]);
+});
+
+test('a big pile always draws at least one card of each state it holds', () => {
+    assert.deepEqual(layout([...lands(1, 34), land(100, 300, true)])[0].map((part) => part.ids.length), [3, 1]);
+    assert.deepEqual(layout([land(1, 300), ...lands(100, 33, true)])[0].map((part) => part.ids.length), [1, 3]);
+    assert.deepEqual(layout(lands(1, 35))[0].map((part) => [part.ids.length, part.count]), [[4, 35]]);
 });

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import ReplayCardPile from './ReplayCardPile.vue';
 import ReplayCardTile from './ReplayCardTile.vue';
-import { backRowGroups, frontRowGroups, isFrontRow } from './replayCards';
+import { frontRowGroups, isFrontRow, isLand, landPiles, type CardGroup, type LandPile } from './replayCards';
 import type { ReplayCard } from './types';
 
 const props = defineProps<{
@@ -17,13 +18,26 @@ const props = defineProps<{
     singleRow?: boolean;
 }>();
 
-const front = computed(() => frontRowGroups(props.battlefield.filter(isFrontRow), props.pairs));
-const back = computed(() => backRowGroups(props.battlefield.filter((card) => !isFrontRow(card))));
+type RowItem = { key: string; group: CardGroup; pile?: never } | { key: string; pile: LandPile; group?: never };
+
+const front = computed<RowItem[]>(() =>
+    frontRowGroups(props.battlefield.filter(isFrontRow), props.pairs).map((group) => ({ key: `${group.card.Id}-${group.count}`, group })),
+);
+
+/** Back row: land piles first, then other non-creature permanents one to a tile. */
+const back = computed<RowItem[]>(() => {
+    const cards = props.battlefield.filter((card) => !isFrontRow(card));
+
+    return [
+        ...landPiles(cards.filter(isLand)).map((pile) => ({ key: `pile-${pile.key}`, pile })),
+        ...cards.filter((card) => !isLand(card)).map((card) => ({ key: String(card.Id), group: { card, count: 1 } })),
+    ];
+});
 
 /**
  * Creatures face the centre line; lands and other permanents sit behind them.
- * Creatures take the larger share: lands stack into ×N groups readily, while
- * creatures only do as a swarm of identical copies.
+ * Creatures take the larger share: lands pile up, while creatures only
+ * collapse as a swarm of identical copies.
  */
 const rows = computed(() => {
     const creatures = { key: 'front', groups: front.value, grow: 1.5 };
@@ -58,15 +72,17 @@ const rows = computed(() => {
             "
             :style="{ flexGrow: row.groups.length ? row.grow : 0, flexShrink: 1 }"
         >
-            <ReplayCardTile
-                v-for="(group, i) in row.groups"
-                :key="`${group.card.Id}-${group.count}`"
-                :card="group.card"
-                :count="group.count"
-                :opponent="opponent"
-                :pair="pairs.get(group.card.Id) ?? null"
-                :last="scroll || i === row.groups.length - 1"
-            />
+            <template v-for="(item, i) in row.groups" :key="item.key">
+                <ReplayCardPile v-if="item.pile" :pile="item.pile" :opponent="opponent" />
+                <ReplayCardTile
+                    v-else
+                    :card="item.group.card"
+                    :count="item.group.count"
+                    :opponent="opponent"
+                    :pair="pairs.get(item.group.card.Id) ?? null"
+                    :last="scroll || i === row.groups.length - 1"
+                />
+            </template>
         </div>
     </div>
 </template>
