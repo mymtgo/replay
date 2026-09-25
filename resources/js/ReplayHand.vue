@@ -35,8 +35,9 @@ const slots = computed(() => props.cards.length + hidden.value);
         <div
             class="replay-inset box-border flex items-center gap-2.5 rounded-md px-3 py-2 @7xl:mx-auto @7xl:w-fit @7xl:max-w-full @7xl:min-w-72"
             :class="opponent ? 'h-20' : 'h-25'"
+            role="group"
+            :aria-label="`Hand, ${count} ${count === 1 ? 'card' : 'cards'}`"
         >
-            <div class="w-8.5 flex-none text-[11px] leading-tight text-muted-foreground">Hand<br />{{ count }}</div>
             <div class="flex h-full min-w-0 flex-1 gap-1">
                 <div
                     v-for="(card, i) in cards"

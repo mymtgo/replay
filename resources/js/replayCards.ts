@@ -1,3 +1,4 @@
+import type { DiscardLinks } from './replayDiscards';
 import type { ReplayCard } from './types';
 
 const FRONT_ROW_TYPES = ['Creature', 'Planeswalker', 'Battle'];
@@ -241,4 +242,15 @@ export function poolSymbols(pool: Record<string, number> | [] | undefined): stri
  */
 export function previewFaces(card: ReplayCard): (string | null)[] {
     return card.other_image ? [card.image ?? null, card.other_image] : [card.image ?? null];
+}
+
+/** The preview is at most this many cards wide, faces and taken cards together. */
+export const PREVIEW_MAX_CARDS = 3;
+
+/**
+ * The cards a resolved spell took, shown beside it in the preview, as many
+ * as fit next to its own faces.
+ */
+export function previewCompanions(card: ReplayCard, links: DiscardLinks): ReplayCard[] {
+    return (links.get(card.Id) ?? []).slice(0, Math.max(0, PREVIEW_MAX_CARDS - previewFaces(card).length));
 }

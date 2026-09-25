@@ -1,4 +1,5 @@
 import { computed, type Ref } from 'vue';
+import { discardLinks } from './replayDiscards';
 import { knownOpponentHands } from './replayKnownHand';
 import { normaliseStep } from './replayPhases';
 import { collectReveals } from './replayReveals';
@@ -110,6 +111,9 @@ export function useReplayBoard(
     /** Computed once per game; playback only indexes into it. */
     const knownHands = computed(() => knownOpponentHands(frames.value));
 
+    /** Which spell took which cards; computed once per game like the known hands. */
+    const discards = computed(() => discardLinks(frames.value));
+
     /** Cards of theirs we know are in hand: a reveal stays face up until the card is seen leaving. */
     const opponentHand = computed(() => knownHands.value[current.value] ?? []);
 
@@ -132,5 +136,5 @@ export function useReplayBoard(
             })),
     );
 
-    return { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName, startingSideboard, sideboard };
+    return { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName, startingSideboard, sideboard, discards };
 }

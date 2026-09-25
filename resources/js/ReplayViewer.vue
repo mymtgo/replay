@@ -104,7 +104,7 @@ watch([current, playing], ([frameIndex, isPlaying]) => {
     }
 });
 
-const { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName, startingSideboard, sideboard } =
+const { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName, startingSideboard, sideboard, discards } =
     useReplayBoard(frames, current, turns, toRef(props, 'sideboard'));
 
 const clocks = useReplayClocks(frames, current, playing, speed);
@@ -112,8 +112,8 @@ const clocks = useReplayClocks(frames, current, playing, speed);
 /** Recorded on press: older Safari does not deliver clicks as PointerEvents, so a click cannot say what made it. */
 const lastPointer = shallowRef<string | null>(null);
 
-const preview = useCardPreview(root, cardsById, playerName, lastPointer);
-const { card: previewCard, position: previewPosition, chips: previewChips, pinned: previewPinned } = preview;
+const preview = useCardPreview(root, cardsById, playerName, lastPointer, discards);
+const { card: previewCard, position: previewPosition, chips: previewChips, companions: previewCompanions, pinned: previewPinned } = preview;
 provide(replayContextKey, {
     showPreview: preview.showPreview,
     hidePreview: preview.hidePreview,
@@ -539,6 +539,7 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                 v-if="previewCard && previewPosition"
                 :card="previewCard"
                 :chips="previewChips"
+                :companions="previewCompanions"
                 :position="previewPosition"
                 :pinned="previewPinned"
                 @close="preview.unpin"

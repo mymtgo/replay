@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { counterDice, counterLabel, frontRowGroups, landPiles, isFrontRow, previewFaces, ptCounterLabel } from '../../resources/js/replayCards.ts';
+import { counterDice, counterLabel, frontRowGroups, landPiles, isFrontRow, previewCompanions, previewFaces, ptCounterLabel } from '../../resources/js/replayCards.ts';
 
 const card = (type: string, extra: Record<string, unknown> = {}) => ({ Id: 1, CatalogID: 1, Zone: 'Battlefield', Owner: 1, type, ...extra });
 
@@ -160,4 +160,23 @@ test('a big pile always draws at least one card of each state it holds', () => {
     assert.deepEqual(layout([...lands(1, 34), land(100, 300, true)])[0].map((part) => part.ids.length), [3, 1]);
     assert.deepEqual(layout([land(1, 300), ...lands(100, 33, true)])[0].map((part) => part.ids.length), [1, 3]);
     assert.deepEqual(layout(lands(1, 35))[0].map((part) => [part.ids.length, part.count]), [[4, 35]]);
+});
+
+const tookFrom = (Id: number) => ({ Id, CatalogID: 10 + Id, Zone: 'Graveyard', Owner: 0, name: `Card ${Id}` });
+const links = (spellId: number, taken: number[]) => new Map([[spellId, taken.map(tookFrom)]]);
+
+test('a single-faced spell shows up to two taken cards beside it', () => {
+    const spell = card('Sorcery', { Id: 541, image: 'https://img/seize.jpg' });
+
+    assert.deepEqual(previewCompanions(spell, links(541, [1, 2, 3])).map((item) => item.Id), [1, 2]);
+});
+
+test('a double-faced spell leaves room for one taken card', () => {
+    const spell = card('Sorcery', { Id: 541, image: 'https://img/front.jpg', other_image: 'https://img/back.jpg' });
+
+    assert.deepEqual(previewCompanions(spell, links(541, [1, 2])).map((item) => item.Id), [1]);
+});
+
+test('a card that took nothing has no companions', () => {
+    assert.deepEqual(previewCompanions(card('Sorcery', { Id: 99 }), links(541, [1])), []);
 });

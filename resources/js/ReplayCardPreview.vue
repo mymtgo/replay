@@ -7,6 +7,8 @@ import { FACE_GAP_PX } from './useCardPreview';
 
 const props = defineProps<{
     card: ReplayCard;
+    /** Cards this spell took, drawn beside its faces. */
+    companions: ReplayCard[];
     chips: string[];
     position: CardPreviewPosition;
     /** Opened by a tap: it takes input so a tap anywhere closes it. */
@@ -18,7 +20,11 @@ const emit = defineEmits<{
 }>();
 
 const faces = computed(() => previewFaces(props.card));
-const width = computed(() => props.position.width * faces.value.length + FACE_GAP_PX * (faces.value.length - 1));
+const width = computed(() => {
+    const count = faces.value.length + props.companions.length;
+
+    return props.position.width * count + FACE_GAP_PX * (count - 1);
+});
 </script>
 
 <template>
@@ -37,6 +43,13 @@ const width = computed(() => props.position.width * faces.value.length + FACE_GA
                     class="relative aspect-[63/88] min-w-0 flex-1 rounded-[4.5%/3.3%] shadow-[0_14px_40px_rgba(0,0,0,.55)]"
                 >
                     <ReplayCardImage :name="card.name" :type="card.type" :image="image" show-type />
+                </div>
+                <div
+                    v-for="taken in companions"
+                    :key="`took-${taken.Id}`"
+                    class="relative aspect-[63/88] min-w-0 flex-1 rounded-[4.5%/3.3%] shadow-[0_14px_40px_rgba(0,0,0,.55)]"
+                >
+                    <ReplayCardImage :name="taken.name" :type="taken.type" :image="taken.image" show-type />
                 </div>
             </div>
             <div v-if="chips.length" class="flex flex-wrap gap-1">

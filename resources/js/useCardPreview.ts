@@ -1,5 +1,6 @@
 import { computed, readonly, shallowRef, type Ref } from 'vue';
-import { counterLabel, isFrontRow, previewFaces } from './replayCards';
+import { counterLabel, isFrontRow, previewCompanions, previewFaces } from './replayCards';
+import type { DiscardLinks } from './replayDiscards';
 import type { CardPreviewPosition, ReplayCard } from './types';
 
 /** Space under the preview image for the state chips. */
@@ -9,11 +10,9 @@ const GAP_PX = 12;
 /** Between the two faces of a double-faced card; matches gap-2 in ReplayCardPreview. */
 export const FACE_GAP_PX = 8;
 
-/** Width of the whole preview for a given face width. */
-function spread(card: ReplayCard, width: number): number {
-    const faces = previewFaces(card).length;
-
-    return width * faces + FACE_GAP_PX * (faces - 1);
+/** Width of the whole preview when it is `count` cards wide at a given card width. */
+function spread(count: number, width: number): number {
+    return width * count + FACE_GAP_PX * (count - 1);
 }
 
 /**
@@ -26,9 +25,16 @@ export function useCardPreview(
     playerName: (id: number | undefined) => string,
     /** Type of the latest press on the viewer; a tap pins the preview, a mouse click does not. */
     lastPointer: Readonly<Ref<string | null>>,
+    /** Which spell took which cards, so a discard spell's preview shows them beside it. */
+    discards: Readonly<Ref<DiscardLinks>>,
 ) {
     const hovered = shallowRef<{ card: ReplayCard; position: CardPreviewPosition } | null>(null);
     const pinned = shallowRef(false);
+
+    /** How many cards wide a card's preview is: its faces, then any cards it took. */
+    function cardsWide(card: ReplayCard): number {
+        return previewFaces(card).length + previewCompanions(card, discards.value).length;
+    }
 
     function showPreview(event: MouseEvent, card: ReplayCard) {
         if (!root.value || pinned.value) {
@@ -39,7 +45,7 @@ export function useCardPreview(
         const target = (event.currentTarget as HTMLElement).getBoundingClientRect();
         const width = Math.max(150, Math.min(250, ((bounds.height - 16 - INFO_HEIGHT_PX) * 63) / 88));
         const height = (width * 88) / 63 + INFO_HEIGHT_PX;
-        const total = spread(card, width);
+        const total = spread(cardsWide(card), width);
 
         let left = target.right - bounds.left + GAP_PX;
 
@@ -73,12 +79,12 @@ export function useCardPreview(
         event.stopPropagation();
 
         const bounds = root.value.getBoundingClientRect();
-        const faces = previewFaces(card).length;
-        const fitWidth = (bounds.width - 32 - FACE_GAP_PX * (faces - 1)) / faces;
-        const width = Math.max(120 / faces, Math.min(300, fitWidth, ((bounds.height - 32 - INFO_HEIGHT_PX) * 63) / 88));
+        const wide = cardsWide(card);
+        const fitWidth = (bounds.width - 32 - FACE_GAP_PX * (wide - 1)) / wide;
+        const width = Math.max(120 / wide, Math.min(300, fitWidth, ((bounds.height - 32 - INFO_HEIGHT_PX) * 63) / 88));
         const height = (width * 88) / 63 + INFO_HEIGHT_PX;
 
-        hovered.value = { card, position: { left: (bounds.width - spread(card, width)) / 2, top: Math.max(EDGE_PX, (bounds.height - height) / 2), width } };
+        hovered.value = { card, position: { left: (bounds.width - spread(wide, width)) / 2, top: Math.max(EDGE_PX, (bounds.height - height) / 2), width } };
         pinned.value = true;
     }
 
@@ -94,6 +100,9 @@ export function useCardPreview(
      */
     const card = computed(() => (hovered.value ? (cardsById.value.get(hovered.value.card.Id) ?? hovered.value.card) : null));
     const position = computed(() => hovered.value?.position ?? null);
+
+    /** The cards the previewed spell took, drawn beside its faces. */
+    const companions = computed(() => (card.value ? previewCompanions(card.value, discards.value) : []));
 
     const chips = computed(() => {
         const current = card.value;
@@ -133,5 +142,5 @@ export function useCardPreview(
         return chips;
     });
 
-    return { card, position, chips, pinned: readonly(pinned), showPreview, hidePreview, pinPreview, unpin };
+    return { card, position, chips, companions, pinned: readonly(pinned), showPreview, hidePreview, pinPreview, unpin };
 }
