@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Ellipsis, GitCommitHorizontal, Hand, Pause, Play, ScrollText, SkipBack, SkipForward } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, Ellipsis, GitCommitHorizontal, Hand, Pause, Play, ScrollText, Share2, SkipBack, SkipForward } from 'lucide-vue-next';
 import { shallowRef } from 'vue';
 
 defineProps<{
@@ -8,6 +8,8 @@ defineProps<{
     openSheet: 'hands' | 'timeline' | null;
     /** Landscape phones are short, so the bar slims down. */
     slim: boolean;
+    /** Whether the host can link to a moment. */
+    shareable: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -16,6 +18,7 @@ const emit = defineEmits<{
     jumpTurn: [direction: -1 | 1];
     openSheet: [kind: 'hands' | 'timeline'];
     toggleLog: [];
+    share: [];
 }>();
 
 const menuOpen = shallowRef(false);
@@ -23,6 +26,11 @@ const menuOpen = shallowRef(false);
 function openLog() {
     menuOpen.value = false;
     emit('toggleLog');
+}
+
+function share() {
+    menuOpen.value = false;
+    emit('share');
 }
 
 const iconButton = 'grid size-9 flex-none cursor-pointer place-items-center rounded-md active:bg-accent';
@@ -81,6 +89,15 @@ const iconButton = 'grid size-9 flex-none cursor-pointer place-items-center roun
                 <button type="button" class="flex h-10 cursor-pointer items-center gap-2.5 px-3.5 text-left active:bg-accent" @click.stop="openLog">
                     <ScrollText :size="16" class="text-muted-foreground" />
                     Game log
+                </button>
+                <button
+                    v-if="shareable"
+                    type="button"
+                    class="flex h-10 cursor-pointer items-center gap-2.5 px-3.5 text-left active:bg-accent"
+                    @click.stop="share"
+                >
+                    <Share2 :size="16" class="text-muted-foreground" />
+                    Share this moment
                 </button>
                 <slot name="menu" />
             </div>

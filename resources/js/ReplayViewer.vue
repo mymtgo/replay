@@ -15,6 +15,8 @@ import { phaseMissingText, stepLabel } from './replayPhases';
 import ReplayScrubber from './ReplayScrubber.vue';
 import ReplayScrubTooltip from './ReplayScrubTooltip.vue';
 import ReplaySheet from './ReplaySheet.vue';
+import ReplayShareCard from './ReplayShareCard.vue';
+import { startFrame } from './replayShare';
 import ReplaySideboardChanges from './ReplaySideboardChanges.vue';
 import { sideboardCaptions, sideboardChanges, type ReplaySideboardBaseline } from './replaySideboard';
 import ReplaySide from './ReplaySide.vue';
@@ -32,6 +34,7 @@ import { useReplayFullscreen } from './useReplayFullscreen';
 import { useReplayKeyboard } from './useReplayKeyboard';
 import { useReplayLayout } from './useReplayLayout';
 import { REPLAY_SPEEDS, useReplayPlayback } from './useReplayPlayback';
+import { useReplayShare } from './useReplayShare';
 import { useScrubTooltip } from './useScrubTooltip';
 import { zoneCardsFor } from './replayZoneCards';
 import { useZoneWindows } from './useZoneWindows';
@@ -65,9 +68,22 @@ const props = withDefaults(
          * viewer falls back to the frames, which only log-built games fill.
          */
         sideboard?: ReplaySideboardEntry[] | null;
+        /** The frame to open on, from a shared link; kept inside the game. */
+        initialFrame?: number | null;
+        /** A link to this game at a frame. Without it the viewer offers no sharing. */
+        shareUrl?: (frame: number) => string;
     }>(),
-    { gameHref: undefined, linkComponent: 'a', previousSideboard: null, sideboard: null },
+    { gameHref: undefined, linkComponent: 'a', previousSideboard: null, sideboard: null, initialFrame: null, shareUrl: undefined },
 );
+
+const emit = defineEmits<{
+    /**
+     * The frame the viewer came to rest on: after a seek, step or jump while
+     * paused, and when playback stops. Not sent while playing, so a host
+     * keeping its address in step does not rewrite it every frame.
+     */
+    settle: [frame: number];
+}>();
 
 const root = useTemplateRef<HTMLElement>('root');
 /** Every card in the zone it is really in; see normaliseFrames. */
@@ -79,6 +95,14 @@ const logItems = computed(() => buildLogItems(frames.value, props.log, turns.val
 
 const playback = useReplayPlayback(frames, turns);
 const { current, playing, speed, markers } = playback;
+
+playback.seek(startFrame(props.initialFrame, frames.value.length));
+
+watch([current, playing], ([frameIndex, isPlaying]) => {
+    if (!isPlaying) {
+        emit('settle', frameIndex);
+    }
+});
 
 const { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName, startingSideboard, sideboard } =
     useReplayBoard(frames, current, turns, toRef(props, 'sideboard'));
@@ -256,6 +280,11 @@ const clockTime = computed(() => {
 const missingText = computed(() => phaseMissingText(phasesRecorded.value, turn.value?.number ?? null));
 const currentStepLabel = computed(() => (step.value ? stepLabel(step.value) : null));
 
+const shareLink = useReplayShare(() => (props.shareUrl ? props.shareUrl(current.value) : null));
+const shareMoment = computed(() =>
+    turn.value?.number != null ? [`Turn ${turn.value.number}`, currentStepLabel.value].filter(Boolean).join(' · ') : null,
+);
+
 const SHEET_TITLES: Record<ReplaySheetKind, string> = {
     hands: 'Hands',
     timeline: 'Timeline',
@@ -342,6 +371,8 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                     <ReplayHand v-if="opponent" :cards="opponentHand" :count="opponent.HandCount ?? opponentHand.length" opponent />
 
                     <ReplayHand :cards="hand" :count="local?.HandCount ?? hand.length" :opponent="false" />
+
+                    <ReplayShareCard v-if="shareUrl" :moment="shareMoment" :copied="shareLink.copied.value" @share="shareLink.share(false)" />
                 </div>
 
                 <ReplayLogDrawer
@@ -365,7 +396,9 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                 @step="playback.step"
                 @jump-turn="playback.jumpTurn"
                 @open-sheet="openSheet"
+                :shareable="!!shareUrl"
                 @toggle-log="toggleLog"
+                @share="shareLink.share(true)"
             >
                 <template v-if="$slots.actions" #menu>
                     <slot name="actions" :compact="true" />
@@ -395,7 +428,10 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                 @scrub-start="playback.pause"
                 @set-speed="playback.setSpeed"
                 @toggle-log="toggleLog"
+                :shareable="!!shareUrl"
+                :share-copied="shareLink.copied.value"
                 @toggle-fullscreen="fullscreen.toggle"
+                @share="shareLink.share(false)"
                 @hover="setHover"
             >
                 <template v-if="$slots.actions" #actions>

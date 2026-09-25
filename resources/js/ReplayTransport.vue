@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Maximize, Minimize, Pause, Play, ScrollText, SkipBack, SkipForward } from 'lucide-vue-next';
+import { Check, ChevronLeft, ChevronRight, Link2, Maximize, Minimize, Pause, Play, ScrollText, SkipBack, SkipForward } from 'lucide-vue-next';
 import ReplayGamePicker from './ReplayGamePicker.vue';
 import ReplayScrubber from './ReplayScrubber.vue';
 import ReplayToggleButton from './ReplayToggleButton.vue';
@@ -25,6 +25,9 @@ defineProps<{
     gameId: number;
     matchGames: ReplayMatchGame[];
     playerName: (id: number | undefined) => string;
+    /** Whether the host can link to a moment; wide viewers share from a card instead. */
+    shareable: boolean;
+    shareCopied: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -37,6 +40,7 @@ const emit = defineEmits<{
     toggleLog: [];
     toggleFullscreen: [];
     hover: [payload: ScrubHover | null];
+    share: [];
 }>();
 
 const { gameHref, selectGame } = useReplayContext();
@@ -117,6 +121,18 @@ const iconButton = 'grid size-8 cursor-pointer place-items-center rounded-md hov
             >
                 <Minimize v-if="fullscreen" :size="16" />
                 <Maximize v-else :size="16" />
+            </button>
+
+            <button
+                v-if="shareable"
+                type="button"
+                :title="shareCopied ? 'Link copied' : 'Copy a link to this moment'"
+                class="order-5 @7xl:hidden"
+                :class="iconButton"
+                @click="emit('share')"
+            >
+                <Check v-if="shareCopied" :size="16" />
+                <Link2 v-else :size="16" />
             </button>
 
             <div v-if="$slots.actions" class="order-6 flex flex-none items-center gap-2">
