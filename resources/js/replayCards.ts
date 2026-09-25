@@ -173,3 +173,12 @@ export function poolSymbols(pool: Record<string, number> | [] | undefined): stri
         .sort(([a], [b]) => ((order.indexOf(a) + 7) % 7) - ((order.indexOf(b) + 7) % 7))
         .flatMap(([symbol, count]) => Array.from({ length: count }, () => symbol));
 }
+
+/**
+ * The images the large preview shows: the face in play, then the card's
+ * other side when it is double-faced, so a land played from a modal DFC
+ * still shows the spell it could have been.
+ */
+export function previewFaces(card: ReplayCard): (string | null)[] {
+    return card.other_image ? [card.image ?? null, card.other_image] : [card.image ?? null];
+}

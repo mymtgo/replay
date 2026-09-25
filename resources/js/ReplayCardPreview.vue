@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import ReplayCardImage from './ReplayCardImage.vue';
+import { previewFaces } from './replayCards';
 import type { CardPreviewPosition, ReplayCard } from './types';
+import { FACE_GAP_PX } from './useCardPreview';
 
-defineProps<{
+const props = defineProps<{
     card: ReplayCard;
     chips: string[];
     position: CardPreviewPosition;
@@ -13,6 +16,9 @@ defineProps<{
 const emit = defineEmits<{
     close: [];
 }>();
+
+const faces = computed(() => previewFaces(props.card));
+const width = computed(() => props.position.width * faces.value.length + FACE_GAP_PX * (faces.value.length - 1));
 </script>
 
 <template>
@@ -22,10 +28,16 @@ const emit = defineEmits<{
             class="absolute z-90 flex flex-col gap-1.5"
             :class="pinned ? '' : 'pointer-events-none'"
             @click.stop="emit('close')"
-            :style="{ left: `${position.left}px`, top: `${position.top}px`, width: `${position.width}px` }"
+            :style="{ left: `${position.left}px`, top: `${position.top}px`, width: `${width}px` }"
         >
-            <div class="relative aspect-[63/88] w-full rounded-[4.5%/3.3%] shadow-[0_14px_40px_rgba(0,0,0,.55)]">
-                <ReplayCardImage :name="card.name" :type="card.type" :image="card.image" show-type />
+            <div class="flex" :style="{ gap: `${FACE_GAP_PX}px` }">
+                <div
+                    v-for="(image, i) in faces"
+                    :key="i"
+                    class="relative aspect-[63/88] min-w-0 flex-1 rounded-[4.5%/3.3%] shadow-[0_14px_40px_rgba(0,0,0,.55)]"
+                >
+                    <ReplayCardImage :name="card.name" :type="card.type" :image="image" show-type />
+                </div>
             </div>
             <div v-if="chips.length" class="flex flex-wrap gap-1">
                 <span

@@ -32,6 +32,8 @@ export type ReplayCard = {
     name?: string | null;
     type?: string | null;
     image?: string | null;
+    /** The other side of a double-faced card, for the preview. */
+    other_image?: string | null;
 };
 
 export type ReplayFrameContent = {
@@ -76,6 +78,7 @@ export type ReplayLogItem = {
 
 export type ReplayZone = 'Hand' | 'Graveyard' | 'Exile' | 'Sideboard';
 
+/** `width` is one face; a double-faced card's preview is two faces wide. */
 export type CardPreviewPosition = { left: number; top: number; width: number };
 
 export type ScrubTooltipView = { left: number; bottom: number; title: string; time: string; sub: string };

@@ -27,7 +27,7 @@ class BuildReplaySnapshot
      * home. Left out when empty, since an empty list means it went unrecorded.
      *
      * @param  array{format: ?string, played_at: string, local_archetype: ?string, opponent_archetype: ?string, games: list<array{won: ?bool, local_username: ?string, timeline: list<array{timestamp: string, content: array<string, mixed>}>, log: list<array{timestamp: string, message: string}>, sideboard?: list<array{mtgo_id: int, quantity: int}>|null}>}  $match
-     * @param  callable(list<int>): array<int, array{name: ?string, type: ?string, image: ?string}>  $cards
+     * @param  callable(list<int>): array<int, array{name: ?string, type: ?string, image: ?string, other_image?: ?string}>  $cards
      * @return array<string, mixed>
      */
     public static function run(array $match, callable $cards): array
@@ -94,7 +94,7 @@ class BuildReplaySnapshot
      *
      * @param  list<array{timestamp: string, content: array<string, mixed>}>  $timeline
      * @param  list<array{mtgo_id: int, quantity: int}>  $sideboard
-     * @return array<int, array{name: ?string, type: ?string, image: ?string}>
+     * @return array<int, array{name: ?string, type: ?string, image: ?string, other_image?: ?string}>
      */
     private static function resolve(array $timeline, array $sideboard, callable $cards): array
     {
@@ -120,7 +120,7 @@ class BuildReplaySnapshot
      * own machine.
      *
      * @param  list<array{timestamp: string, content: array<string, mixed>}>  $timeline
-     * @param  array<int, array{name: ?string, type: ?string, image: ?string}>  $resolved
+     * @param  array<int, array{name: ?string, type: ?string, image: ?string, other_image?: ?string}>  $resolved
      * @return list<array{timestamp: string, content: array<string, mixed>}>
      */
     private static function frames(array $timeline, ?string $localUsername, array $resolved): array
@@ -142,6 +142,15 @@ class BuildReplaySnapshot
                 $content['Cards'][$i]['type'] = $known['type'] ?? null;
                 $content['Cards'][$i]['name'] = $known['name'] ?? self::mtgoName($card);
                 unset($content['Cards'][$i]['Name']);
+
+                // The other side of a double-faced card, for the preview. Set
+                // only when known, so single-faced cards cost the snapshot
+                // nothing.
+                $otherImage = $known['other_image'] ?? null;
+
+                if (is_string($otherImage) && str_starts_with($otherImage, 'https://')) {
+                    $content['Cards'][$i]['other_image'] = $otherImage;
+                }
             }
 
             $frames[] = ['timestamp' => (string) $event['timestamp'], 'content' => $content];
@@ -168,7 +177,7 @@ class BuildReplaySnapshot
      * Your sideboard with each card's name, type and image, https images only.
      *
      * @param  list<array{mtgo_id: int, quantity: int}>  $sideboard
-     * @param  array<int, array{name: ?string, type: ?string, image: ?string}>  $resolved
+     * @param  array<int, array{name: ?string, type: ?string, image: ?string, other_image?: ?string}>  $resolved
      * @return list<array{catalog_id: int, quantity: int, name: ?string, type: ?string, image: ?string}>
      */
     private static function sideboard(array $sideboard, array $resolved): array

@@ -187,3 +187,21 @@ it('resolves sideboard cards the timeline never shows', function () {
 
     expect($asked)->toContain(999)->toContain(1234);
 });
+
+it('carries the other face of a double-faced card when the resolver knows it', function () {
+    $snapshot = BuildReplaySnapshot::run(buildMatchInput([buildGameInput([buildTimelineRow(4321)])]), fn (array $ids) => [
+        4321 => ['name' => 'Witch-Blessed Meadow', 'type' => 'Land', 'image' => 'https://cards.scryfall.io/back.jpg', 'other_image' => 'https://cards.scryfall.io/front.jpg'],
+    ]);
+
+    expect($snapshot['games'][0]['frames'][0]['content']['Cards'][0]['other_image'])->toBe('https://cards.scryfall.io/front.jpg');
+});
+
+it('leaves other_image off single-faced cards and drops one that is not remote', function () {
+    $snapshot = BuildReplaySnapshot::run(buildMatchInput([buildGameInput([buildTimelineRow(1234), buildTimelineRow(4321)])]), fn (array $ids) => [
+        1234 => ['name' => 'Ragavan, Nimble Pilferer', 'type' => 'Legendary Creature', 'image' => 'https://cards.scryfall.io/a.jpg'],
+        4321 => ['name' => 'Witch-Blessed Meadow', 'type' => 'Land', 'image' => 'https://cards.scryfall.io/back.jpg', 'other_image' => 'http://127.0.0.1:8100/front.jpg'],
+    ]);
+
+    expect($snapshot['games'][0]['frames'][0]['content']['Cards'][0])->not->toHaveKey('other_image')
+        ->and($snapshot['games'][0]['frames'][1]['content']['Cards'][0])->not->toHaveKey('other_image');
+});

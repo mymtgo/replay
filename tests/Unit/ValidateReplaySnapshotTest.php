@@ -150,3 +150,17 @@ it('rejects a malformed sideboard', function (mixed $sideboard) {
     'local image' => [[['catalog_id' => 1, 'quantity' => 1, 'name' => null, 'type' => null, 'image' => 'http://127.0.0.1/x.jpg']]],
     'numeric name' => [[['catalog_id' => 1, 'quantity' => 1, 'name' => 5, 'type' => null, 'image' => null]]],
 ])->throws(ValidationException::class);
+
+it('rejects an other face image that is not a remote https url', function () {
+    $snapshot = replaySnapshot();
+    $snapshot['games'][0]['frames'][0]['content']['Cards'][0]['other_image'] = 'http://127.0.0.1:8100/storage/cards/ab.jpg';
+
+    ValidateReplaySnapshot::run($snapshot);
+})->throws(ValidationException::class);
+
+it('accepts a remote other face image', function () {
+    $snapshot = replaySnapshot();
+    $snapshot['games'][0]['frames'][0]['content']['Cards'][0]['other_image'] = 'https://cards.scryfall.io/front.jpg';
+
+    expect(ValidateReplaySnapshot::run($snapshot))->toBe($snapshot);
+});

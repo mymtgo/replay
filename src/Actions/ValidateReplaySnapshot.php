@@ -193,10 +193,12 @@ class ValidateReplaySnapshot
                 $fail("{$path}.{$c}.Zone", 'Must be a string.');
             }
 
-            $image = $card['image'] ?? null;
+            foreach (['image', 'other_image'] as $key) {
+                $image = $card[$key] ?? null;
 
-            if ($image !== null && (! is_string($image) || ! str_starts_with($image, 'https://'))) {
-                $fail("{$path}.{$c}.image", 'Must be a remote https URL or null.');
+                if ($image !== null && (! is_string($image) || ! str_starts_with($image, 'https://'))) {
+                    $fail("{$path}.{$c}.{$key}", 'Must be a remote https URL or null.');
+                }
             }
         }
     }

@@ -1,11 +1,20 @@
 import { computed, readonly, shallowRef, type Ref } from 'vue';
-import { counterLabel, isFrontRow } from './replayCards';
+import { counterLabel, isFrontRow, previewFaces } from './replayCards';
 import type { CardPreviewPosition, ReplayCard } from './types';
 
 /** Space under the preview image for the state chips. */
 const INFO_HEIGHT_PX = 54;
 const EDGE_PX = 8;
 const GAP_PX = 12;
+/** Between the two faces of a double-faced card; matches gap-2 in ReplayCardPreview. */
+export const FACE_GAP_PX = 8;
+
+/** Width of the whole preview for a given face width. */
+function spread(card: ReplayCard, width: number): number {
+    const faces = previewFaces(card).length;
+
+    return width * faces + FACE_GAP_PX * (faces - 1);
+}
 
 /**
  * Large card preview beside the hovered card, kept inside the viewer bounds
@@ -30,14 +39,15 @@ export function useCardPreview(
         const target = (event.currentTarget as HTMLElement).getBoundingClientRect();
         const width = Math.max(150, Math.min(250, ((bounds.height - 16 - INFO_HEIGHT_PX) * 63) / 88));
         const height = (width * 88) / 63 + INFO_HEIGHT_PX;
+        const total = spread(card, width);
 
         let left = target.right - bounds.left + GAP_PX;
 
-        if (left + width > bounds.width - EDGE_PX) {
-            left = target.left - bounds.left - width - GAP_PX;
+        if (left + total > bounds.width - EDGE_PX) {
+            left = target.left - bounds.left - total - GAP_PX;
         }
 
-        left = Math.max(EDGE_PX, Math.min(left, bounds.width - width - EDGE_PX));
+        left = Math.max(EDGE_PX, Math.min(left, bounds.width - total - EDGE_PX));
 
         const centred = target.top - bounds.top + target.height / 2 - height / 2;
         const top = Math.min(Math.max(EDGE_PX, centred), bounds.height - height - EDGE_PX);
@@ -63,10 +73,12 @@ export function useCardPreview(
         event.stopPropagation();
 
         const bounds = root.value.getBoundingClientRect();
-        const width = Math.max(120, Math.min(300, bounds.width - 32, ((bounds.height - 32 - INFO_HEIGHT_PX) * 63) / 88));
+        const faces = previewFaces(card).length;
+        const fitWidth = (bounds.width - 32 - FACE_GAP_PX * (faces - 1)) / faces;
+        const width = Math.max(120 / faces, Math.min(300, fitWidth, ((bounds.height - 32 - INFO_HEIGHT_PX) * 63) / 88));
         const height = (width * 88) / 63 + INFO_HEIGHT_PX;
 
-        hovered.value = { card, position: { left: (bounds.width - width) / 2, top: Math.max(EDGE_PX, (bounds.height - height) / 2), width } };
+        hovered.value = { card, position: { left: (bounds.width - spread(card, width)) / 2, top: Math.max(EDGE_PX, (bounds.height - height) / 2), width } };
         pinned.value = true;
     }
 
