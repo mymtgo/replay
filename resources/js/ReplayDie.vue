@@ -28,7 +28,7 @@ const pips = computed(() => layouts[props.face] ?? []);
 </script>
 
 <template>
-    <svg viewBox="0 0 24 24" class="block size-3.5 drop-shadow-[0_1px_1.5px_rgba(0,0,0,.55)]" aria-hidden="true">
+    <svg viewBox="0 0 24 24" class="block aspect-square w-full drop-shadow-[0_1px_2px_rgba(0,0,0,.6)]" aria-hidden="true">
         <rect x="1" y="1" width="22" height="22" rx="4.5" fill="#fff" stroke="#111" stroke-width="1.5" />
         <circle v-for="([cx, cy], i) in pips" :key="i" :cx="cx" :cy="cy" r="2.6" fill="#111" />
     </svg>

@@ -68,8 +68,11 @@ const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5
                 >
                     {{ ptCounters }}
                 </span>
-                <span v-for="counter in dice" :key="counter.kind" :title="counter.label" class="flex flex-wrap gap-0.5">
-                    <ReplayDie v-for="(face, i) in counter.faces" :key="i" :face="face" />
+                <span v-for="counter in dice" :key="counter.kind" :title="counter.label" class="flex w-full flex-wrap gap-[3%]">
+                    <!-- A d6 is about a quarter of a card's width on a real table. -->
+                    <span v-for="(face, i) in counter.faces" :key="i" class="w-[26%]">
+                        <ReplayDie :face="face" />
+                    </span>
                 </span>
             </div>
 
