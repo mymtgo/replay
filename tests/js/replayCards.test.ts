@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { counterDice, counterLabel, isFrontRow, previewFaces, ptCounterLabel } from '../../resources/js/replayCards.ts';
+import { counterDice, counterLabel, frontRowGroups, isFrontRow, previewFaces, ptCounterLabel } from '../../resources/js/replayCards.ts';
 
 const card = (type: string, extra: Record<string, unknown> = {}) => ({ Id: 1, CatalogID: 1, Zone: 'Battlefield', Owner: 1, type, ...extra });
 
@@ -52,4 +52,68 @@ test('a single-faced card previews one face', () => {
 
 test('an unknown card still previews one, imageless, face', () => {
     assert.deepEqual(previewFaces(card('Instant')), [null]);
+});
+
+const spawn = (id: number, extra: Record<string, unknown> = {}) =>
+    card('Token Creature — Eldrazi Spawn', { Id: id, CatalogID: 500, Power: 0, Toughness: 1, ...extra });
+
+const spawns = (from: number, count: number, extra: Record<string, unknown> = {}) =>
+    Array.from({ length: count }, (_, i) => spawn(from + i, extra));
+
+const shape = (groups: { card: { Id: number }; count: number }[]) => groups.map((group) => [group.card.Id, group.count]);
+
+test('five identical creatures collapse into one counted tile where the first one sat', () => {
+    const broodscale = card('Creature — Eldrazi Snake', { Id: 1, CatalogID: 7, Power: 1, Toughness: 1 });
+
+    assert.deepEqual(shape(frontRowGroups([broodscale, ...spawns(10, 5)], new Map())), [
+        [1, 1],
+        [10, 5],
+    ]);
+});
+
+test('four identical creatures stay as separate tiles', () => {
+    assert.deepEqual(shape(frontRowGroups(spawns(10, 4), new Map())), [
+        [10, 1],
+        [11, 1],
+        [12, 1],
+        [13, 1],
+    ]);
+});
+
+test('tapped and untapped copies are counted apart', () => {
+    const groups = frontRowGroups([...spawns(10, 5), ...spawns(20, 5, { Tapped: true })], new Map());
+
+    assert.deepEqual(shape(groups), [
+        [10, 5],
+        [20, 5],
+    ]);
+});
+
+test('copies that differ in counters, damage or size are counted apart', () => {
+    const groups = frontRowGroups([...spawns(10, 5), spawn(20, { Counters: { PlusOnePlusOne: 1 } }), spawn(21, { Damage: 1 }), spawn(22, { Power: 3 })], new Map());
+
+    assert.deepEqual(shape(groups), [
+        [10, 5],
+        [20, 1],
+        [21, 1],
+        [22, 1],
+    ]);
+});
+
+test('a creature in a block keeps its own tile so the pairing still points at it', () => {
+    const groups = frontRowGroups(spawns(10, 6), new Map([[12, 1]]));
+
+    assert.deepEqual(shape(groups), [
+        [10, 5],
+        [12, 1],
+    ]);
+});
+
+test('attackers count together when they attack the same player', () => {
+    const groups = frontRowGroups([...spawns(10, 5, { Attacking: 2 }), ...spawns(20, 5)], new Map());
+
+    assert.deepEqual(shape(groups), [
+        [10, 5],
+        [20, 5],
+    ]);
 });

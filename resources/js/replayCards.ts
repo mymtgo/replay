@@ -42,6 +42,53 @@ function timeCounters(card: ReplayCard): number {
 
 export type CardGroup = { card: ReplayCard; count: number };
 
+/** Identical creatures collapse into one counted tile only from this many, so a few copies stay readable apart. */
+export const FRONT_ROW_GROUP_MIN = 5;
+
+/**
+ * Front row: one tile per card, except where a run of identical creatures
+ * (a swarm of tokens) collapses into one counted tile where the first sat.
+ * Identical means everything a tile shows: card, tapped, size, counters,
+ * damage and who it attacks. A creature in a block always keeps its own
+ * tile, since the pairing badge names that one card.
+ */
+export function frontRowGroups(cards: ReplayCard[], pairs: Map<number, number>): CardGroup[] {
+    const key = (card: ReplayCard): string | null =>
+        pairs.has(card.Id)
+            ? null
+            : JSON.stringify([card.CatalogID, card.Tapped ?? false, card.Power, card.Toughness, card.Damage ?? 0, card.Attacking ?? null, card.Counters ?? {}]);
+
+    const sizes = new Map<string, number>();
+    cards.forEach((card) => {
+        const k = key(card);
+
+        if (k !== null) {
+            sizes.set(k, (sizes.get(k) ?? 0) + 1);
+        }
+    });
+
+    const groups: CardGroup[] = [];
+    const placed = new Set<string>();
+
+    cards.forEach((card) => {
+        const k = key(card);
+        const size = k !== null ? (sizes.get(k) ?? 1) : 1;
+
+        if (k === null || size < FRONT_ROW_GROUP_MIN) {
+            groups.push({ card, count: 1 });
+
+            return;
+        }
+
+        if (!placed.has(k)) {
+            placed.add(k);
+            groups.push({ card, count: size });
+        }
+    });
+
+    return groups;
+}
+
 /**
  * Back row: lands first, then other non-creature permanents. Identical lands
  * with the same tapped state collapse into one card with a count.

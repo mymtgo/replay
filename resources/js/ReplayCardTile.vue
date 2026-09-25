@@ -9,7 +9,7 @@ import type { ReplayCard } from './types';
 
 const props = defineProps<{
     card: ReplayCard;
-    /** Collapsed land count; shows a ×N badge above 1. */
+    /** How many identical cards this tile stands for; shows a ×N badge above 1. */
     count?: number;
     /** Opponent cards lift down toward the centre line when attacking, yours lift up. */
     opponent: boolean;

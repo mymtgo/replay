@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import ReplayCardTile from './ReplayCardTile.vue';
-import { backRowGroups, isFrontRow, type CardGroup } from './replayCards';
+import { backRowGroups, frontRowGroups, isFrontRow } from './replayCards';
 import type { ReplayCard } from './types';
 
 const props = defineProps<{
@@ -17,12 +17,13 @@ const props = defineProps<{
     singleRow?: boolean;
 }>();
 
-const front = computed<CardGroup[]>(() => props.battlefield.filter(isFrontRow).map((card) => ({ card, count: 1 })));
+const front = computed(() => frontRowGroups(props.battlefield.filter(isFrontRow), props.pairs));
 const back = computed(() => backRowGroups(props.battlefield.filter((card) => !isFrontRow(card))));
 
 /**
  * Creatures face the centre line; lands and other permanents sit behind them.
- * Creatures take the larger share, since lands already stack into ×N groups.
+ * Creatures take the larger share: lands stack into ×N groups readily, while
+ * creatures only do as a swarm of identical copies.
  */
 const rows = computed(() => {
     const creatures = { key: 'front', groups: front.value, grow: 1.5 };
