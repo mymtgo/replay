@@ -39,13 +39,14 @@ class BuildReplaySnapshot
                 continue;
             }
 
+            $timeline = RepairMidnightWrap::run($game['timeline']);
             $sideboard = $game['sideboard'] ?? [];
-            $resolved = self::resolve($game['timeline'], $sideboard, $cards);
+            $resolved = self::resolve($timeline, $sideboard, $cards);
 
             $snapshot = [
                 'game_number' => $index + 1,
                 'won' => $game['won'],
-                'frames' => self::frames($game['timeline'], $game['local_username'], $resolved),
+                'frames' => self::frames($timeline, $game['local_username'], $resolved),
                 'log' => $game['log'],
             ];
 
