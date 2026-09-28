@@ -178,3 +178,173 @@ export function notableFrames(frames: ReplayFrame[]): number[] {
 
     return notable;
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** One stretch of thinking: the clock ran from `from` down to `to` between `start` and `end`. */
+export interface ReplayClockBooking {
+    start: number;
+    end: number;
+    from: number;
+    to: number;
+}
+
+export interface ReplayClockTimeline {
+    /** Milliseconds since the first frame, for every frame. */
+    times: number[];
+    players: Map<number, { initial: number; bookings: ReplayClockBooking[] }>;
+}
+
+/** Milliseconds since the first frame, for every frame. Timestamps carry no date, so a game past midnight wraps. */
+export function frameTimes(frames: ReplayFrame[]): number[] {
+    const times: number[] = [];
+
+    frames.forEach((frame, index) => {
+        if (index === 0) {
+            times.push(0);
+
+            return;
+        }
+
+        let gap = timestampMs(frame.timestamp) - timestampMs(frames[index - 1].timestamp);
+
+        if (gap < 0) {
+            gap += DAY_MS;
+        }
+
+        times.push(times[index - 1] + gap);
+    });
+
+    return times;
+}
+
+/**
+ * Rebuilds when each chess clock actually ran. MTGO only books a player's
+ * TimeLeft once their clock stops, so a frame's value lags: it sits still
+ * while they think, then drops by the whole think at once. Each drop is
+ * spread back over the time before the frame it lands on, so the clock runs
+ * down while the player is thinking rather than jumping afterwards.
+ */
+export function clockTimeline(frames: ReplayFrame[]): ReplayClockTimeline {
+    const times = frameTimes(frames);
+    const players: ReplayClockTimeline['players'] = new Map();
+
+    frames.forEach((frame, index) => {
+        frame.content.Players.forEach((player) => {
+            if (player.TimeLeft == null) {
+                return;
+            }
+
+            const clock = players.get(player.Id);
+
+            if (!clock) {
+                players.set(player.Id, { initial: player.TimeLeft, bookings: [] });
+
+                return;
+            }
+
+            const last = clock.bookings.at(-1);
+            const from = last?.to ?? clock.initial;
+
+            if (player.TimeLeft === from) {
+                return;
+            }
+
+            const end = times[index];
+            const spent = from - player.TimeLeft;
+
+            // A clock cannot run twice at once, nor before the game; a rise (time added) lands instantly.
+            const start = spent > 0 ? Math.min(end, Math.max(end - spent, last?.end ?? 0)) : end;
+
+            clock.bookings.push({ start, end, from, to: player.TimeLeft });
+        });
+    });
+
+    return { times, players };
+}
+
+/** A player's clock at `time` milliseconds into the game. */
+export function clockAt(clock: { initial: number; bookings: ReplayClockBooking[] }, time: number): number {
+    let value = clock.initial;
+
+    for (const booking of clock.bookings) {
+        if (time >= booking.end) {
+            value = booking.to;
+
+            continue;
+        }
+
+        if (time > booking.start) {
+            return booking.from - ((booking.from - booking.to) * (time - booking.start)) / (booking.end - booking.start);
+        }
+
+        break;
+    }
+
+    return value;
+}
+
+/** Milliseconds into the game `progress` (0 to 1) of the way from a frame to the next. */
+export function playheadTime(times: number[], index: number, progress: number): number {
+    const from = times[index] ?? 0;
+
+    return from + ((times[index + 1] ?? from) - from) * progress;
+}
+
+/**
+ * Every clock shown at `time` milliseconds into the game, on the frame at
+ * `index`, to the whole second the HUD displays so an unchanged read can be
+ * skipped. Rounded up, like a countdown, so clocks tick on the same second
+ * as the game time. Players the frame records no clock for are left out.
+ */
+export function clocksAt(frames: ReplayFrame[], timeline: ReplayClockTimeline, index: number, time: number): Map<number, number> {
+    const clocks = new Map<number, number>();
+
+    (frames[index]?.content.Players ?? []).forEach((player) => {
+        const clock = timeline.players.get(player.Id);
+
+        if (player.TimeLeft == null || !clock) {
+            return;
+        }
+
+        clocks.set(player.Id, Math.ceil(clockAt(clock, time) / 1000) * 1000);
+    });
+
+    return clocks;
+}
+
+/** Time of day `elapsed` milliseconds after the first frame, as `H:i:s`; empty without timestamps. */
+export function timeOfDay(frames: ReplayFrame[], elapsed: number): string {
+    const first = frames[0]?.timestamp;
+
+    if (!first) {
+        return '';
+    }
+
+    const seconds = Math.floor(((timestampMs(first) + elapsed) % DAY_MS) / 1000);
+
+    return [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60].map((part) => String(part).padStart(2, '0')).join(':');
+}
+
+/**
+ * Where each frame sits on the scrubber, as a percentage of the game's
+ * length, so a long think takes up the room it took in the game. One entry
+ * past the last frame marks the end. Frames without usable timestamps are
+ * spaced evenly instead.
+ */
+export function timelinePositions(frames: ReplayFrame[]): number[] {
+    const times = frameTimes(frames);
+    const length = times.at(-1) ?? 0;
+    const scale = length > 0 ? times : times.map((_, index) => index);
+    const end = scale.at(-1) ?? 0;
+
+    return [...scale.map((time) => (end > 0 ? (time / end) * 100 : 0)), 100];
+}
+
+/** The frame showing at a scrubber position: the last one at or before it. */
+export function frameAtPosition(positions: number[], position: number): number {
+    const last = positions.length - 2;
+    const index = positions.findLastIndex((at, frame) => frame <= last && at <= position);
+
+    return Math.max(0, Math.min(last, index));
+}

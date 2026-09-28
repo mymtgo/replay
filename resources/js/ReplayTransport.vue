@@ -14,6 +14,10 @@ defineProps<{
     markers: number[];
     current: number;
     total: number;
+    /** Each frame's place on the scrubber, from timelinePositions. */
+    positions: number[];
+    /** How long playback holds the current frame. */
+    holdMs: number;
     playing: boolean;
     speed: number;
     timestamp: string;
@@ -87,6 +91,9 @@ const iconButton = 'grid size-8 cursor-pointer place-items-center rounded-md hov
                 :markers="markers"
                 :current="current"
                 :total="total"
+                :positions="positions"
+                :playing="playing"
+                :hold-ms="holdMs"
                 :local-id="localId"
                 :player-name="playerName"
                 @seek="(frame) => emit('seek', frame)"

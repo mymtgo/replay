@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useElementSize } from '@vueuse/core';
 import { computed, useTemplateRef } from 'vue';
+import { frameAtPosition } from './replayTimeline';
 import type { ReplayTurn, ScrubHover } from './types';
 
 /** A turn segment narrower than this hides its T-label. */
@@ -10,6 +11,11 @@ const props = defineProps<{
     turns: ReplayTurn[];
     current: number;
     total: number;
+    /** Each frame's place on the track, from timelinePositions. */
+    positions: number[];
+    playing: boolean;
+    /** How long playback holds the current frame. */
+    holdMs: number;
     localId: number | null;
     playerName: (id: number | undefined) => string;
     /** Frames where something happened, marked when the game has no turns to segment by. */
@@ -26,19 +32,29 @@ const track = useTemplateRef<HTMLElement>('track');
 const { width } = useElementSize(track);
 let dragging = false;
 
+const position = (frame: number): number => props.positions[Math.min(frame, props.positions.length - 1)] ?? 0;
+
+/**
+ * Where the playhead is heading. While playing it glides to the next frame's
+ * moment over the time the current frame is held, so it moves with the game
+ * clock instead of hopping from frame to frame.
+ */
+const playhead = computed(() => position(props.playing && props.current < props.total - 1 ? props.current + 1 : props.current));
+const glide = computed(() => ({ transitionDuration: `${props.playing ? props.holdMs : 100}ms` }));
+
 const segments = computed(() =>
     props.turns.map((turn, i) => {
-        const span = turn.to - turn.from;
-        const widthPct = (span / props.total) * 100;
+        const left = position(turn.from);
+        const widthPct = position(turn.to) - left;
         const mine = turn.player !== null && turn.player === props.localId;
 
         return {
             key: i,
             turn,
-            left: (turn.from / props.total) * 100,
+            left,
             width: widthPct,
             mine,
-            fill: Math.max(0, Math.min(100, ((props.current + 1 - turn.from) / span) * 100)),
+            fill: widthPct > 0 ? Math.max(0, Math.min(100, ((playhead.value - left) / widthPct) * 100)) : playhead.value >= left ? 100 : 0,
             showLabel: turn.number !== null && (widthPct / 100) * width.value >= MIN_LABEL_WIDTH_PX,
             title: `Jump to turn ${turn.number}${turn.player !== null ? ` · ${props.playerName(turn.player)}` : ''}`,
         };
@@ -46,12 +62,10 @@ const segments = computed(() =>
 );
 
 /** Past marks read brighter, so the track shows how far into the game's events you are. */
-const ticks = computed(() => (props.markers ?? []).map((frame) => ({ frame, left: ((frame + 0.5) / props.total) * 100, past: frame <= props.current })));
-
-const knob = computed(() => ((props.current + 0.5) / props.total) * 100);
+const ticks = computed(() => (props.markers ?? []).map((frame) => ({ frame, left: position(frame), past: frame <= props.current })));
 
 function frameAt(event: PointerEvent, rect: DOMRect): number {
-    return Math.max(0, Math.min(props.total - 1, Math.floor(((event.clientX - rect.left) / rect.width) * props.total)));
+    return frameAtPosition(props.positions, ((event.clientX - rect.left) / rect.width) * 100);
 }
 
 function onDown(event: PointerEvent) {
@@ -113,9 +127,9 @@ function jump(turn: ReplayTurn) {
         >
             <div class="relative h-full overflow-hidden rounded" :class="segment.mine ? 'bg-primary/20' : 'bg-foreground/7'">
                 <div
-                    class="absolute inset-y-0 left-0"
+                    class="absolute inset-y-0 left-0 transition-[width] ease-linear"
                     :class="segment.mine ? 'bg-primary/80' : 'bg-foreground/35'"
-                    :style="{ width: `${segment.fill}%` }"
+                    :style="{ width: `${segment.fill}%`, ...glide }"
                 />
             </div>
             <button
@@ -137,8 +151,8 @@ function jump(turn: ReplayTurn) {
             :style="{ left: `${tick.left}%` }"
         />
         <div
-            class="pointer-events-none absolute -inset-y-1 -ml-[1.5px] w-0.75 rounded-sm bg-foreground shadow-[0_0_0_2px_var(--card)] transition-[left] duration-100 ease-linear"
-            :style="{ left: `${knob}%` }"
+            class="pointer-events-none absolute -inset-y-1 -ml-[1.5px] w-0.75 rounded-sm bg-foreground shadow-[0_0_0_2px_var(--card)] transition-[left] ease-linear"
+            :style="{ left: `${playhead}%`, ...glide }"
         />
     </div>
 </template>

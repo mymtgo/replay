@@ -14,19 +14,19 @@ const PEEK = 0.28;
 function footprint(tapped: boolean, front: boolean): string {
     const width = tapped ? 88 : 63;
 
-    return `${front ? width : width * PEEK} / 88`;
+    return `calc(var(--replay-card-h) * ${front ? width : width * PEEK} / 88)`;
 }
 </script>
 
 <template>
     <!-- Untapped copies, then tapped ones: two runs of offset cards, each ending on a whole card. -->
-    <div class="flex h-full flex-none gap-1.5">
-        <div v-for="part in pile.parts" :key="String(part.tapped)" class="flex h-full flex-none">
+    <div class="flex h-(--replay-card-h) flex-none gap-1.5">
+        <div v-for="part in pile.parts" :key="String(part.tapped)" class="flex h-(--replay-card-h) flex-none">
             <div
                 v-for="(card, i) in part.cards"
                 :key="card.Id"
-                class="relative h-full flex-none"
-                :style="{ aspectRatio: footprint(part.tapped, i === part.cards.length - 1) }"
+                class="relative h-(--replay-card-h) flex-none"
+                :style="{ width: footprint(part.tapped, i === part.cards.length - 1) }"
             >
                 <ReplayCardTile
                     class="absolute! top-0 left-0"

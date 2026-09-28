@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { hasNumberedTurns, notableFrames, timestampMs } from '../../resources/js/replayTimeline.ts';
+import { frameAtPosition, hasNumberedTurns, notableFrames, timelinePositions, timestampMs } from '../../resources/js/replayTimeline.ts';
 
 type Card = { Id: number; CatalogID: number; Zone: string; Owner: number };
 
@@ -53,4 +53,24 @@ test('clock and ISO timestamps both read as milliseconds into the day', () => {
     assert.equal(timestampMs('20:47:33.250'), 74853250);
     assert.equal(timestampMs('2026-09-19T20:47:33Z'), 74853000);
     assert.equal(timestampMs('2026-09-19T20:47:33.250+00:00'), 74853250);
+});
+
+const at = (timestamp: string) => ({ ...frame([]), timestamp });
+
+test('frames sit on the timeline by when they happened, thinking included', () => {
+    assert.deepEqual(timelinePositions([at('00:00:00'), at('00:00:01'), at('00:00:04')]), [0, 25, 100, 100]);
+});
+
+test('frames without timestamps are spaced evenly', () => {
+    assert.deepEqual(timelinePositions([at(''), at(''), at('')]), [0, 50, 100, 100]);
+});
+
+test('a position picks the frame showing at that moment', () => {
+    const positions = [0, 25, 100, 100];
+
+    assert.equal(frameAtPosition(positions, 0), 0);
+    assert.equal(frameAtPosition(positions, 24), 0);
+    assert.equal(frameAtPosition(positions, 60), 1);
+    assert.equal(frameAtPosition(positions, 100), 2);
+    assert.equal(frameAtPosition(positions, -5), 0);
 });

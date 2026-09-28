@@ -36,15 +36,15 @@ const back = computed<RowItem[]>(() => {
 
 /**
  * Creatures face the centre line; lands and other permanents sit behind them.
- * Creatures take the larger share: lands pile up, while creatures only
- * collapse as a swarm of identical copies.
+ * Every row is one card tall, empty or not, so cards keep one size on the
+ * whole board and nothing moves as rows fill and empty.
  */
 const rows = computed(() => {
-    const creatures = { key: 'front', groups: front.value, grow: 1.5 };
-    const lands = { key: 'back', groups: back.value, grow: 1 };
+    const creatures = { key: 'front', groups: front.value };
+    const lands = { key: 'back', groups: back.value };
 
     if (props.singleRow) {
-        return [{ key: 'all', groups: [...front.value, ...back.value], grow: 1 }];
+        return [{ key: 'all', groups: [...front.value, ...back.value] }];
     }
 
     return props.opponent ? [lands, creatures] : [creatures, lands];
@@ -53,24 +53,24 @@ const rows = computed(() => {
 
 <template>
     <!--
-        An empty row shrinks to its padding and hands its height to the other.
-        Rows stop growing at a comfortable card size, and what is left over
-        gathers on the far side so the cards stay near the centre line.
+        Rows are one shared card height (useReplayCardHeight sizes it to fit),
+        and what is left over gathers on the far side so the cards stay near
+        the centre line.
     -->
-    <div class="flex min-h-0 min-w-0 flex-1 basis-0 flex-col py-1" :class="opponent ? 'justify-end' : 'justify-start'">
+    <div data-replay-field class="flex min-h-0 min-w-0 flex-1 basis-0 flex-col py-1" :class="opponent ? 'justify-end' : 'justify-start'">
         <div
             v-for="row in rows"
             :key="row.key"
-            class="flex min-h-0 basis-0 items-stretch gap-1.5"
+            data-replay-row
+            class="flex flex-none items-stretch gap-1.5"
             :class="
                 scroll
                     ? [
-                          'max-h-38 justify-center-safe overflow-x-auto overflow-y-hidden px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-                          singleRow ? 'py-2.5' : 'py-4',
+                          'justify-center-safe overflow-x-auto overflow-y-hidden px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+                          singleRow ? 'h-[calc(var(--replay-card-h)+1.25rem)] py-2.5' : 'h-[calc(var(--replay-card-h)+2rem)] py-4',
                       ]
-                    : 'max-h-56 justify-center-safe px-2 py-1.75'
+                    : 'h-[calc(var(--replay-card-h)+0.875rem)] justify-center-safe px-2 py-1.75'
             "
-            :style="{ flexGrow: row.groups.length ? row.grow : 0, flexShrink: 1 }"
         >
             <template v-for="(item, i) in row.groups" :key="item.key">
                 <ReplayCardPile v-if="item.pile" :pile="item.pile" :opponent="opponent" />

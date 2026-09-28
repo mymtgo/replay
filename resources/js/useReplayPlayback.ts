@@ -6,11 +6,10 @@ export const REPLAY_SPEEDS = [0.5, 1, 1.5, 2, 4];
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Real gaps are replayed as they happened, within these bounds, so long thinks do not drag. */
+/** Frames recorded in the same second still show for a moment, so a burst of plays can be followed. */
 const MIN_FRAME_MS = 250;
-const MAX_FRAME_MS = 4000;
 
-/** How long playback holds a frame: the real time until the next one, scaled by speed. */
+/** How long playback holds a frame: the real time until the next one, thinking included, scaled by speed. */
 export function frameDuration(frames: ReplayFrame[], index: number, speed: number): number {
     const from = frames[index];
     const to = frames[index + 1];
@@ -26,7 +25,7 @@ export function frameDuration(frames: ReplayFrame[], index: number, speed: numbe
         gap += DAY_MS;
     }
 
-    return Math.min(MAX_FRAME_MS, Math.max(MIN_FRAME_MS, gap)) / speed;
+    return Math.max(MIN_FRAME_MS, gap) / speed;
 }
 
 /** Frame cursor, play/pause and turn jumps for a replay. */

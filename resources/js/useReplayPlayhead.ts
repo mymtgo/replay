@@ -1,66 +1,78 @@
 import { useRafFn } from '@vueuse/core';
 import { computed, shallowRef, watch, type Ref } from 'vue';
+import { clockTimeline, clocksAt, playheadTime } from './replayTimeline';
 import type { ReplayFrame } from './types';
 import { frameDuration } from './useReplayPlayback';
 
+function sameClocks(a: Map<number, number>, b: Map<number, number>): boolean {
+    return a.size === b.size && [...a].every(([id, value]) => b.get(id) === value);
+}
+
 /**
- * Chess clocks as shown on screen. Frames only sample TimeLeft, so during
- * playback each clock runs down towards the next frame's value over the time
- * the current frame is held, instead of sitting still and then snapping.
- * Paused or stepping, the recorded value is shown as is.
+ * Game time and chess clocks as shown on screen. Frames can sit seconds
+ * apart, so during playback both run on across the time a frame is held
+ * rather than waiting for the next frame and jumping. The clocks follow when
+ * each really ran (see clockTimeline). Paused or stepping, both show the
+ * frame's moment. Only republished when a displayed second changes, so the
+ * viewer does not re-render every animation frame.
  */
-export function useReplayClocks(
+export function useReplayPlayhead(
     frames: Ref<ReplayFrame[]>,
     current: Readonly<Ref<number>>,
     playing: Readonly<Ref<boolean>>,
     speed: Readonly<Ref<number>>,
 ) {
-    const progress = shallowRef(0);
+    const timeline = computed(() => clockTimeline(frames.value));
+    /** Whole seconds into the game, in milliseconds. */
+    const elapsed = shallowRef(0);
+    const clocks = shallowRef(new Map<number, number>());
     let frameStartedAt = performance.now();
 
+    function publish(progress: number) {
+        const time = playheadTime(timeline.value.times, current.value, progress);
+        const second = Math.floor(time / 1000) * 1000;
+        const next = clocksAt(frames.value, timeline.value, current.value, time);
+
+        if (second !== elapsed.value) {
+            elapsed.value = second;
+        }
+
+        if (!sameClocks(next, clocks.value)) {
+            clocks.value = next;
+        }
+    }
+
     const { pause, resume } = useRafFn(
-        () => {
-            progress.value = Math.min(1, (performance.now() - frameStartedAt) / frameDuration(frames.value, current.value, speed.value));
-        },
+        () => publish(Math.min(1, (performance.now() - frameStartedAt) / frameDuration(frames.value, current.value, speed.value))),
         { immediate: false },
     );
 
-    watch(current, () => {
-        frameStartedAt = performance.now();
-        progress.value = 0;
-    });
+    // Playback restarts the frame's hold on a speed change, so the playhead does too.
+    watch(
+        [current, timeline, speed],
+        () => {
+            frameStartedAt = performance.now();
+            publish(0);
+        },
+        { immediate: true },
+    );
 
     watch(
         playing,
         (isPlaying) => {
+            frameStartedAt = performance.now();
+
             if (isPlaying) {
-                frameStartedAt = performance.now();
                 resume();
 
                 return;
             }
 
             pause();
-            progress.value = 0;
+            publish(0);
         },
         { immediate: true },
     );
 
-    return computed(() => {
-        const clocks = new Map<number, number>();
-        const next = new Map((frames.value[current.value + 1]?.content.Players ?? []).map((player) => [player.Id, player.TimeLeft]));
-
-        (frames.value[current.value]?.content.Players ?? []).forEach((player) => {
-            if (player.TimeLeft == null) {
-                return;
-            }
-
-            const target = next.get(player.Id);
-            const running = playing.value && target != null && target < player.TimeLeft;
-
-            clocks.set(player.Id, running ? player.TimeLeft + (target - player.TimeLeft) * progress.value : player.TimeLeft);
-        });
-
-        return clocks;
-    });
+    return { elapsed, clocks };
 }

@@ -34,16 +34,20 @@ const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5
 </script>
 
 <template>
+    <!--
+        Sized from the shared card height rather than aspect-ratio, which Safari
+        gets wrong in a flex row. Tapped cards lie sideways, as wide as they are tall.
+    -->
     <div
-        class="relative h-full min-w-[18px] hover:z-20!"
+        class="relative h-(--replay-card-h) min-w-[18px] hover:z-20!"
         :style="{
-            aspectRatio: tapped ? '1 / 1' : '63 / 88',
+            width: tapped ? 'var(--replay-card-h)' : 'calc(var(--replay-card-h) * 63 / 88)',
             flex: `0 ${last ? 0 : 1} auto`,
             zIndex: attacking ? 3 : 1,
         }"
     >
         <div
-            class="absolute top-0 left-0 aspect-[63/88] h-full rounded-[5px] bg-muted transition-[transform,box-shadow] duration-200 ease-out"
+            class="absolute top-0 left-0 h-(--replay-card-h) w-[calc(var(--replay-card-h)*63/88)] rounded-[5px] bg-muted transition-[transform,box-shadow] duration-200 ease-out"
             :style="{
                 boxShadow: `0 0 0 2px ${ring}, 0 2px 6px rgba(0,0,0,.35)`,
                 transform: `translate(${tapped ? 19.8 : 0}%, ${lift}px) rotate(${tapped ? 90 : 0}deg)`,

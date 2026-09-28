@@ -22,18 +22,19 @@ import { sideboardCaptions, sideboardChanges, type ReplaySideboardBaseline } fro
 import ReplaySide from './ReplaySide.vue';
 import ReplayStack from './ReplayStack.vue';
 import { normaliseFrames } from './replayFrames';
-import { buildLogItems, deriveTurns } from './replayTimeline';
+import { buildLogItems, deriveTurns, timeOfDay, timelinePositions } from './replayTimeline';
 import ReplayTransport from './ReplayTransport.vue';
 import { REPLAY_ZONES } from './replayZones';
 import ReplayZoneWindow from './ReplayZoneWindow.vue';
 import type { ReplayCard, ReplayFrame, ReplayLogEntry, ReplayMatchGame, ReplaySideboardEntry, ReplayZone } from './types';
 import { useCardPreview } from './useCardPreview';
 import { useReplayBoard } from './useReplayBoard';
-import { useReplayClocks } from './useReplayClocks';
+import { useReplayCardHeight } from './useReplayCardHeight';
 import { useReplayFullscreen } from './useReplayFullscreen';
 import { useReplayKeyboard } from './useReplayKeyboard';
 import { useReplayLayout } from './useReplayLayout';
-import { REPLAY_SPEEDS, useReplayPlayback } from './useReplayPlayback';
+import { REPLAY_SPEEDS, frameDuration, useReplayPlayback } from './useReplayPlayback';
+import { useReplayPlayhead } from './useReplayPlayhead';
 import { useReplayShare } from './useReplayShare';
 import { useScrubTooltip } from './useScrubTooltip';
 import { zoneCardsFor } from './replayZoneCards';
@@ -107,7 +108,9 @@ watch([current, playing], ([frameIndex, isPlaying]) => {
 const { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName, startingSideboard, sideboard, discards } =
     useReplayBoard(frames, current, turns, toRef(props, 'sideboard'));
 
-const clocks = useReplayClocks(frames, current, playing, speed);
+const { elapsed, clocks } = useReplayPlayhead(frames, current, playing, speed);
+const positions = computed(() => timelinePositions(frames.value));
+const holdMs = computed(() => frameDuration(frames.value, current.value, speed.value));
 
 /** Recorded on press: older Safari does not deliver clicks as PointerEvents, so a click cannot say what made it. */
 const lastPointer = shallowRef<string | null>(null);
@@ -125,6 +128,7 @@ provide(replayContextKey, {
 
 const revealedCards = computed(() => revealedSoFar.value.map((reveal) => reveal.card));
 const { layout, compact } = useReplayLayout(root);
+const cardHeight = useReplayCardHeight(root, compact);
 
 const zoneWindows = useZoneWindows(root, compact);
 const { windows } = zoneWindows;
@@ -271,11 +275,8 @@ function windowCaptions(zone: ReplayZone): Map<number, string> | null {
 }
 
 /** Synced matches carry ISO timestamps; show only the time, as desktop replays do. */
-const clockTime = computed(() => {
-    const timestamp = frame.value?.timestamp ?? '';
-
-    return timestamp.includes('T') ? timestamp.slice(timestamp.indexOf('T') + 1).replace(/(Z|[+-]\d{2}:?\d{2})$/, '') : timestamp;
-});
+/** The time of day in the game, running on while playback holds a frame. */
+const clockTime = computed(() => timeOfDay(frames.value, elapsed.value));
 
 const missingText = computed(() => phaseMissingText(phasesRecorded.value, turn.value?.number ?? null));
 const currentStepLabel = computed(() => (step.value ? stepLabel(step.value) : null));
@@ -307,6 +308,7 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
 <template>
     <div
         ref="root"
+        :style="{ '--replay-card-h': `${cardHeight}px` }"
         class="replay-theme replay-texture-bg @container relative flex size-full min-h-0 flex-col overflow-hidden text-[13px] leading-snug text-foreground select-none"
         @pointerdown.capture="lastPointer = $event.pointerType"
     >
@@ -411,6 +413,8 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                 :markers="markers"
                 :current="current"
                 :total="total"
+                :positions="positions"
+                :hold-ms="holdMs"
                 :playing="playing"
                 :speed="speed"
                 :timestamp="clockTime"
@@ -466,6 +470,9 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                                 :markers="markers"
                                 :current="current"
                                 :total="total"
+                                :positions="positions"
+                                :playing="playing"
+                                :hold-ms="holdMs"
                                 :local-id="localId"
                                 :player-name="playerName"
                                 @seek="playback.seek"
