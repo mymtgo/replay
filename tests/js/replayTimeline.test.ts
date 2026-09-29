@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { frameAtPosition, hasNumberedTurns, notableFrames, timelinePositions, timestampMs } from '../../resources/js/replayTimeline.ts';
+import { deriveTurns, frameAtPosition, hasNumberedTurns, notableFrames, timelinePositions, timestampMs } from '../../resources/js/replayTimeline.ts';
 
 type Card = { Id: number; CatalogID: number; Zone: string; Owner: number };
 
@@ -73,4 +73,37 @@ test('a position picks the frame showing at that moment', () => {
     assert.equal(frameAtPosition(positions, 60), 1);
     assert.equal(frameAtPosition(positions, 100), 2);
     assert.equal(frameAtPosition(positions, -5), 0);
+});
+
+function turnFrame(active: number | undefined, step?: string) {
+    return { timestamp: '', content: { Players: [{ Id: 1, Name: 'Hero' }, { Id: 2, Name: 'Villain' }], Cards: [], ActivePlayer: active, Step: step } };
+}
+
+test('turns follow the active player once it changes', () => {
+    const frames = [turnFrame(2), turnFrame(2, 'Upkeep'), turnFrame(2, 'PreCombatMain'), turnFrame(1, 'Upkeep'), turnFrame(2, 'Upkeep')];
+
+    assert.deepEqual(deriveTurns(frames, []), [
+        { number: null, from: 0, to: 1, player: null },
+        { number: 1, from: 1, to: 3, player: 2 },
+        { number: 2, from: 3, to: 4, player: 1 },
+        { number: 3, from: 4, to: 5, player: 2 },
+    ]);
+});
+
+test('an active player that never changes falls back to the log', () => {
+    const frames = [turnFrame(1, 'Upkeep'), turnFrame(1, 'EndOfTurn'), turnFrame(1, 'Upkeep')];
+    frames.forEach((frame, i) => (frame.timestamp = `12:00:0${i * 5}`));
+
+    const turns = deriveTurns(frames, [
+        { timestamp: '12:00:00', message: 'Turn 1:' },
+        { timestamp: '12:00:10', message: 'Turn 1:' },
+    ]);
+
+    assert.deepEqual(
+        turns.map((turn) => [turn.from, turn.player]),
+        [
+            [0, 1],
+            [2, 2],
+        ],
+    );
 });

@@ -1,5 +1,5 @@
 import { inject, type Component, type InjectionKey } from 'vue';
-import type { ReplayCard } from './types';
+import type { ReplayCard, ReplayPlayer } from './types';
 
 /** Hooks and host wiring shared by every surface in the viewer. */
 export type ReplayContext = {
@@ -13,6 +13,8 @@ export type ReplayContext = {
     linkComponent: Component | string;
     /** Switches game in place, for a host that holds the whole match on one page. Null when games are links. */
     selectGame: ((id: number) => void) | null;
+    /** The deck a player is on, when the host knows it. */
+    archetype: (player: ReplayPlayer) => string | null;
 };
 
 export const replayContextKey: InjectionKey<ReplayContext> = Symbol('replay');

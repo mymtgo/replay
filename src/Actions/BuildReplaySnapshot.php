@@ -39,7 +39,7 @@ class BuildReplaySnapshot
                 continue;
             }
 
-            $timeline = RepairMidnightWrap::run($game['timeline']);
+            $timeline = RepairActivePlayer::run(RepairMidnightWrap::run($game['timeline']));
             $sideboard = $game['sideboard'] ?? [];
             $resolved = self::resolve($timeline, $sideboard, $cards);
 

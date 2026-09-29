@@ -73,8 +73,10 @@ const props = withDefaults(
         initialFrame?: number | null;
         /** A link to this game at a frame. Without it the viewer offers no sharing. */
         shareUrl?: (frame: number) => string;
+        /** Deck archetypes to show beside each player's name; either may be unknown. */
+        archetypes?: { local: string | null; opponent: string | null } | null;
     }>(),
-    { gameHref: undefined, linkComponent: 'a', previousSideboard: null, sideboard: null, initialFrame: null, shareUrl: undefined },
+    { gameHref: undefined, linkComponent: 'a', previousSideboard: null, sideboard: null, initialFrame: null, shareUrl: undefined, archetypes: null },
 );
 
 const emit = defineEmits<{
@@ -124,6 +126,7 @@ provide(replayContextKey, {
     gameHref: props.gameHref ?? null,
     linkComponent: props.linkComponent,
     selectGame: props.onSelectGame ?? null,
+    archetype: (player) => (player.IsLocal ? props.archetypes?.local : props.archetypes?.opponent) ?? null,
 });
 
 const revealedCards = computed(() => revealedSoFar.value.map((reveal) => reveal.card));

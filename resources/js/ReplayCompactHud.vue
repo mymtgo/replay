@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Hand, Heart, Layers, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useReplayContext } from './replayContext';
 import { hudZones } from './replayZones';
 import type { ReplayPlayer, ReplayZone } from './types';
 
@@ -35,6 +36,9 @@ const clock = computed(() => {
 });
 
 const zones = computed(() => hudZones(props.opponent, props.sideboard));
+
+const context = useReplayContext();
+const archetype = computed(() => context.archetype(props.player));
 </script>
 
 <template>
@@ -59,7 +63,10 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
                     class="absolute -top-0.5 -right-0.5 size-2 animate-pulse rounded-full border border-black bg-primary"
                 />
             </div>
-            <span class="truncate text-[12.5px] font-semibold">{{ player.Name }}</span>
+            <div class="flex min-w-0 flex-col leading-tight">
+                <span class="truncate text-[12.5px] font-semibold">{{ player.Name }}</span>
+                <span v-if="archetype" :title="archetype" class="truncate text-[10.5px] text-muted-foreground">{{ archetype }}</span>
+            </div>
             <Trophy v-if="winner" :size="13" class="flex-none text-yellow-400" />
         </div>
 

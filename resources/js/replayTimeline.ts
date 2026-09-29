@@ -32,14 +32,21 @@ export function frameForTimestamp(frames: ReplayFrame[], timestamp: string): num
 /**
  * Turn boundaries for the scrubber and the log.
  *
- * MTGO numbers turns per round and the sidecar only reports a turn when that
- * round number changes, so neither source alone sees every turn. The log's
- * "Turn N:" lines and the frames' Turn changes are merged, and the active
- * player alternates from the seat that played first.
+ * Frames whose ActivePlayer changes say so directly: a turn starts at the
+ * first recorded step and wherever the active player changes. Older frames
+ * carry the player who went first throughout, and MTGO numbers turns per
+ * round, so for those the log's "Turn N:" lines and the frames' Turn changes
+ * are merged, and the active player alternates from the seat that played first.
  */
 export function deriveTurns(frames: ReplayFrame[], log: ReplayLogEntry[]): ReplayTurn[] {
     if (!frames.length) {
         return [];
+    }
+
+    const byActivePlayer = activePlayerTurns(frames);
+
+    if (byActivePlayer) {
+        return byActivePlayer;
     }
 
     const candidates = new Set<number>();
@@ -78,6 +85,37 @@ export function deriveTurns(frames: ReplayFrame[], log: ReplayLogEntry[]): Repla
 
     if (!turns.length || turns[0].from > 0) {
         turns.unshift({ number: null, from: 0, to: turns[0]?.from ?? frames.length, player: null });
+    }
+
+    return turns;
+}
+
+/** Turns from the frames' own active player; null when it never changes, so it cannot be trusted. */
+function activePlayerTurns(frames: ReplayFrame[]): ReplayTurn[] | null {
+    const turns: ReplayTurn[] = [];
+    let current: number | null = null;
+
+    frames.forEach((frame, index) => {
+        const { ActivePlayer: active, Step: step, Phase: phase } = frame.content;
+
+        if (active == null || (!turns.length && !step && !phase) || active === current) {
+            return;
+        }
+
+        if (turns.length) {
+            turns[turns.length - 1].to = index;
+        }
+
+        turns.push({ number: turns.length + 1, from: index, to: frames.length, player: active });
+        current = active;
+    });
+
+    if (turns.length < 2) {
+        return null;
+    }
+
+    if (turns[0].from > 0) {
+        turns.unshift({ number: null, from: 0, to: turns[0].from, player: null });
     }
 
     return turns;

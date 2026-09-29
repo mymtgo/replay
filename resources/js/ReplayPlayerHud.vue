@@ -2,6 +2,7 @@
 import { Hand, Heart, Layers, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { poolSymbols } from './replayCards';
+import { useReplayContext } from './replayContext';
 import ReplayToggleButton from './ReplayToggleButton.vue';
 import { hudZones } from './replayZones';
 import type { ReplayPlayer, ReplayZone } from './types';
@@ -29,6 +30,9 @@ const props = defineProps<{
 const emit = defineEmits<{
     toggleZone: [zone: ReplayZone, event: MouseEvent];
 }>();
+
+const context = useReplayContext();
+const archetype = computed(() => context.archetype(props.player));
 
 const pool = computed(() => poolSymbols(props.player.Pool));
 
@@ -73,9 +77,13 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
                 {{ player.Name.charAt(0).toUpperCase() }}
             </div>
 
-            <div class="flex min-w-0 flex-[0_1_auto] items-baseline gap-1.5 overflow-hidden @7xl:flex-1">
-                <span class="truncate text-sm font-semibold">{{ player.Name }}</span>
-                <span v-if="player.IsLocal" class="text-[11px] text-muted-foreground">you</span>
+            <!-- The deck sits beside the name in the bar and under it in the column. -->
+            <div class="flex min-w-0 flex-[0_1_auto] items-baseline gap-1.5 overflow-hidden @7xl:flex-1 @7xl:flex-col @7xl:items-start @7xl:gap-0">
+                <span class="flex min-w-0 max-w-full items-baseline gap-1.5">
+                    <span class="truncate text-sm font-semibold">{{ player.Name }}</span>
+                    <span v-if="player.IsLocal" class="text-[11px] text-muted-foreground">you</span>
+                </span>
+                <span v-if="archetype" :title="archetype" class="max-w-full truncate text-xs text-muted-foreground">{{ archetype }}</span>
             </div>
 
             <!-- Always laid out so the stats beside it never shift as priority passes. -->
