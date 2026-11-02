@@ -6,7 +6,8 @@ import type { ReplayCardView, ReplayStackItem } from './types';
 type Pointed = { key: string; target: number | null };
 
 /**
- * Marks the targets of a stack entry on the board. Pointing at an entry (or
+ * Marks the targets of a stack entry on the board: the top entry's by
+ * default, since it resolves next. Pointing at an entry (or
  * focusing it) marks them while it lasts; a tap on a touch screen pins an
  * entry, which keeps its marks until it is tapped again or the moment changes.
  * Pointing wins over a pin, and the pin comes back when the pointer leaves.
@@ -22,7 +23,12 @@ export function useTargetHighlight(
     const focused = shallowRef<string | null>(null);
     const pinned = shallowRef<string | null>(null);
 
-    const active = computed<Pointed | null>(() => pointed.value ?? (focused.value ? { key: focused.value, target: null } : pinned.value ? { key: pinned.value, target: null } : null));
+    /** With nothing pointed at, focused or pinned, the entry that resolves next shows its targets. */
+    const active = computed<Pointed | null>(() => {
+        const key = focused.value ?? pinned.value ?? stack.value[0]?.card.key;
+
+        return pointed.value ?? (key ? { key, target: null } : null);
+    });
 
     /** Derived from the entry still on the stack, so a stale key marks nothing. */
     const marks = computed<TargetMarks>(() => {

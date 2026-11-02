@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { parse, type Choice } from '@mtgreplay/mtgr';
 import { buildTimeline } from '../../resources/js/replayGame.ts';
+import { shallowRef } from 'vue';
+import { useTargetHighlight } from '../../resources/js/useTargetHighlight.ts';
 import { NO_MARKS, playerMark, targetMarks, zoneMark } from '../../resources/js/replayTargets.ts';
 import { cardViews, liveObjects, objectZone, stackItems } from '../../resources/js/replayState.ts';
 import type { ReplayCardView } from '../../resources/js/types.ts';
@@ -92,4 +94,23 @@ test('Thoughtseize lists the player it targets, and the card it then chose apart
     assert.deepEqual(thoughtseize.chosen.map((pick) => pick.name), ['Ragavan, Nimble Pilferer']);
     assert.equal(thoughtseize.chosen[0].card?.name, 'Ragavan, Nimble Pilferer');
     assert.deepEqual([...targetMarks(thoughtseize.card.choices, zones, cards)], [playerMark('PlayerB')]);
+});
+
+test('the entry that resolves next marks its targets without being pointed at', () => {
+    const { stack, zones, cards } = at(load('mycospawn-turn-5.mtgr'), '1:57');
+    const highlight = useTargetHighlight(shallowRef(stack), shallowRef(zones), shallowRef(cards), shallowRef('mouse'));
+
+    assert.deepEqual([...highlight.marks.value], ['#17']);
+
+    highlight.point(stack[1].card.key);
+    assert.equal(highlight.marks.value.size, 0);
+
+    highlight.leave();
+    assert.deepEqual([...highlight.marks.value], ['#17']);
+});
+
+test('an empty stack marks nothing', () => {
+    const highlight = useTargetHighlight(shallowRef([]), shallowRef(new Map()), shallowRef(new Map()), shallowRef(null));
+
+    assert.equal(highlight.marks.value, NO_MARKS);
 });
