@@ -1,20 +1,19 @@
 <script setup lang="ts">
 import ReplayBattlefield from './ReplayBattlefield.vue';
 import ReplayPlayerHud from './ReplayPlayerHud.vue';
-import type { ReplayCard, ReplayPlayer, ReplayZone } from './types';
+import type { ReplayCardView, ReplayPlayerView, ReplayZone } from './types';
 
 defineProps<{
-    player: ReplayPlayer;
-    battlefield: ReplayCard[];
+    player: ReplayPlayerView;
+    battlefield: ReplayCardView[];
     opponent: boolean;
     active: boolean;
     priority: boolean;
-    timeLeft: number | null;
     winner: boolean;
     zoneCounts: Record<ReplayZone, number>;
     sideboard: boolean;
     openZones: ReplayZone[];
-    pairs: Map<number, number>;
+    pairs: Map<string, number>;
 }>();
 
 const emit = defineEmits<{
@@ -39,7 +38,6 @@ const emit = defineEmits<{
             :opponent="opponent"
             :active="active"
             :priority="priority"
-            :time-left="timeLeft"
             :winner="winner"
             :zone-counts="zoneCounts"
             :sideboard="sideboard"

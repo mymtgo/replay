@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { X } from 'lucide-vue-next';
 import { computed, nextTick, useTemplateRef, watch } from 'vue';
+import { useReplayContext } from './replayContext';
 import type { ReplayLogItem } from './types';
 
 const props = defineProps<{
     open: boolean;
     items: ReplayLogItem[];
     current: number;
-    localId: number | null;
-    playerName: (id: number | undefined) => string;
+    localId: string | null;
+    playerName: (id: string | undefined) => string;
     /** Compact viewers are too narrow for a side drawer, so it covers the board. */
     wide?: boolean;
 }>();
@@ -19,11 +20,21 @@ const emit = defineEmits<{
 }>();
 
 const list = useTemplateRef<HTMLElement>('list');
+const { cardByKey, showPreview, hidePreview } = useReplayContext();
+
+/** Hovering a row previews the card it is about, when that card is still in the game. */
+function hover(event: MouseEvent, key: string | null) {
+    const card = key ? cardByKey(key) : null;
+
+    if (card) {
+        showPreview(event, card);
+    }
+}
 
 const lineCount = computed(() => props.items.filter((item) => item.kind === 'line').length);
 
 /** The latest row at or before the current frame. */
-const currentKey = computed(() => props.items.findLast((item) => item.frame <= props.current)?.key ?? null);
+const currentKey = computed(() => props.items.findLast((item) => item.step <= props.current)?.key ?? null);
 
 function scrollToCurrent(instant: boolean) {
     const box = list.value;
@@ -91,7 +102,7 @@ watch(
                     type="button"
                     :data-log-key="item.key"
                     class="sticky top-0 z-1 flex w-full cursor-pointer items-center gap-2 bg-card px-3.5 pt-2.25 pb-1.5 text-left text-xs font-bold"
-                    @click="emit('seek', item.frame)"
+                    @click="emit('seek', item.step)"
                 >
                     <span
                         class="size-1.75 rounded-full"
@@ -108,12 +119,23 @@ watch(
                     class="grid w-full cursor-pointer grid-cols-[58px_minmax(0,1fr)] gap-1.5 px-3.5 py-1.25 text-left text-[12.5px] hover:bg-accent"
                     :class="[
                         item.key === currentKey ? 'bg-primary/15 font-semibold' : '',
-                        item.frame > current ? 'text-muted-foreground' : 'text-foreground',
+                        item.step > current ? 'text-muted-foreground' : 'text-foreground',
                     ]"
-                    @click="emit('seek', item.frame)"
+                    @click="emit('seek', item.step)"
+                    @mouseenter="hover($event, item.objectKey)"
+                    @mouseleave="hidePreview"
                 >
                     <span class="pt-px font-mono text-[11px] font-normal text-muted-foreground">{{ item.timestamp }}</span>
-                    <span class="text-pretty">{{ item.text }}</span>
+                    <span class="text-pretty">
+                        {{ item.text }}
+                        <span
+                            v-if="item.cause"
+                            class="text-[11px] font-normal text-muted-foreground"
+                            :class="item.cause.objectKey ? 'underline decoration-dotted' : ''"
+                            @mouseenter.stop="hover($event, item.cause.objectKey)"
+                            >by {{ item.cause.text }}</span
+                        >
+                    </span>
                 </button>
             </template>
         </div>

@@ -96,7 +96,7 @@ function gameLabel(item: Game, index: number): string {
 
         <main class="relative min-h-0 flex-1">
             <div v-if="dragging" class="pointer-events-none absolute inset-0 z-100 grid place-items-center bg-primary/20 text-lg font-semibold">Drop the .mtgr file</div>
-            <ReplayViewer v-if="game" :key="`${fileName}:${gameIndex}`" :frames="[]" :log="[]" :won="null" :game-id="gameIndex" :match-games="[]" />
+            <ReplayViewer v-if="game" :key="`${fileName}:${gameIndex}`" :games="games" :game-index="gameIndex" :card-image="cardImage" @select-game="gameIndex = $event" />
             <div v-else class="grid size-full place-items-center text-muted-foreground">Load a .mtgr file to start.</div>
         </main>
     </div>

@@ -1,51 +1,34 @@
 import { computed, onUnmounted, readonly, shallowRef, watch, type Ref } from 'vue';
-import { hasNumberedTurns, notableFrames, timestampMs } from './replayTimeline';
-import type { ReplayFrame, ReplayTurn } from './types';
+import type { ReplayTurn } from './types';
 
 export const REPLAY_SPEEDS = [0.5, 1, 1.5, 2, 4];
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+/** Moments recorded in the same second still show for a while, so a burst of lines can be followed. */
+const MIN_STEP_MS = 400;
 
-/** Frames recorded in the same second still show for a moment, so a burst of plays can be followed. */
-const MIN_FRAME_MS = 250;
+/** How long playback holds a moment: the real time until the next one, thinking included, scaled by speed. */
+export function stepDuration(times: number[], index: number, speed: number): number {
+    const from = times[index];
+    const to = times[index + 1];
 
-/** How long playback holds a frame: the real time until the next one, thinking included, scaled by speed. */
-export function frameDuration(frames: ReplayFrame[], index: number, speed: number): number {
-    const from = frames[index];
-    const to = frames[index + 1];
-
-    if (!from || !to) {
-        return MIN_FRAME_MS / speed;
+    if (from === undefined || to === undefined) {
+        return MIN_STEP_MS / speed;
     }
 
-    let gap = timestampMs(to.timestamp) - timestampMs(from.timestamp);
-
-    // Timestamps carry no date, so a game running past midnight wraps.
-    if (gap < 0) {
-        gap += DAY_MS;
-    }
-
-    return Math.max(MIN_FRAME_MS, gap) / speed;
+    return Math.max(MIN_STEP_MS, (to - from) * 1000) / speed;
 }
 
-/** Frame cursor, play/pause and turn jumps for a replay. */
-export function useReplayPlayback(frames: Ref<ReplayFrame[]>, turns: Ref<ReplayTurn[]>) {
-    const frameCount = computed(() => frames.value.length);
-
-    /**
-     * Where the skip buttons land: turn starts when the game recorded turns,
-     * otherwise every frame where something visible happened, so a game
-     * without turn data skips play by play rather than straight to its end.
-     */
-    const markers = computed(() => (hasNumberedTurns(turns.value) ? [] : notableFrames(frames.value)));
-    const stops = computed(() => (hasNumberedTurns(turns.value) ? turns.value.map((turn) => turn.from) : [0, ...markers.value]));
+/** Moment cursor, play/pause and turn jumps for a replay. */
+export function useReplayPlayback(times: Readonly<Ref<number[]>>, turns: Readonly<Ref<ReplayTurn[]>>) {
+    const count = computed(() => times.value.length);
+    const stops = computed(() => turns.value.map((turn) => turn.from));
     const current = shallowRef(0);
     const playing = shallowRef(false);
     const speed = shallowRef(1);
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     function clamp(index: number): number {
-        return Math.max(0, Math.min(frameCount.value - 1, index));
+        return Math.max(0, Math.min(count.value - 1, index));
     }
 
     function stopTimer() {
@@ -73,7 +56,7 @@ export function useReplayPlayback(frames: Ref<ReplayFrame[]>, turns: Ref<ReplayT
         stopTimer();
         timer = setTimeout(
             () => {
-                if (current.value >= frameCount.value - 1) {
+                if (current.value >= count.value - 1) {
                     pause();
 
                     return;
@@ -82,7 +65,7 @@ export function useReplayPlayback(frames: Ref<ReplayFrame[]>, turns: Ref<ReplayT
                 current.value++;
                 schedule();
             },
-            frameDuration(frames.value, current.value, speed.value),
+            stepDuration(times.value, current.value, speed.value),
         );
     }
 
@@ -93,7 +76,7 @@ export function useReplayPlayback(frames: Ref<ReplayFrame[]>, turns: Ref<ReplayT
             return;
         }
 
-        if (current.value >= frameCount.value - 1) {
+        if (current.value >= count.value - 1) {
             current.value = 0;
         }
 
@@ -111,7 +94,7 @@ export function useReplayPlayback(frames: Ref<ReplayFrame[]>, turns: Ref<ReplayT
 
     /**
      * Back goes to the start of the current turn, or the previous turn when
-     * already at (or one frame past) its start. Forward goes to the next turn.
+     * already at (or one moment past) its start. Forward goes to the next turn.
      */
     function jumpTurn(direction: -1 | 1) {
         pause();
@@ -119,7 +102,7 @@ export function useReplayPlayback(frames: Ref<ReplayFrame[]>, turns: Ref<ReplayT
 
         if (direction > 0) {
             const next = bounds.find((from) => from > current.value);
-            seek(next ?? frameCount.value - 1);
+            seek(next ?? count.value - 1);
 
             return;
         }
@@ -136,9 +119,9 @@ export function useReplayPlayback(frames: Ref<ReplayFrame[]>, turns: Ref<ReplayT
         seek(bounds[index - 1] ?? 0);
     }
 
-    watch(frameCount, () => seek(current.value));
+    watch(count, () => seek(current.value));
 
     onUnmounted(stopTimer);
 
-    return { current: readonly(current), playing: readonly(playing), speed: readonly(speed), markers, seek, step, toggle, pause, setSpeed, jumpTurn };
+    return { current: readonly(current), playing: readonly(playing), speed: readonly(speed), seek, step, toggle, pause, setSpeed, jumpTurn };
 }

@@ -24,7 +24,7 @@ function footprint(tapped: boolean, front: boolean): string {
         <div v-for="part in pile.parts" :key="String(part.tapped)" class="flex h-(--replay-card-h) flex-none">
             <div
                 v-for="(card, i) in part.cards"
-                :key="card.Id"
+                :key="card.key"
                 class="relative h-(--replay-card-h) flex-none"
                 :style="{ width: footprint(part.tapped, i === part.cards.length - 1) }"
             >

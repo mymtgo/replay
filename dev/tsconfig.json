@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
@@ -8,7 +9,12 @@
     "noEmit": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
-    "paths": { "@replay/*": ["../resources/js/*"] }
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@replay/*": ["../resources/js/*"],
+      "*": ["./node_modules/*"]
+    }
   },
   "include": ["src", "../resources/js"]
 }

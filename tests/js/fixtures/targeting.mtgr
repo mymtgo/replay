@@ -1,0 +1,116 @@
+[Mtgr "0.3.0"]
+[Event "Modern League"]
+[Site "MTGO"]
+[Date "2026.11.02"]
+[Round "-"]
+[Player1 "PlayerA"]
+[Player2 "PlayerB"]
+[Result "1-0"]
+[Format "Modern"]
+[Match "example-targeting"]
+[Game "1"]
+[Perspective "PlayerA"]
+[Player1Archetype "Dimir Murktide"]
+[Player2Archetype "Boros Energy"]
+[Termination "concession"]
+[TimeControl "1500"]
+[UTCDate "2026.11.02"]
+[UTCTime "18:30:00"]
+
+0:00 deck "PlayerA" unknown
+0:00 pregame
+0:00   keyframe
+0:00     player "PlayerA" life 20 poison 0 library 60
+0:00     player "PlayerB" life 20 poison 0 library 60
+0:03   "PlayerA" roll 6
+0:03   "PlayerB" roll 3
+0:08   "PlayerA" choose first "PlayerA"
+0:09   new card #1 "Watery Grave" owner "PlayerA" in library
+0:09   #1 "Watery Grave" move library -> hand as draw by rule:opening-hand
+0:09   new card #2 "Thoughtseize" owner "PlayerA" in library
+0:09   #2 "Thoughtseize" move library -> hand as draw by rule:opening-hand
+0:09   new card #3 "Murktide Regent" owner "PlayerA" in library
+0:09   #3 "Murktide Regent" move library -> hand as draw by rule:opening-hand
+0:09   new card #4 "Consider" owner "PlayerA" in library
+0:09   #4 "Consider" move library -> hand as draw by rule:opening-hand
+0:09   new card #5 "Polluted Delta" owner "PlayerA" in library
+0:09   #5 "Polluted Delta" move library -> hand as draw by rule:opening-hand
+0:09   new card #6 "Island" owner "PlayerA" in library
+0:09   #6 "Island" move library -> hand as draw by rule:opening-hand
+0:09   new card #7 "Counterspell" owner "PlayerA" in library
+0:09   #7 "Counterspell" move library -> hand as draw by rule:opening-hand
+0:09   new hidden #8 owner "PlayerB" in library
+0:09   #8 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #9 owner "PlayerB" in library
+0:09   #9 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #10 owner "PlayerB" in library
+0:09   #10 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #11 owner "PlayerB" in library
+0:09   #11 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #12 owner "PlayerB" in library
+0:09   #12 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #13 owner "PlayerB" in library
+0:09   #13 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #14 owner "PlayerB" in library
+0:09   #14 move library -> hand as draw by rule:opening-hand
+0:21   "PlayerA" keep
+0:26   "PlayerB" keep
+0:26 turn 1 "PlayerA"
+0:26   keyframe
+0:26     player "PlayerA" life 20 poison 0 library 53
+0:26     player "PlayerB" life 20 poison 0 library 53
+0:26     #1 "Watery Grave" hand "PlayerA"
+0:26     #2 "Thoughtseize" hand "PlayerA"
+0:26     #3 "Murktide Regent" hand "PlayerA"
+0:26     #4 "Consider" hand "PlayerA"
+0:26     #5 "Polluted Delta" hand "PlayerA"
+0:26     #6 "Island" hand "PlayerA"
+0:26     #7 "Counterspell" hand "PlayerA"
+0:26     #8 hand "PlayerB"
+0:26     #9 hand "PlayerB"
+0:26     #10 hand "PlayerB"
+0:26     #11 hand "PlayerB"
+0:26     #12 hand "PlayerB"
+0:26     #13 hand "PlayerB"
+0:26     #14 hand "PlayerB"
+0:26   untap
+0:26   upkeep
+0:26   precombat-main
+0:31     #1 "Watery Grave" choose option "pay 2 life"
+0:31     "PlayerA" life 20 -> 18 by #1
+0:31     #1 "Watery Grave" play from hand
+0:34     new ability #15 mana of #1 "Watery Grave" "({T}: Add {U} or {B}.)" controller "PlayerA"
+0:34     #1 "Watery Grave" tap by cost:#15
+0:34     "PlayerA" add {B} by #15
+0:35     #2 "Thoughtseize" cast from hand
+0:35     #2 "Thoughtseize" target "PlayerB"
+0:35     "PlayerA" pay {B} by cost:#2
+0:35     "PlayerA" priority
+0:35       stack
+0:35         #2 "Thoughtseize" controller "PlayerA" target "PlayerB"
+0:35     "PlayerA" pass
+0:35     "PlayerB" priority
+0:35       stack
+0:35         #2 "Thoughtseize" controller "PlayerA" target "PlayerB"
+0:38     "PlayerB" pass
+0:38     #2 "Thoughtseize" resolve
+0:38     #8 identify "Ragavan, Nimble Pilferer"
+0:38     #8 "Ragavan, Nimble Pilferer" reveal by #2
+0:38     #9 identify "Lightning Bolt"
+0:38     #9 "Lightning Bolt" reveal by #2
+0:38     #10 identify "Phlage, Titan of Fire's Fury"
+0:38     #10 "Phlage, Titan of Fire's Fury" reveal by #2
+0:38     #11 identify "Guide of Souls"
+0:38     #11 "Guide of Souls" reveal by #2
+0:38     #12 identify "Mountain"
+0:38     #12 "Mountain" reveal by #2
+0:38     #13 identify "Sacred Foundry"
+0:38     #13 "Sacred Foundry" reveal by #2
+0:38     #14 identify "Arid Mesa"
+0:38     #14 "Arid Mesa" reveal by #2
+0:45     #2 "Thoughtseize" choose object #8 "Ragavan, Nimble Pilferer"
+0:45     #8 "Ragavan, Nimble Pilferer" move hand -> graveyard as discard by #2
+0:45     "PlayerA" life 18 -> 16 by #2
+0:45     #2 "Thoughtseize" move stack -> graveyard by rule:resolve
+0:52     "PlayerB" concede
+1-0

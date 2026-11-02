@@ -3,14 +3,14 @@ import { X } from 'lucide-vue-next';
 import { onMounted, useTemplateRef } from 'vue';
 import ReplayZoneCards from './ReplayZoneCards.vue';
 import type { WindowSize } from './replayWindows';
-import type { ReplayCard, ReplayZone } from './types';
+import type { ReplayCardView, ReplayZone } from './types';
 import { COMPACT_ZONE_WINDOW_WIDTH_PX, ZONE_WINDOW_WIDTH_PX } from './useZoneWindows';
 
 defineProps<{
     title: string;
     zone: ReplayZone;
-    cards: ReplayCard[];
-    captions?: Map<number, string> | null;
+    cards: ReplayCardView[];
+    captions?: Map<string, string> | null;
     left: number;
     top: number;
     /** Null until resized: default width, height fitting the cards. */
@@ -36,8 +36,6 @@ onMounted(() => {
     }
 });
 
-/** Says which end is which, since a graveyard's order can matter. */
-const ORDER_HINTS: Partial<Record<ReplayZone, string>> = { Graveyard: 'top first', Exile: 'newest first' };
 </script>
 
 <template>
@@ -65,7 +63,6 @@ const ORDER_HINTS: Partial<Record<ReplayZone, string>> = { Graveyard: 'top first
         >
             <span class="truncate font-semibold">{{ title }}</span>
             <span class="text-muted-foreground tabular-nums">{{ cards.length }}</span>
-            <span v-if="!compact && ORDER_HINTS[zone] && cards.length > 1" class="truncate text-[11px] text-muted-foreground">· {{ ORDER_HINTS[zone] }}</span>
             <div class="flex-1" />
             <button
                 type="button"

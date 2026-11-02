@@ -2,7 +2,7 @@
 import ReplayCardImage from './ReplayCardImage.vue';
 import { useReplayContext } from './replayContext';
 import { REPLAY_ZONES } from './replayZones';
-import type { ReplayCard, ReplayZone } from './types';
+import type { ReplayCardView, ReplayZone } from './types';
 
 /**
  * A zone's cards as a numbered list, most recent first. Names read at any
@@ -11,9 +11,9 @@ import type { ReplayCard, ReplayZone } from './types';
  */
 defineProps<{
     zone: ReplayZone;
-    cards: ReplayCard[];
-    /** Optional note beside each card, keyed by card id. */
-    captions?: Map<number, string> | null;
+    cards: ReplayCardView[];
+    /** Optional note beside each card, keyed by card key. */
+    captions?: Map<string, string> | null;
     /** Taller rows for fingers on phones. */
     small?: boolean;
 }>();
@@ -28,7 +28,7 @@ const { showPreview, hidePreview, pinPreview } = useReplayContext();
     <ol v-else class="flex min-h-0 flex-1 flex-col divide-y divide-white/6 overflow-y-auto">
         <li
             v-for="(card, i) in cards"
-            :key="card.Id"
+            :key="card.key"
             class="flex cursor-default items-center gap-2.5 px-3 hover:bg-accent/50"
             :class="small ? 'py-1.5' : 'py-1'"
             @mouseenter="showPreview($event, card)"
@@ -37,13 +37,11 @@ const { showPreview, hidePreview, pinPreview } = useReplayContext();
         >
             <span class="w-4 flex-none text-right text-[11px] text-muted-foreground tabular-nums">{{ i + 1 }}</span>
             <div class="relative aspect-[63/88] w-7 flex-none overflow-hidden rounded-[3px] shadow-[0_1px_3px_rgba(0,0,0,.5)]">
-                <ReplayCardImage :name="null" :image="card.image" />
+                <ReplayCardImage :name="card.name ?? ''" :image="card.image" />
             </div>
             <div class="flex min-w-0 flex-1 flex-col leading-tight">
                 <span class="truncate font-medium">{{ card.name ?? 'Unknown card' }}</span>
-                <span v-if="card.type || captions?.get(card.Id)" class="truncate text-[11px] text-muted-foreground">
-                    {{ [card.type, captions?.get(card.Id)].filter(Boolean).join(' · ') }}
-                </span>
+                <span v-if="captions?.get(card.key)" class="truncate text-[11px] text-muted-foreground">{{ captions.get(card.key) }}</span>
             </div>
         </li>
     </ol>

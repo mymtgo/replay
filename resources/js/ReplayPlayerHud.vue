@@ -1,27 +1,24 @@
 <script setup lang="ts">
-import { Hand, Heart, Layers, Timer, Trophy } from 'lucide-vue-next';
+import { Hand, Heart, Layers, Skull, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { poolSymbols } from './replayCards';
-import { useReplayContext } from './replayContext';
 import ReplayToggleButton from './ReplayToggleButton.vue';
 import { hudZones } from './replayZones';
-import type { ReplayPlayer, ReplayZone } from './types';
+import type { ReplayPlayerView, ReplayZone } from './types';
 import ManaSymbol from './ui/ManaSymbol.vue';
 import ReplayPanel from './ui/ReplayPanel.vue';
 
 const LOW_CLOCK_MS = 5 * 60 * 1000;
 
 const props = defineProps<{
-    player: ReplayPlayer;
+    player: ReplayPlayerView;
     opponent: boolean;
     active: boolean;
     priority: boolean;
-    /** Displayed clock in ms, which runs between frames during playback. */
-    timeLeft: number | null;
     /** Won this game. */
     winner: boolean;
     zoneCounts: Record<ReplayZone, number>;
-    /** Offer the sideboard; only yours, and only when the game recorded one. */
+    /** Offer the sideboard: when the game lists this player's deck. */
     sideboard: boolean;
     /** Zones of this player with a window open. */
     openZones: ReplayZone[];
@@ -31,23 +28,20 @@ const emit = defineEmits<{
     toggleZone: [zone: ReplayZone, event: MouseEvent];
 }>();
 
-const context = useReplayContext();
-const archetype = computed(() => context.archetype(props.player));
-
-const pool = computed(() => poolSymbols(props.player.Pool));
+const pool = computed(() => poolSymbols(props.player.pool));
 
 const clock = computed(() => {
-    if (props.timeLeft == null) {
+    if (props.player.clock === null) {
         return null;
     }
 
-    const seconds = Math.max(0, Math.round(props.timeLeft / 1000));
+    const seconds = Math.max(0, Math.round(props.player.clock / 1000));
 
     return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 });
 
 const clockClass = computed(() => {
-    if ((props.timeLeft ?? Infinity) < LOW_CLOCK_MS) {
+    if ((props.player.clock ?? Infinity) < LOW_CLOCK_MS) {
         return 'text-[#e5484d]';
     }
 
@@ -74,16 +68,16 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
                     active ? 'ring-2 ring-primary ring-offset-2 ring-offset-transparent' : '',
                 ]"
             >
-                {{ player.Name.charAt(0).toUpperCase() }}
+                {{ player.name.charAt(0).toUpperCase() }}
             </div>
 
             <!-- The deck sits beside the name in the bar and under it in the column. -->
             <div class="flex min-w-0 flex-[0_1_auto] items-baseline gap-1.5 overflow-hidden @7xl:flex-1 @7xl:flex-col @7xl:items-start @7xl:gap-0">
                 <span class="flex min-w-0 max-w-full items-baseline gap-1.5">
-                    <span class="truncate text-sm font-semibold">{{ player.Name }}</span>
-                    <span v-if="player.IsLocal" class="text-[11px] text-muted-foreground">you</span>
+                    <span class="truncate text-sm font-semibold">{{ player.name }}</span>
+                    <span v-if="player.local" class="text-[11px] text-muted-foreground">you</span>
                 </span>
-                <span v-if="archetype" :title="archetype" class="max-w-full truncate text-xs text-muted-foreground">{{ archetype }}</span>
+                <span v-if="player.archetype" :title="player.archetype" class="max-w-full truncate text-xs text-muted-foreground">{{ player.archetype }}</span>
             </div>
 
             <!-- Always laid out so the stats beside it never shift as priority passes. -->
@@ -99,11 +93,14 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
         </div>
 
         <div class="contents @7xl:flex @7xl:flex-wrap @7xl:items-center @7xl:gap-x-3.5 @7xl:gap-y-2">
-            <div v-if="player.Life != null" title="Life" class="flex flex-none items-center gap-1.25">
+            <div title="Life" class="flex flex-none items-center gap-1.25">
                 <Heart :size="15" class="text-[#e5484d]" />
-                <span class="min-w-[2ch] text-[17px] font-bold tabular-nums" :class="player.Life <= 5 ? 'text-[#e5484d]' : ''">{{
-                    player.Life
-                }}</span>
+                <span class="min-w-[2ch] text-[17px] font-bold tabular-nums" :class="player.life <= 5 ? 'text-[#e5484d]' : ''">{{ player.life }}</span>
+            </div>
+
+            <div v-if="player.poison" title="Poison counters" class="flex flex-none items-center gap-1 text-[#4fb883]">
+                <Skull :size="14" />
+                <span class="min-w-[2ch] font-bold tabular-nums">{{ player.poison }}</span>
             </div>
 
             <div v-if="clock" title="Chess clock" class="flex flex-none items-center gap-1" :class="clockClass">
@@ -111,14 +108,14 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
                 <span class="min-w-[5ch] font-mono text-[12.5px] tabular-nums">{{ clock }}</span>
             </div>
 
-            <div v-if="player.HandCount != null" title="Cards in hand" class="flex flex-none items-center gap-1 text-muted-foreground">
+            <div title="Cards in hand" class="flex flex-none items-center gap-1 text-muted-foreground">
                 <Hand :size="14" />
-                <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.HandCount }}</span>
+                <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.handCount }}</span>
             </div>
 
-            <div v-if="player.LibraryCount != null" title="Cards in library" class="flex flex-none items-center gap-1 text-muted-foreground">
+            <div title="Cards in library" class="flex flex-none items-center gap-1 text-muted-foreground">
                 <Layers :size="14" />
-                <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.LibraryCount }}</span>
+                <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.librarySize }}</span>
             </div>
 
             <div v-if="winner" title="Won this game" class="flex flex-none items-center gap-1 text-[12.5px] font-semibold text-yellow-400">
@@ -139,7 +136,7 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
                 :key="item.zone"
                 :active="openZones.includes(item.zone)"
                 :icon="item.icon"
-                :title="item.zone === 'Hand' ? 'Revealed cards in hand' : undefined"
+                :title="item.zone === 'Hand' ? 'Known cards in hand' : undefined"
                 @click="emit('toggleZone', item.zone, $event)"
             >
                 <span>{{ item.label }}</span>

@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef, watch } from 'vue';
-import { phaseMissingText, REPLAY_PHASES, REPLAY_STEP_ORDER, stepLabel, type ReplayStepKey } from './replayPhases';
+import type { Step } from '@mtgreplay/mtgr';
+import { REPLAY_PHASES, REPLAY_STEP_ORDER, stepKey, stepLabel, type ReplayStepKey } from './replayPhases';
 
 const props = defineProps<{
     turnNumber: number | null;
     activeName: string | null;
     activeIsLocal: boolean;
-    step: ReplayStepKey | null;
-    /** Whether any frame in this game carries phase data (sidecar games do, older games do not). */
-    phasesRecorded: boolean;
+    step: Step | null;
+    /** Shown instead of the steps when there is no step: before the first turn. */
+    missingText: string;
 }>();
 
-const missingText = computed(() => phaseMissingText(props.phasesRecorded, props.turnNumber));
-
-const currentIndex = computed(() => (props.step ? REPLAY_STEP_ORDER.indexOf(props.step) : -1));
+const current = computed(() => stepKey(props.step));
+const currentIndex = computed(() => (current.value ? REPLAY_STEP_ORDER.indexOf(current.value) : -1));
 
 function stepClass(key: ReplayStepKey): string {
     const index = REPLAY_STEP_ORDER.indexOf(key);
@@ -30,7 +30,7 @@ const thumb = shallowRef<{ left: number; width: number } | null>(null);
 
 /** The raised thumb slides under whichever step is current, like a switch. */
 watch(
-    [() => props.step, track],
+    [current, track],
     ([step, element]) => {
         const target = step ? element?.querySelector<HTMLElement>(`[data-step="${step}"]`) : null;
         thumb.value = target ? { left: target.offsetLeft, width: target.offsetWidth } : null;

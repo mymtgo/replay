@@ -1,0 +1,399 @@
+[Mtgr "0.3.0"]
+[Event "Modern League"]
+[Site "MTGO"]
+[Date "2026.11.02"]
+[Round "-"]
+[Player1 "PlayerA"]
+[Player2 "PlayerB"]
+[Result "0-1"]
+[Format "Modern"]
+[Match "example-match"]
+[Game "1"]
+[Perspective "PlayerA"]
+[MTGO_GameId "966120001"]
+[MTGO_MatchId "291004417"]
+[Player1Archetype "Dimir Murktide"]
+[Player2Archetype "Domain Zoo"]
+[Recorder "MtgoReplay 0.3.0"]
+[Termination "life total"]
+[TimeControl "1500"]
+[UTCDate "2026.11.02"]
+[UTCTime "19:00:00"]
+
+0:00 deck "PlayerA" name "Murktide 11-02"
+0:00   main 2 "Bloodstained Mire"
+0:00   main 4 "Consider"
+0:00   main 4 "Counterspell"
+0:00   main 2 "Drown in the Loch"
+0:00   main 4 "Fatal Push"
+0:00   main 2 "Flooded Strand"
+0:00   main 5 "Island"
+0:00   main 4 "Mishra's Bauble"
+0:00   main 2 "Misty Rainforest"
+0:00   main 4 "Murktide Regent"
+0:00   main 4 "Orcish Bowmasters"
+0:00   main 1 "Otawara, Soaring City"
+0:00   main 4 "Polluted Delta"
+0:00   main 4 "Psychic Frog"
+0:00   main 3 "Spell Pierce"
+0:00   main 2 "Subtlety"
+0:00   main 2 "Swamp"
+0:00   main 3 "Thoughtseize"
+0:00   main 4 "Watery Grave"
+0:00   side 2 "Cling to Dust"
+0:00   side 2 "Damping Sphere"
+0:00   side 2 "Hurkyl's Recall"
+0:00   side 2 "Mystical Dispute"
+0:00   side 3 "Nihil Spellbomb"
+0:00   side 2 "Spell Snare"
+0:00   side 2 "Toxic Deluge"
+0:00 pregame
+0:00   keyframe
+0:00     player "PlayerA" life 20 poison 0 library 60 clock 25:00
+0:00     player "PlayerB" life 20 poison 0 library 60 clock 25:00
+0:00   incomplete "recording started during turn 11"
+% MtgoReplay attached to the match during game 1, turn 11
+38:00   new card #1 "Watery Grave" owner "PlayerA" in battlefield
+38:00   new card #2 "Watery Grave" owner "PlayerA" in battlefield
+38:00   new card #3 "Island" owner "PlayerA" in battlefield
+38:00   new card #4 "Island" owner "PlayerA" in battlefield
+38:00   new card #5 "Swamp" owner "PlayerA" in battlefield
+38:00   new card #6 "Murktide Regent" owner "PlayerA" in battlefield
+38:00   new card #7 "Counterspell" owner "PlayerA" in hand
+38:00   new card #8 "Thoughtseize" owner "PlayerA" in graveyard
+38:00   new card #9 "Fatal Push" owner "PlayerA" in exile
+38:00   new card #10 "Consider" owner "PlayerA" in exile
+38:00   new card #11 "Sacred Foundry" owner "PlayerB" in battlefield
+38:00   new card #12 "Stomping Ground" owner "PlayerB" in battlefield
+38:00   new card #13 "Mountain" owner "PlayerB" in battlefield
+38:00   new card #14 "Scion of Draco" owner "PlayerB" in battlefield
+38:00   new card #15 "Lightning Bolt" owner "PlayerB" in graveyard
+38:00   new card #16 "Leyline Binding" owner "PlayerB" in graveyard
+38:00   new hidden #17 owner "PlayerB" in hand
+38:00   new hidden #18 owner "PlayerB" in hand
+38:00 turn 11 "PlayerB"
+38:00   keyframe
+38:00     player "PlayerA" life 3 poison 0 library 34 clock 9:23
+38:00     player "PlayerB" life 11 poison 0 library 35 clock 3:05
+38:00     #1 "Watery Grave" battlefield "PlayerA" tapped
+38:00     #2 "Watery Grave" battlefield "PlayerA" tapped
+38:00     #3 "Island" battlefield "PlayerA" tapped
+38:00     #4 "Island" battlefield "PlayerA" tapped
+38:00     #5 "Swamp" battlefield "PlayerA" tapped
+38:00     #6 "Murktide Regent" battlefield "PlayerA" pt 5/5 counters "+1/+1" 2
+38:00     #7 "Counterspell" hand "PlayerA"
+38:00     #8 "Thoughtseize" graveyard "PlayerA"
+38:00     #9 "Fatal Push" exile with #6
+38:00     #10 "Consider" exile with #6
+38:00     #11 "Sacred Foundry" battlefield "PlayerB"
+38:00     #12 "Stomping Ground" battlefield "PlayerB"
+38:00     #13 "Mountain" battlefield "PlayerB"
+38:00     #14 "Scion of Draco" battlefield "PlayerB" pt 4/4
+38:00     #15 "Lightning Bolt" graveyard "PlayerB"
+38:00     #16 "Leyline Binding" graveyard "PlayerB"
+38:00     #17 hand "PlayerB"
+38:00     #18 hand "PlayerB"
+38:00   untap
+38:00   upkeep
+38:02   draw
+38:02     new hidden #19 owner "PlayerB" in library
+38:02     #19 move library -> hand as draw by rule:draw
+38:02   precombat-main
+38:20     #17 identify "Lightning Bolt"
+38:20     #17 "Lightning Bolt" cast from hand
+38:20     #17 "Lightning Bolt" target "PlayerA"
+38:20     new ability #20 mana of #11 "Sacred Foundry" "({T}: Add {R} or {W}.)" controller "PlayerB"
+38:20     #11 "Sacred Foundry" tap by cost:#20
+38:20     "PlayerB" add {R} by #20
+38:20     "PlayerB" pay {R} by cost:#17
+38:20     "PlayerB" priority clock "PlayerA" 9:23 "PlayerB" 2:45
+38:20       stack
+38:20         #17 "Lightning Bolt" controller "PlayerB" target "PlayerA"
+38:20     "PlayerB" pass
+38:20     "PlayerA" priority clock "PlayerA" 9:23 "PlayerB" 2:45
+38:20       stack
+38:20         #17 "Lightning Bolt" controller "PlayerB" target "PlayerA"
+38:23     "PlayerA" pass
+38:23     #17 "Lightning Bolt" resolve
+38:23     #17 "Lightning Bolt" damage "PlayerA" 3 by #17
+38:23     "PlayerA" life 3 -> 0 by #17
+38:23     #17 "Lightning Bolt" move stack -> graveyard by rule:resolve
+38:23     "PlayerA" lose by rule:sba
+38:25     MTGO_chat "PlayerA" "gg"
+0-1
+
+[Mtgr "0.3.0"]
+[Event "Modern League"]
+[Site "MTGO"]
+[Date "2026.11.02"]
+[Round "-"]
+[Player1 "PlayerA"]
+[Player2 "PlayerB"]
+[Result "1-0"]
+[Format "Modern"]
+[Match "example-match"]
+[Game "2"]
+[Perspective "PlayerA"]
+[Annotator "PlayerA"]
+[MTGO_GameId "966120002"]
+[MTGO_MatchId "291004417"]
+[Player1Archetype "Dimir Murktide"]
+[Player2Archetype "Domain Zoo"]
+[Recorder "MtgoReplay 0.3.0"]
+[Termination "time forfeit"]
+[TimeControl "1500"]
+[UTCDate "2026.11.02"]
+[UTCTime "19:41:00"]
+
+0:00 deck "PlayerA" name "Murktide 11-02"
+0:00   main 2 "Bloodstained Mire"
+0:00   main 4 "Consider"
+0:00   main 4 "Counterspell"
+0:00   main 4 "Fatal Push"
+0:00   main 2 "Flooded Strand"
+0:00   main 5 "Island"
+0:00   main 4 "Mishra's Bauble"
+0:00   main 2 "Misty Rainforest"
+0:00   main 4 "Murktide Regent"
+0:00   main 4 "Orcish Bowmasters"
+0:00   main 1 "Otawara, Soaring City"
+0:00   main 4 "Polluted Delta"
+0:00   main 4 "Psychic Frog"
+0:00   main 2 "Spell Pierce"
+0:00   main 1 "Spell Snare"
+0:00   main 2 "Subtlety"
+0:00   main 2 "Swamp"
+0:00   main 3 "Thoughtseize"
+0:00   main 2 "Toxic Deluge"
+0:00   main 4 "Watery Grave"
+0:00   side 2 "Cling to Dust"
+0:00   side 2 "Damping Sphere"
+0:00   side 2 "Drown in the Loch"
+0:00   side 2 "Hurkyl's Recall"
+0:00   side 2 "Mystical Dispute"
+0:00   side 3 "Nihil Spellbomb"
+0:00   side 1 "Spell Pierce"
+0:00   side 1 "Spell Snare"
+0:00 pregame
+0:00   keyframe
+0:00     player "PlayerA" life 20 poison 0 library 60 clock 9:20
+0:00     player "PlayerB" life 20 poison 0 library 60 clock 2:45
+0:02   MTGO_chat "PlayerB" "gl"
+0:05   "PlayerA" choose first "PlayerA" {PlayerA lost game 1, so PlayerA chooses.}
+0:07   new card #1 "Watery Grave" owner "PlayerA" in library
+0:07   #1 "Watery Grave" move library -> hand as draw by rule:opening-hand
+0:07   new card #2 "Fatal Push" owner "PlayerA" in library
+0:07   #2 "Fatal Push" move library -> hand as draw by rule:opening-hand
+0:07   new card #3 "Psychic Frog" owner "PlayerA" in library
+0:07   #3 "Psychic Frog" move library -> hand as draw by rule:opening-hand
+0:07   new card #4 "Island" owner "PlayerA" in library
+0:07   #4 "Island" move library -> hand as draw by rule:opening-hand
+0:07   new card #5 "Counterspell" owner "PlayerA" in library
+0:07   #5 "Counterspell" move library -> hand as draw by rule:opening-hand
+0:07   new card #6 "Polluted Delta" owner "PlayerA" in library
+0:07   #6 "Polluted Delta" move library -> hand as draw by rule:opening-hand
+0:07   new card #7 "Toxic Deluge" owner "PlayerA" in library
+0:07   #7 "Toxic Deluge" move library -> hand as draw by rule:opening-hand
+0:07   new hidden #8 owner "PlayerB" in library
+0:07   #8 move library -> hand as draw by rule:opening-hand
+0:07   new hidden #9 owner "PlayerB" in library
+0:07   #9 move library -> hand as draw by rule:opening-hand
+0:07   new hidden #10 owner "PlayerB" in library
+0:07   #10 move library -> hand as draw by rule:opening-hand
+0:07   new hidden #11 owner "PlayerB" in library
+0:07   #11 move library -> hand as draw by rule:opening-hand
+0:07   new hidden #12 owner "PlayerB" in library
+0:07   #12 move library -> hand as draw by rule:opening-hand
+0:07   new hidden #13 owner "PlayerB" in library
+0:07   #13 move library -> hand as draw by rule:opening-hand
+0:07   new hidden #14 owner "PlayerB" in library
+0:07   #14 move library -> hand as draw by rule:opening-hand
+0:20   "PlayerA" keep
+0:40   "PlayerB" mulligan
+0:40   #8 move hand -> library by rule:mulligan
+0:40   #9 move hand -> library by rule:mulligan
+0:40   #10 move hand -> library by rule:mulligan
+0:40   #11 move hand -> library by rule:mulligan
+0:40   #12 move hand -> library by rule:mulligan
+0:40   #13 move hand -> library by rule:mulligan
+0:40   #14 move hand -> library by rule:mulligan
+0:40   "PlayerB" shuffle by rule:mulligan
+0:40   new hidden #15 owner "PlayerB" in library
+0:40   #15 move library -> hand as draw by rule:mulligan
+0:40   new hidden #16 owner "PlayerB" in library
+0:40   #16 move library -> hand as draw by rule:mulligan
+0:40   new hidden #17 owner "PlayerB" in library
+0:40   #17 move library -> hand as draw by rule:mulligan
+0:40   new hidden #18 owner "PlayerB" in library
+0:40   #18 move library -> hand as draw by rule:mulligan
+0:40   new hidden #19 owner "PlayerB" in library
+0:40   #19 move library -> hand as draw by rule:mulligan
+0:40   new hidden #20 owner "PlayerB" in library
+0:40   #20 move library -> hand as draw by rule:mulligan
+0:40   new hidden #21 owner "PlayerB" in library
+0:40   #21 move library -> hand as draw by rule:mulligan
+0:40   #15 move hand -> library bottom by rule:mulligan
+0:40   "PlayerB" keep
+0:41 turn 1 "PlayerA"
+0:41   keyframe
+0:41     player "PlayerA" life 20 poison 0 library 53 clock 9:07
+0:41     player "PlayerB" life 20 poison 0 library 54 clock 2:25
+0:41     #1 "Watery Grave" hand "PlayerA"
+0:41     #2 "Fatal Push" hand "PlayerA"
+0:41     #3 "Psychic Frog" hand "PlayerA"
+0:41     #4 "Island" hand "PlayerA"
+0:41     #5 "Counterspell" hand "PlayerA"
+0:41     #6 "Polluted Delta" hand "PlayerA"
+0:41     #7 "Toxic Deluge" hand "PlayerA"
+0:41     #15 library "PlayerB" bottom 1
+0:41     #16 hand "PlayerB"
+0:41     #17 hand "PlayerB"
+0:41     #18 hand "PlayerB"
+0:41     #19 hand "PlayerB"
+0:41     #20 hand "PlayerB"
+0:41     #21 hand "PlayerB"
+0:41   untap
+0:41   upkeep
+0:41   precombat-main
+0:52     #1 "Watery Grave" choose option "don't pay 2 life"
+0:52     #1 "Watery Grave" play from hand tapped {No one-mana play this turn, so the shock is not worth 2 life.}
+1:03   beginning-of-combat
+1:03   declare-attackers
+1:03   end-of-combat
+1:04   postcombat-main
+1:04   end
+1:05   cleanup
+1:05 turn 2 "PlayerB"
+1:05   keyframe
+1:05     player "PlayerA" life 20 poison 0 library 53 clock 8:43
+1:05     player "PlayerB" life 20 poison 0 library 54 clock 2:25
+1:05     #1 "Watery Grave" battlefield "PlayerA" tapped
+1:05     #2 "Fatal Push" hand "PlayerA"
+1:05     #3 "Psychic Frog" hand "PlayerA"
+1:05     #4 "Island" hand "PlayerA"
+1:05     #5 "Counterspell" hand "PlayerA"
+1:05     #6 "Polluted Delta" hand "PlayerA"
+1:05     #7 "Toxic Deluge" hand "PlayerA"
+1:05     #15 library "PlayerB" bottom 1
+1:05     #16 hand "PlayerB"
+1:05     #17 hand "PlayerB"
+1:05     #18 hand "PlayerB"
+1:05     #19 hand "PlayerB"
+1:05     #20 hand "PlayerB"
+1:05     #21 hand "PlayerB"
+1:05   untap
+1:05   upkeep
+1:07   draw
+1:07     new hidden #22 owner "PlayerB" in library
+1:07     #22 move library -> hand as draw by rule:draw
+1:07   precombat-main
+1:30     #16 identify "Sacred Foundry"
+1:30     #16 "Sacred Foundry" choose option "pay 2 life"
+1:30     "PlayerB" life 20 -> 18 by #16
+1:30     #16 "Sacred Foundry" play from hand
+1:40     #17 identify "Ragavan, Nimble Pilferer"
+1:40     #17 "Ragavan, Nimble Pilferer" cast from hand
+1:40     new ability #23 mana of #16 "Sacred Foundry" "({T}: Add {R} or {W}.)" controller "PlayerB"
+1:40     #16 "Sacred Foundry" tap by cost:#23
+1:40     "PlayerB" add {R} by #23
+1:40     "PlayerB" pay {R} by cost:#17
+1:40     "PlayerB" priority clock "PlayerA" 8:43 "PlayerB" 1:50
+1:40       stack
+1:40         #17 "Ragavan, Nimble Pilferer" controller "PlayerB"
+1:40     "PlayerB" pass
+1:41     "PlayerA" priority clock "PlayerA" 8:43 "PlayerB" 1:50
+1:41       stack
+1:41         #17 "Ragavan, Nimble Pilferer" controller "PlayerB"
+1:44     "PlayerA" pass {Watery Grave is still tapped, so there is no answer yet.}
+1:44     #17 "Ragavan, Nimble Pilferer" resolve
+1:44     #17 "Ragavan, Nimble Pilferer" move stack -> battlefield pt 2/1 by rule:resolve
+2:05   beginning-of-combat
+2:05   declare-attackers
+2:06   end-of-combat
+2:08   postcombat-main
+2:09   end
+2:10   cleanup
+2:10 turn 3 "PlayerA"
+2:10   keyframe
+2:10     player "PlayerA" life 20 poison 0 library 53 clock 8:40
+2:10     player "PlayerB" life 18 poison 0 library 53 clock 1:24
+2:10     #1 "Watery Grave" battlefield "PlayerA" tapped
+2:10     #2 "Fatal Push" hand "PlayerA"
+2:10     #3 "Psychic Frog" hand "PlayerA"
+2:10     #4 "Island" hand "PlayerA"
+2:10     #5 "Counterspell" hand "PlayerA"
+2:10     #6 "Polluted Delta" hand "PlayerA"
+2:10     #7 "Toxic Deluge" hand "PlayerA"
+2:10     #15 library "PlayerB" bottom 1
+2:10     #16 "Sacred Foundry" battlefield "PlayerB" tapped
+2:10     #17 "Ragavan, Nimble Pilferer" battlefield "PlayerB" pt 2/1
+2:10     #18 hand "PlayerB"
+2:10     #19 hand "PlayerB"
+2:10     #20 hand "PlayerB"
+2:10     #21 hand "PlayerB"
+2:10     #22 hand "PlayerB"
+2:10   untap
+2:10     #1 "Watery Grave" untap by rule:untap
+2:10   upkeep
+2:11   draw
+2:11     new card #24 "Consider" owner "PlayerA" in library
+2:11     #24 "Consider" move library -> hand as draw by rule:draw
+2:11   precombat-main
+2:20     #4 "Island" play from hand
+2:45     #2 "Fatal Push" cast from hand $1 {Ragavan has to die before it connects.}
+-     (
+-       #3 "Psychic Frog" cast from hand $6 {Frog blocks Ragavan, but Ragavan survives to dash in later.}
+-     )
+2:45     #2 "Fatal Push" target #17 "Ragavan, Nimble Pilferer"
+2:45     new ability #25 mana of #1 "Watery Grave" "({T}: Add {U} or {B}.)" controller "PlayerA"
+2:45     #1 "Watery Grave" tap by cost:#25
+2:45     "PlayerA" add {B} by #25
+2:45     "PlayerA" pay {B} by cost:#2
+2:45     "PlayerA" priority clock "PlayerA" 8:05 "PlayerB" 1:24
+2:45       stack
+2:45         #2 "Fatal Push" controller "PlayerA" target #17 "Ragavan, Nimble Pilferer"
+2:46     "PlayerA" pass
+2:46     "PlayerB" priority clock "PlayerA" 8:04 "PlayerB" 1:24
+2:46       stack
+2:46         #2 "Fatal Push" controller "PlayerA" target #17 "Ragavan, Nimble Pilferer"
+3:13     "PlayerB" pass
+3:13     #2 "Fatal Push" resolve
+3:13     #17 "Ragavan, Nimble Pilferer" move battlefield -> graveyard as destroy by #2
+3:13     #2 "Fatal Push" move stack -> graveyard by rule:resolve
+3:25   beginning-of-combat
+3:25   declare-attackers
+3:25   end-of-combat
+3:27   postcombat-main
+3:29   end
+3:30   cleanup
+3:30 turn 4 "PlayerB"
+3:30   keyframe
+3:30     player "PlayerA" life 20 poison 0 library 52 clock 7:47
+3:30     player "PlayerB" life 18 poison 0 library 53 clock 0:57
+3:30     #1 "Watery Grave" battlefield "PlayerA" tapped
+3:30     #2 "Fatal Push" graveyard "PlayerA"
+3:30     #3 "Psychic Frog" hand "PlayerA"
+3:30     #4 "Island" battlefield "PlayerA"
+3:30     #5 "Counterspell" hand "PlayerA"
+3:30     #6 "Polluted Delta" hand "PlayerA"
+3:30     #7 "Toxic Deluge" hand "PlayerA"
+3:30     #15 library "PlayerB" bottom 1
+3:30     #16 "Sacred Foundry" battlefield "PlayerB" tapped
+3:30     #17 "Ragavan, Nimble Pilferer" graveyard "PlayerB"
+3:30     #18 hand "PlayerB"
+3:30     #19 hand "PlayerB"
+3:30     #20 hand "PlayerB"
+3:30     #21 hand "PlayerB"
+3:30     #22 hand "PlayerB"
+3:30     #24 "Consider" hand "PlayerA"
+3:30   untap
+3:30     #16 "Sacred Foundry" untap by rule:untap
+3:30   upkeep
+3:31   draw
+3:31     new hidden #26 owner "PlayerB" in library
+3:31     #26 move library -> hand as draw by rule:draw
+3:31   precombat-main
+3:31     "PlayerB" priority clock "PlayerA" 7:47 "PlayerB" 0:56
+4:27     "PlayerB" lose by source:clock ; PlayerB's match clock ran out with an empty stack
+4:30     MTGO_chat "PlayerB" "gg"
+1-0

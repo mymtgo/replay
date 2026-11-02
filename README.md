@@ -36,6 +36,8 @@ npm run dev
 
 ## Tests
 
+The tests run on real `.mtgr` files under `tests/js/fixtures/` and resolve the parser through the harness's install, so run `npm install` in `dev/` first.
+
 ```sh
-node --test tests/js/
+node --test --import ./tests/js/setup.mjs 'tests/js/*.test.ts'
 ```

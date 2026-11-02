@@ -3,15 +3,12 @@ import { Check, ChevronLeft, ChevronRight, Link2, Maximize, Minimize, Pause, Pla
 import ReplayGamePicker from './ReplayGamePicker.vue';
 import ReplayScrubber from './ReplayScrubber.vue';
 import ReplayToggleButton from './ReplayToggleButton.vue';
-import { useReplayContext } from './replayContext';
 import ReplayPanel from './ui/ReplayPanel.vue';
 import type { ReplayMatchGame, ReplayTurn, ScrubHover } from './types';
 import { REPLAY_SPEEDS } from './useReplayPlayback';
 
 defineProps<{
     turns: ReplayTurn[];
-    /** Frames to mark on the scrubber when there are no turns. */
-    markers: number[];
     current: number;
     total: number;
     /** Each frame's place on the scrubber, from timelinePositions. */
@@ -21,14 +18,14 @@ defineProps<{
     playing: boolean;
     speed: number;
     timestamp: string;
-    localId: number | null;
+    localId: string | null;
     logOpen: boolean;
     /** False until mounted, and on hosts that forbid fullscreen, which hides the button. */
     fullscreenSupported: boolean;
     fullscreen: boolean;
     gameId: number;
     matchGames: ReplayMatchGame[];
-    playerName: (id: number | undefined) => string;
+    playerName: (id: string | undefined) => string;
     /** Whether the host can link to a moment; wide viewers share from a card instead. */
     shareable: boolean;
     shareCopied: boolean;
@@ -46,8 +43,6 @@ const emit = defineEmits<{
     hover: [payload: ScrubHover | null];
     share: [];
 }>();
-
-const { gameHref, selectGame } = useReplayContext();
 
 const iconButton = 'grid size-8 cursor-pointer place-items-center rounded-md hover:bg-accent';
 </script>
@@ -84,11 +79,10 @@ const iconButton = 'grid size-8 cursor-pointer place-items-center rounded-md hov
                 <span class="text-[11px] text-muted-foreground tabular-nums">{{ current + 1 }} / {{ total }}</span>
             </div>
 
-            <ReplayGamePicker v-if="(gameHref || selectGame) && matchGames.length > 1" class="order-2" :games="matchGames" :game-id="gameId" />
+            <ReplayGamePicker v-if="matchGames.length > 1" class="order-2" :games="matchGames" :game-id="gameId" />
 
             <ReplayScrubber
                 :turns="turns"
-                :markers="markers"
                 :current="current"
                 :total="total"
                 :positions="positions"

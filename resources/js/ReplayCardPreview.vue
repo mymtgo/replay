@@ -2,13 +2,12 @@
 import { computed } from 'vue';
 import ReplayCardImage from './ReplayCardImage.vue';
 import { previewFaces } from './replayCards';
-import type { CardPreviewPosition, ReplayCard } from './types';
+import { useReplayContext } from './replayContext';
+import type { CardPreviewPosition, ReplayCardView } from './types';
 import { FACE_GAP_PX } from './useCardPreview';
 
 const props = defineProps<{
-    card: ReplayCard;
-    /** Cards this spell took, drawn beside its faces. */
-    companions: ReplayCard[];
+    card: ReplayCardView;
     chips: string[];
     position: CardPreviewPosition;
     /** Opened by a tap: it takes input so a tap anywhere closes it. */
@@ -19,12 +18,12 @@ const emit = defineEmits<{
     close: [];
 }>();
 
-const faces = computed(() => previewFaces(props.card));
-const width = computed(() => {
-    const count = faces.value.length + props.companions.length;
+const { images } = useReplayContext();
 
-    return props.position.width * count + FACE_GAP_PX * (count - 1);
-});
+const faces = computed(() => previewFaces(props.card, images));
+const width = computed(() => props.position.width * faces.value.length + FACE_GAP_PX * (faces.value.length - 1));
+/** An ability borrows its source's picture, so the name on the fallback face is the source's. */
+const name = computed(() => props.card.name ?? props.card.sourceName);
 </script>
 
 <template>
@@ -42,16 +41,10 @@ const width = computed(() => {
                     :key="i"
                     class="relative aspect-[63/88] min-w-0 flex-1 rounded-[4.5%/3.3%] shadow-[0_14px_40px_rgba(0,0,0,.55)]"
                 >
-                    <ReplayCardImage :name="card.name" :type="card.type" :image="image" show-type />
-                </div>
-                <div
-                    v-for="taken in companions"
-                    :key="`took-${taken.Id}`"
-                    class="relative aspect-[63/88] min-w-0 flex-1 rounded-[4.5%/3.3%] shadow-[0_14px_40px_rgba(0,0,0,.55)]"
-                >
-                    <ReplayCardImage :name="taken.name" :type="taken.type" :image="taken.image" show-type />
+                    <ReplayCardImage :name="name" :subtitle="card.text" :image="image" />
                 </div>
             </div>
+            <div v-if="card.text && card.kind === 'ability'" class="rounded-[5px] border border-border bg-card px-2 py-1 text-[11.5px] leading-snug">{{ card.text }}</div>
             <div v-if="chips.length" class="flex flex-wrap gap-1">
                 <span
                     v-for="chip in chips"

@@ -8,8 +8,8 @@ import { History } from 'lucide-vue-next';
             <div class="grid size-11 place-items-center rounded-xl border border-border bg-card text-muted-foreground">
                 <History :size="20" />
             </div>
-            <div class="text-[15px] font-semibold">No frames recorded</div>
-            <div class="text-pretty text-muted-foreground">This game was saved without any game states, so there is nothing to replay.</div>
+            <div class="text-[15px] font-semibold">Nothing to replay</div>
+            <div class="text-pretty text-muted-foreground">This game has no body lines, so there is nothing to show.</div>
         </div>
     </div>
 </template>

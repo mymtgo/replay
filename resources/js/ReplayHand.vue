@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import ReplayCardBack from './ReplayCardBack.vue';
 import ReplayCardImage from './ReplayCardImage.vue';
 import { useReplayContext } from './replayContext';
-import type { ReplayCard } from './types';
+import type { ReplayCardView } from './types';
 
 const props = defineProps<{
     /** The cards in this hand we can see: all of yours, only revealed ones of theirs. */
-    cards: ReplayCard[];
+    cards: ReplayCardView[];
     /** Hand size; anything beyond the known cards shows face down. */
     count: number;
     opponent: boolean;
@@ -41,7 +40,7 @@ const slots = computed(() => props.cards.length + hidden.value);
             <div class="flex h-(--replay-card-h) min-w-0 flex-1 gap-1">
                 <div
                     v-for="(card, i) in cards"
-                    :key="card.Id"
+                    :key="card.key"
                     class="relative h-full w-[calc(var(--replay-card-h)*63/88)] min-w-[18px] transition-transform duration-150 hover:z-20 hover:-translate-y-1"
                     :style="{ flex: `0 ${i === slots - 1 ? 0 : 1} auto` }"
                     @mouseenter="showPreview($event, card)"
@@ -59,7 +58,7 @@ const slots = computed(() => props.cards.length + hidden.value);
                     :style="{ flex: `0 ${cards.length + n === slots ? 0 : 1} auto` }"
                 >
                     <div class="absolute top-0 left-0 h-full w-[calc(var(--replay-card-h)*63/88)] rounded shadow-[0_1px_4px_rgba(0,0,0,.35)]">
-                        <ReplayCardBack />
+                        <ReplayCardImage :name="null" />
                     </div>
                 </div>
             </div>

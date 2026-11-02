@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { shallowRef, watch } from 'vue';
+import ReplayCardBack from './ReplayCardBack.vue';
 
 const props = defineProps<{
+    /** Null for a card nobody has seen, which shows its back. */
     name?: string | null;
-    type?: string | null;
+    /** A line under the name on the fallback face: ability text, a type, a note. */
+    subtitle?: string | null;
     image?: string | null;
-    /** Show the type line on the fallback face. */
-    showType?: boolean;
 }>();
 
 const failed = shallowRef(false);
@@ -20,10 +21,11 @@ watch(
 </script>
 
 <template>
-    <div class="absolute inset-0 overflow-hidden rounded-[inherit] bg-linear-160 from-[#3b3a35] to-[#23221f]">
+    <ReplayCardBack v-if="name === null" />
+    <div v-else class="absolute inset-0 overflow-hidden rounded-[inherit] bg-linear-160 from-[#3b3a35] to-[#23221f]">
         <div class="absolute inset-0 flex flex-col justify-between p-[8%] text-[10px] leading-tight text-[#eee]">
             <span class="font-semibold">{{ name ?? 'Unknown card' }}</span>
-            <span v-if="showType && type" class="text-[9px] text-[#cfcfcf]">{{ type }}</span>
+            <span v-if="subtitle" class="line-clamp-4 text-[9px] text-[#cfcfcf]">{{ subtitle }}</span>
         </div>
         <img
             v-if="image && !failed"

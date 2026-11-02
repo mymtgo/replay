@@ -1,7 +1,6 @@
 import { computed, readonly, shallowRef, type Ref } from 'vue';
-import { counterLabel, isFrontRow, previewCompanions, previewFaces } from './replayCards';
-import type { DiscardLinks } from './replayDiscards';
-import type { CardPreviewPosition, ReplayCard } from './types';
+import { counterLabel, isCreature, previewFaces } from './replayCards';
+import type { CardImageResolver, CardPreviewPosition, ReplayCardView } from './types';
 
 /** Space under the preview image for the state chips. */
 const INFO_HEIGHT_PX = 54;
@@ -21,22 +20,19 @@ function spread(count: number, width: number): number {
  */
 export function useCardPreview(
     root: Readonly<Ref<HTMLElement | null>>,
-    cardsById: Ref<Map<number, ReplayCard>>,
-    playerName: (id: number | undefined) => string,
+    cardsByKey: Readonly<Ref<Map<string, ReplayCardView>>>,
+    images: Readonly<Ref<CardImageResolver>>,
     /** Type of the latest press on the viewer; a tap pins the preview, a mouse click does not. */
     lastPointer: Readonly<Ref<string | null>>,
-    /** Which spell took which cards, so a discard spell's preview shows them beside it. */
-    discards: Readonly<Ref<DiscardLinks>>,
 ) {
-    const hovered = shallowRef<{ card: ReplayCard; position: CardPreviewPosition } | null>(null);
+    const hovered = shallowRef<{ card: ReplayCardView; position: CardPreviewPosition } | null>(null);
     const pinned = shallowRef(false);
 
-    /** How many cards wide a card's preview is: its faces, then any cards it took. */
-    function cardsWide(card: ReplayCard): number {
-        return previewFaces(card).length + previewCompanions(card, discards.value).length;
+    function cardsWide(card: ReplayCardView): number {
+        return previewFaces(card, images.value).length;
     }
 
-    function showPreview(event: MouseEvent, card: ReplayCard) {
+    function showPreview(event: MouseEvent, card: ReplayCardView) {
         if (!root.value || pinned.value) {
             return;
         }
@@ -71,7 +67,7 @@ export function useCardPreview(
      * Touch has no hover, so a tap opens the preview centred and as large as
      * fits, and it stays until tapped away.
      */
-    function pinPreview(event: MouseEvent, card: ReplayCard) {
+    function pinPreview(event: MouseEvent, card: ReplayCardView) {
         if (!root.value || lastPointer.value === 'mouse') {
             return;
         }
@@ -94,15 +90,12 @@ export function useCardPreview(
     }
 
     /**
-     * Re-read from the current frame so scrubbing while hovering keeps the
-     * preview live. A known opponent hand card is absent from later frames,
-     * so it falls back to the card as it was hovered.
+     * Re-read from the current moment so scrubbing while hovering keeps the
+     * preview live. A card named only in a list (the sideboard) is not in the
+     * state, so it falls back to the card as it was hovered.
      */
-    const card = computed(() => (hovered.value ? (cardsById.value.get(hovered.value.card.Id) ?? hovered.value.card) : null));
+    const card = computed(() => (hovered.value ? (cardsByKey.value.get(hovered.value.card.key) ?? hovered.value.card) : null));
     const position = computed(() => hovered.value?.position ?? null);
-
-    /** The cards the previewed spell took, drawn beside its faces. */
-    const companions = computed(() => (card.value ? previewCompanions(card.value, discards.value) : []));
 
     const chips = computed(() => {
         const current = card.value;
@@ -113,34 +106,50 @@ export function useCardPreview(
 
         const chips: string[] = [];
 
-        if (current.Zone === 'Battlefield' && isFrontRow(current) && current.Power != null) {
-            chips.push(`${current.Power}/${current.Toughness}`);
+        if (isCreature(current)) {
+            chips.push(`${current.power}/${current.toughness}`);
         }
 
-        if (current.Tapped) {
+        if (current.tapped) {
             chips.push('Tapped');
         }
 
-        Object.entries(current.Counters ?? {})
+        Object.entries(current.counters)
             .filter(([, count]) => count > 0)
             .forEach(([kind, count]) => chips.push(counterLabel(kind, count)));
 
-        if ((current.Damage ?? 0) > 0) {
-            chips.push(`${current.Damage} damage marked`);
+        if (current.damage > 0) {
+            chips.push(`${current.damage} damage marked`);
         }
 
-        if (current.Attacking != null) {
-            chips.push(`Attacking ${playerName(current.Attacking)}`);
+        if (current.attacking !== null) {
+            chips.push(`Attacking ${current.attacking}`);
         }
 
-        const blocked = current.Blocking != null ? cardsById.value.get(current.Blocking) : undefined;
+        const blocked = current.blocking !== null ? cardsByKey.value.get(current.blocking) : undefined;
 
         if (blocked) {
             chips.push(`Blocking ${blocked.name ?? 'a creature'}`);
         }
 
+        const host = current.attachedTo !== null ? cardsByKey.value.get(current.attachedTo) : undefined;
+
+        if (host) {
+            chips.push(`Attached to ${host.name ?? 'a permanent'}`);
+        }
+
+        const exiler = current.exiledWith !== null ? cardsByKey.value.get(current.exiledWith) : undefined;
+
+        if (exiler) {
+            chips.push(`Exiled with ${exiler.name ?? 'a permanent'}`);
+        }
+
+        if (current.sourceName && current.kind === 'ability') {
+            chips.push(`Ability of ${current.sourceName}`);
+        }
+
         return chips;
     });
 
-    return { card, position, chips, companions, pinned: readonly(pinned), showPreview, hidePreview, pinPreview, unpin };
+    return { card, position, chips, pinned: readonly(pinned), showPreview, hidePreview, pinPreview, unpin };
 }

@@ -1,0 +1,387 @@
+[Mtgr "0.3.0"]
+[Event "?"]
+[Site "MTGO"]
+[Date "2026.10.31"]
+[Round "?"]
+[Player1 "PlayerA"]
+[Player2 "PlayerB"]
+[Result "1-0"]
+[Format "Modern"]
+[Match "47334a67-50f2-440f-b265-e29bf25d22fd"]
+[Game "1"]
+[Perspective "PlayerA"]
+[MTGO_DeckId "113538792"]
+[MTGO_FormatCode "CMODERN"]
+[MTGO_GameId "965848526"]
+[MTGO_MatchId "290850838"]
+[MTGO_Version "3.4.159.4708"]
+[Recorder "MtgoReplay 0.1.0 (MTGOSDK 1.8.1.20261028)"]
+[TimeControl "1500"]
+[UTCDate "2026.10.31"]
+[UTCTime "10:16:13"]
+
+0:00 deck "PlayerA" name "Test Deck" unknown
+0:00 pregame
+0:00   keyframe
+0:00     player "PlayerA" life 20 poison 0 library 61
+0:00     player "PlayerB" life 20 poison 0 library 60
+0:02   "PlayerB" roll 2
+0:02   "PlayerA" roll 5
+0:12   "PlayerA" choose first "PlayerA"
+0:12   new card #1 "Talisman of Impulse" owner "PlayerA" in library src mtgo:19683
+0:12   #1 "Talisman of Impulse" move library -> hand as draw by rule:opening-hand
+0:12   new card #2 "Sowing Mycospawn" owner "PlayerA" in library src mtgo:125847
+0:12   #2 "Sowing Mycospawn" move library -> hand as draw by rule:opening-hand
+0:12   new card #3 "Utopia Sprawl" owner "PlayerA" in library src mtgo:120845
+0:12   #3 "Utopia Sprawl" move library -> hand as draw by rule:opening-hand
+0:12   new card #4 "Bojuka Bog" owner "PlayerA" in library src mtgo:131155
+0:12   #4 "Bojuka Bog" move library -> hand as draw by rule:opening-hand
+0:12   new card #5 "Emrakul, the Exigent Doom" owner "PlayerA" in library src mtgo:156318
+0:12   #5 "Emrakul, the Exigent Doom" move library -> hand as draw by rule:opening-hand
+0:12   new card #6 "Ghost Quarter" owner "PlayerA" in library src mtgo:42294
+0:12   #6 "Ghost Quarter" move library -> hand as draw by rule:opening-hand
+0:12   new card #7 "Ugin's Labyrinth" owner "PlayerA" in library src mtgo:126485
+0:12   #7 "Ugin's Labyrinth" move library -> hand as draw by rule:opening-hand
+0:12   new hidden #8 owner "PlayerB" in library
+0:12   #8 move library -> hand as draw by rule:opening-hand
+0:12   new hidden #9 owner "PlayerB" in library
+0:12   #9 move library -> hand as draw by rule:opening-hand
+0:12   new hidden #10 owner "PlayerB" in library
+0:12   #10 move library -> hand as draw by rule:opening-hand
+0:12   new hidden #11 owner "PlayerB" in library
+0:12   #11 move library -> hand as draw by rule:opening-hand
+0:12   new hidden #12 owner "PlayerB" in library
+0:12   #12 move library -> hand as draw by rule:opening-hand
+0:12   new hidden #13 owner "PlayerB" in library
+0:12   #13 move library -> hand as draw by rule:opening-hand
+0:12   new hidden #14 owner "PlayerB" in library
+0:12   #14 move library -> hand as draw by rule:opening-hand
+0:29   "PlayerA" keep
+0:32   "PlayerB" mulligan
+0:39   #8 move hand -> library by rule:mulligan
+0:39   #9 move hand -> library by rule:mulligan
+0:39   #10 move hand -> library by rule:mulligan
+0:39   #11 move hand -> library by rule:mulligan
+0:39   #12 move hand -> library by rule:mulligan
+0:39   #13 move hand -> library by rule:mulligan
+0:39   #14 move hand -> library by rule:mulligan
+0:39   "PlayerB" shuffle by rule:mulligan
+0:39   new hidden #15 owner "PlayerB" in library
+0:39   #15 move library -> hand as draw by rule:mulligan
+0:39   new hidden #16 owner "PlayerB" in library
+0:39   #16 move library -> hand as draw by rule:mulligan
+0:39   new hidden #17 owner "PlayerB" in library
+0:39   #17 move library -> hand as draw by rule:mulligan
+0:39   new hidden #18 owner "PlayerB" in library
+0:39   #18 move library -> hand as draw by rule:mulligan
+0:39   new hidden #19 owner "PlayerB" in library
+0:39   #19 move library -> hand as draw by rule:mulligan
+0:39   new hidden #20 owner "PlayerB" in library
+0:39   #20 move library -> hand as draw by rule:mulligan
+0:39   new hidden #21 owner "PlayerB" in library
+0:39   #21 move library -> hand as draw by rule:mulligan
+0:39   #15 move hand -> library bottom by rule:mulligan
+0:39   "PlayerB" keep
+0:39 turn 1 "PlayerA"
+0:39   keyframe
+0:39     player "PlayerA" life 20 poison 0 library 54
+0:39     player "PlayerB" life 20 poison 0 library 54
+0:39     #1 "Talisman of Impulse" hand "PlayerA"
+0:39     #2 "Sowing Mycospawn" hand "PlayerA"
+0:39     #3 "Utopia Sprawl" hand "PlayerA"
+0:39     #4 "Bojuka Bog" hand "PlayerA"
+0:39     #5 "Emrakul, the Exigent Doom" hand "PlayerA"
+0:39     #6 "Ghost Quarter" hand "PlayerA"
+0:39     #7 "Ugin's Labyrinth" hand "PlayerA"
+0:39     #15 library "PlayerB" bottom 1
+0:39     #16 hand "PlayerB"
+0:39     #17 hand "PlayerB"
+0:39     #18 hand "PlayerB"
+0:39     #19 hand "PlayerB"
+0:39     #20 hand "PlayerB"
+0:39     #21 hand "PlayerB"
+0:39   untap
+0:39   upkeep
+0:39   precombat-main
+0:41     #7 "Ugin's Labyrinth" play from hand
+0:41     new ability #22 triggered of #7 "Ugin's Labyrinth" "When this land enters, you may exile a colorless card with mana value 7 or greater from your hand." controller "PlayerA" in stack
+0:41     "PlayerA" priority
+0:41       stack
+0:41         #22 triggered of #7 "Ugin's Labyrinth" "When this land enters, you may exile a colorless card with mana value 7 or greater from your hand." controller "PlayerA"
+0:41     "PlayerA" pass
+0:41     "PlayerB" priority
+0:41       stack
+0:41         #22 triggered of #7 "Ugin's Labyrinth" "When this land enters, you may exile a colorless card with mana value 7 or greater from your hand." controller "PlayerA"
+0:43     "PlayerB" pass
+0:43     #22 resolve
+0:43     #22 choose object #5 "Emrakul, the Exigent Doom"
+0:43     #5 "Emrakul, the Exigent Doom" move hand -> exile with #7 by #22
+0:43     #22 cease by rule:resolve
+0:45     new ability #23 mana of #7 "Ugin's Labyrinth" "{T}: Add {C}. If a card is exiled with this land, add {C}{C} instead." controller "PlayerA"
+0:45     #7 "Ugin's Labyrinth" tap by cost:#23
+0:45     "PlayerA" add {C}{C} by #23
+0:46     #1 "Talisman of Impulse" cast from hand
+0:46     "PlayerA" pay {C}{C} by cost:#1
+0:46     "PlayerA" priority
+0:46       stack
+0:46         #1 "Talisman of Impulse" controller "PlayerA"
+0:46     "PlayerA" pass
+0:46     "PlayerB" priority
+0:46       stack
+0:46         #1 "Talisman of Impulse" controller "PlayerA"
+0:46     "PlayerB" pass
+0:46     #1 "Talisman of Impulse" resolve
+0:46     #1 "Talisman of Impulse" move stack -> battlefield by rule:resolve
+0:46     "PlayerA" priority
+0:48   beginning-of-combat
+0:48   declare-attackers
+0:48   end-of-combat
+0:49   postcombat-main
+0:49   end
+0:50   cleanup
+0:50 turn 2 "PlayerB"
+0:50   keyframe
+0:50     player "PlayerA" life 20 poison 0 library 54
+0:50     player "PlayerB" life 20 poison 0 library 54
+0:50     #1 "Talisman of Impulse" battlefield "PlayerA"
+0:50     #2 "Sowing Mycospawn" hand "PlayerA"
+0:50     #3 "Utopia Sprawl" hand "PlayerA"
+0:50     #4 "Bojuka Bog" hand "PlayerA"
+0:50     #5 "Emrakul, the Exigent Doom" exile with #7
+0:50     #6 "Ghost Quarter" hand "PlayerA"
+0:50     #7 "Ugin's Labyrinth" battlefield "PlayerA" tapped
+0:50     #15 library "PlayerB" bottom 1
+0:50     #16 hand "PlayerB"
+0:50     #17 hand "PlayerB"
+0:50     #18 hand "PlayerB"
+0:50     #19 hand "PlayerB"
+0:50     #20 hand "PlayerB"
+0:50     #21 hand "PlayerB"
+0:50   untap
+0:50   upkeep
+0:52   draw
+0:52     new hidden #24 owner "PlayerB" in library
+0:52     #24 move library -> hand as draw by rule:draw
+0:52   precombat-main
+0:53     #16 identify "Island" src mtgo:98185
+0:53     #16 "Island" play from hand
+0:56   beginning-of-combat
+0:56   declare-attackers
+0:56   end-of-combat
+0:57   postcombat-main
+0:58   end
+0:58   cleanup
+1:00 turn 3 "PlayerA"
+1:00   keyframe
+1:00     player "PlayerA" life 20 poison 0 library 54
+1:00     player "PlayerB" life 20 poison 0 library 53
+1:00     #1 "Talisman of Impulse" battlefield "PlayerA"
+1:00     #2 "Sowing Mycospawn" hand "PlayerA"
+1:00     #3 "Utopia Sprawl" hand "PlayerA"
+1:00     #4 "Bojuka Bog" hand "PlayerA"
+1:00     #5 "Emrakul, the Exigent Doom" exile with #7
+1:00     #6 "Ghost Quarter" hand "PlayerA"
+1:00     #7 "Ugin's Labyrinth" battlefield "PlayerA" tapped
+1:00     #15 library "PlayerB" bottom 1
+1:00     #16 "Island" battlefield "PlayerB"
+1:00     #17 hand "PlayerB"
+1:00     #18 hand "PlayerB"
+1:00     #19 hand "PlayerB"
+1:00     #20 hand "PlayerB"
+1:00     #21 hand "PlayerB"
+1:00     #24 hand "PlayerB"
+1:00   untap
+1:00     #7 "Ugin's Labyrinth" untap by rule:untap
+1:00   upkeep
+1:00   draw
+1:00     new card #25 "Ugin's Labyrinth" owner "PlayerA" in library src mtgo:126485
+1:00     #25 "Ugin's Labyrinth" move library -> hand as draw by rule:draw
+1:00   precombat-main
+1:11     #6 "Ghost Quarter" play from hand
+1:21   beginning-of-combat
+1:21   declare-attackers
+1:21   end-of-combat
+1:22   postcombat-main
+1:22   end
+1:24   cleanup
+1:24 turn 4 "PlayerB"
+1:24   keyframe
+1:24     player "PlayerA" life 20 poison 0 library 53
+1:24     player "PlayerB" life 20 poison 0 library 53
+1:24     #1 "Talisman of Impulse" battlefield "PlayerA"
+1:24     #2 "Sowing Mycospawn" hand "PlayerA"
+1:24     #3 "Utopia Sprawl" hand "PlayerA"
+1:24     #4 "Bojuka Bog" hand "PlayerA"
+1:24     #5 "Emrakul, the Exigent Doom" exile with #7
+1:24     #6 "Ghost Quarter" battlefield "PlayerA"
+1:24     #7 "Ugin's Labyrinth" battlefield "PlayerA"
+1:24     #15 library "PlayerB" bottom 1
+1:24     #16 "Island" battlefield "PlayerB"
+1:24     #17 hand "PlayerB"
+1:24     #18 hand "PlayerB"
+1:24     #19 hand "PlayerB"
+1:24     #20 hand "PlayerB"
+1:24     #21 hand "PlayerB"
+1:24     #24 hand "PlayerB"
+1:24     #25 "Ugin's Labyrinth" hand "PlayerA"
+1:24   untap
+1:24   upkeep
+1:24   draw
+1:24     new hidden #26 owner "PlayerB" in library
+1:24     #26 move library -> hand as draw by rule:draw
+1:24   precombat-main
+1:25     #17 identify "Urza's Tower" src mtgo:19607
+1:25     #17 "Urza's Tower" play from hand
+1:27   beginning-of-combat
+1:27   declare-attackers
+1:27   end-of-combat
+1:29   postcombat-main
+1:29   end
+1:30   cleanup
+1:33 turn 5 "PlayerA"
+1:33   keyframe
+1:33     player "PlayerA" life 20 poison 0 library 53
+1:33     player "PlayerB" life 20 poison 0 library 52
+1:33     #1 "Talisman of Impulse" battlefield "PlayerA"
+1:33     #2 "Sowing Mycospawn" hand "PlayerA"
+1:33     #3 "Utopia Sprawl" hand "PlayerA"
+1:33     #4 "Bojuka Bog" hand "PlayerA"
+1:33     #5 "Emrakul, the Exigent Doom" exile with #7
+1:33     #6 "Ghost Quarter" battlefield "PlayerA"
+1:33     #7 "Ugin's Labyrinth" battlefield "PlayerA"
+1:33     #15 library "PlayerB" bottom 1
+1:33     #16 "Island" battlefield "PlayerB"
+1:33     #17 "Urza's Tower" battlefield "PlayerB"
+1:33     #18 hand "PlayerB"
+1:33     #19 hand "PlayerB"
+1:33     #20 hand "PlayerB"
+1:33     #21 hand "PlayerB"
+1:33     #24 hand "PlayerB"
+1:33     #25 "Ugin's Labyrinth" hand "PlayerA"
+1:33     #26 hand "PlayerB"
+1:33   untap
+1:33   upkeep
+1:33   draw
+1:33     new card #27 "Sire of Seven Deaths" owner "PlayerA" in library src mtgo:133570
+1:33     #27 "Sire of Seven Deaths" move library -> hand as draw by rule:draw
+1:33   precombat-main
+1:35     #25 "Ugin's Labyrinth" play from hand
+1:35     new ability #28 triggered of #25 "Ugin's Labyrinth" "When this land enters, you may exile a colorless card with mana value 7 or greater from your hand." controller "PlayerA" in stack
+1:35     "PlayerA" priority
+1:35       stack
+1:35         #28 triggered of #25 "Ugin's Labyrinth" "When this land enters, you may exile a colorless card with mana value 7 or greater from your hand." controller "PlayerA"
+1:37     "PlayerA" pass
+1:37     "PlayerB" priority
+1:37       stack
+1:37         #28 triggered of #25 "Ugin's Labyrinth" "When this land enters, you may exile a colorless card with mana value 7 or greater from your hand." controller "PlayerA"
+1:39     "PlayerB" pass
+1:41     #28 resolve
+1:41     #28 choose object #27 "Sire of Seven Deaths"
+1:41     #27 "Sire of Seven Deaths" move hand -> exile with #25 by #28
+1:41     #28 cease by rule:resolve
+1:44     new ability #29 mana of #7 "Ugin's Labyrinth" "{T}: Add {C}. If a card is exiled with this land, add {C}{C} instead." controller "PlayerA"
+1:44     #7 "Ugin's Labyrinth" tap by cost:#29
+1:44     "PlayerA" add {C}{C} by #29
+1:45     new ability #30 mana of #25 "Ugin's Labyrinth" "{T}: Add {C}. If a card is exiled with this land, add {C}{C} instead." controller "PlayerA"
+1:45     #25 "Ugin's Labyrinth" tap by cost:#30
+1:45     "PlayerA" add {C}{C} by #30
+1:48     new ability #31 mana of #1 "Talisman of Impulse" "{T}: Add {R} or {G}. This artifact deals 1 damage to you." controller "PlayerA"
+1:48     #1 "Talisman of Impulse" tap by cost:#31
+1:48     "PlayerA" add {G} by #31
+1:48     #1 "Talisman of Impulse" damage "PlayerA" 1 by #31
+1:48     "PlayerA" life 20 -> 19 by #31
+1:50     new ability #32 mana of #6 "Ghost Quarter" "{T}: Add {C}." controller "PlayerA"
+1:50     #6 "Ghost Quarter" tap by cost:#32
+1:50     "PlayerA" add {C} by #32
+1:52     #2 "Sowing Mycospawn" cast from hand
+1:52     #2 "Sowing Mycospawn" choose cost "kicker"
+1:52     "PlayerA" pay {G}{C}{C}{C}{C}{C} by cost:#2
+1:53     new ability #33 triggered of #2 "Sowing Mycospawn" "When you cast this spell, search your library for a land card, put it onto the battlefield, then shuffle." controller "PlayerA" in stack
+1:56     new ability #34 triggered of #2 "Sowing Mycospawn" "When you cast this spell, if it was kicked, exile target land." controller "PlayerA" in stack
+1:56     #34 target #17 "Urza's Tower"
+1:56     "PlayerA" priority
+1:56       stack
+1:56         #34 triggered of #2 "Sowing Mycospawn" "When you cast this spell, if it was kicked, exile target land." controller "PlayerA" target #17 "Urza's Tower"
+1:56         #33 triggered of #2 "Sowing Mycospawn" "When you cast this spell, search your library for a land card, put it onto the battlefield, then shuffle." controller "PlayerA"
+1:56         #2 "Sowing Mycospawn" controller "PlayerA" cost "kicker"
+1:56     "PlayerA" pass
+1:57     "PlayerB" priority
+1:57       stack
+1:57         #34 triggered of #2 "Sowing Mycospawn" "When you cast this spell, if it was kicked, exile target land." controller "PlayerA" target #17 "Urza's Tower"
+1:57         #33 triggered of #2 "Sowing Mycospawn" "When you cast this spell, search your library for a land card, put it onto the battlefield, then shuffle." controller "PlayerA"
+1:57         #2 "Sowing Mycospawn" controller "PlayerA" cost "kicker"
+1:59     new ability #35 mana of #17 "Urza's Tower" "{T}: Add {C}. If you control an Urza's Mine and an Urza's Power-Plant, add {C}{C}{C} instead." controller "PlayerB"
+1:59     #17 "Urza's Tower" tap by cost:#35
+1:59     "PlayerB" add {C} by #35
+1:59     "PlayerB" pass
+2:00     "PlayerA" priority
+2:00       stack
+2:00         #34 triggered of #2 "Sowing Mycospawn" "When you cast this spell, if it was kicked, exile target land." controller "PlayerA" target #17 "Urza's Tower"
+2:00         #33 triggered of #2 "Sowing Mycospawn" "When you cast this spell, search your library for a land card, put it onto the battlefield, then shuffle." controller "PlayerA"
+2:00         #2 "Sowing Mycospawn" controller "PlayerA" cost "kicker"
+2:00     "PlayerA" pass
+2:02     #34 resolve
+2:02     #17 "Urza's Tower" move battlefield -> exile by #34
+2:02     #34 cease by rule:resolve
+2:02     "PlayerA" priority
+2:02       stack
+2:02         #33 triggered of #2 "Sowing Mycospawn" "When you cast this spell, search your library for a land card, put it onto the battlefield, then shuffle." controller "PlayerA"
+2:02         #2 "Sowing Mycospawn" controller "PlayerA" cost "kicker"
+2:03     "PlayerA" pass
+2:03     "PlayerB" priority
+2:03       stack
+2:03         #33 triggered of #2 "Sowing Mycospawn" "When you cast this spell, search your library for a land card, put it onto the battlefield, then shuffle." controller "PlayerA"
+2:03         #2 "Sowing Mycospawn" controller "PlayerA" cost "kicker"
+2:05     "PlayerB" pass
+2:05     #33 resolve
+2:12     "PlayerA" search library by #33
+2:12     new card #36 "Stomping Ground" owner "PlayerA" in library src mtgo:143375
+2:12     #36 "Stomping Ground" choose option "pay 2 life"
+2:12     "PlayerA" life 19 -> 17 by #36
+2:12     #36 "Stomping Ground" move library -> battlefield by #33
+2:13     "PlayerA" shuffle by #33
+2:13     #33 cease by rule:resolve
+2:13     "PlayerA" priority
+2:13       stack
+2:13         #2 "Sowing Mycospawn" controller "PlayerA" cost "kicker"
+2:15     "PlayerA" pass
+2:15     "PlayerB" priority
+2:15       stack
+2:15         #2 "Sowing Mycospawn" controller "PlayerA" cost "kicker"
+2:16     "PlayerB" pass
+2:16     #2 "Sowing Mycospawn" resolve
+2:16     #2 "Sowing Mycospawn" move stack -> battlefield pt 3/3 by rule:resolve
+2:16     "PlayerA" priority
+2:18     "PlayerA" pass
+2:18     "PlayerB" priority
+2:19     new ability #37 mana of #16 "Island" "({T}: Add {U}.)" controller "PlayerB"
+2:19     #16 "Island" tap by cost:#37
+2:19     "PlayerB" add {U} by #37
+2:20     #18 identify "Impulse" src mtgo:7589
+2:20     #18 "Impulse" cast from hand
+2:20     "PlayerB" pay {U}{C} by cost:#18
+2:20     "PlayerB" priority
+2:20       stack
+2:20         #18 "Impulse" controller "PlayerB"
+2:20     "PlayerB" pass
+2:20     "PlayerA" priority
+2:20       stack
+2:20         #18 "Impulse" controller "PlayerB"
+2:24     "PlayerA" pass
+2:24     #18 "Impulse" resolve
+2:24     new hidden #38 owner "PlayerB" in library top 1
+2:24     new hidden #39 owner "PlayerB" in library top 2
+2:24     new hidden #40 owner "PlayerB" in library top 3
+2:24     new hidden #41 owner "PlayerB" in library top 4
+2:24     #38 look "PlayerB" by #18
+2:24     #39 look "PlayerB" by #18
+2:24     #40 look "PlayerB" by #18
+2:24     #41 look "PlayerB" by #18
+2:24     #18 "Impulse" choose object #38
+2:24     #38 move library -> hand by #18
+2:26     #39 move library -> library bottom by #18
+2:26     #40 move library -> library bottom by #18
+2:26     #41 move library -> library bottom by #18
+2:26     #18 "Impulse" move stack -> graveyard by rule:resolve
+2:26     incomplete "example conversion ends here; the rest of game 1 is not converted"
+1-0

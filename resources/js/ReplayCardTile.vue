@@ -5,10 +5,10 @@ import ReplayCardImage from './ReplayCardImage.vue';
 import ReplayDie from './ReplayDie.vue';
 import { counterDice, isCreature, ptCounterLabel } from './replayCards';
 import { useReplayContext } from './replayContext';
-import type { ReplayCard } from './types';
+import type { ReplayCardView } from './types';
 
 const props = defineProps<{
-    card: ReplayCard;
+    card: ReplayCardView;
     /** How many identical cards this tile stands for; shows a ×N badge above 1. */
     count?: number;
     /** Opponent cards lift down toward the centre line when attacking, yours lift up. */
@@ -21,12 +21,12 @@ const props = defineProps<{
 
 const { showPreview, hidePreview, pinPreview } = useReplayContext();
 
-const tapped = computed(() => !!props.card.Tapped);
-const attacking = computed(() => props.card.Attacking != null);
-const blocking = computed(() => props.card.Blocking != null);
+const tapped = computed(() => props.card.tapped);
+const attacking = computed(() => props.card.attacking !== null);
+const blocking = computed(() => props.card.blocking !== null);
 const ptCounters = computed(() => ptCounterLabel(props.card));
 const dice = computed(() => counterDice(props.card));
-const showPt = computed(() => isCreature(props.card) && props.card.Power != null);
+const showPt = computed(() => isCreature(props.card));
 
 const lift = computed(() => (attacking.value ? (props.opponent ? 14 : -14) : 0));
 
@@ -56,7 +56,7 @@ const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5
             @mouseleave="hidePreview"
             @click="pinPreview($event, card)"
         >
-            <ReplayCardImage :name="card.name" :type="card.type" :image="card.image" show-type />
+            <ReplayCardImage :name="card.name" :image="card.image" />
 
             <div
                 v-if="(count ?? 1) > 1"
@@ -98,17 +98,17 @@ const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5
             </div>
 
             <div
-                v-if="(card.Damage ?? 0) > 0"
+                v-if="card.damage > 0"
                 class="absolute bottom-0.75 left-0.75 rounded bg-[#e5484d] px-1.25 py-px text-[10px] font-bold text-white"
             >
-                {{ card.Damage }} dmg
+                {{ card.damage }} dmg
             </div>
 
             <div
                 v-if="showPt"
                 class="absolute right-0.75 bottom-0.75 rounded bg-[rgba(12,12,12,.88)] px-1.25 py-px font-mono text-[11px] font-bold text-white"
             >
-                {{ card.Power }}/{{ card.Toughness }}
+                {{ card.power }}/{{ card.toughness }}
             </div>
         </div>
     </div>

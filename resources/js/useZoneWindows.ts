@@ -26,7 +26,7 @@ export type ZoneWindowSide = 'you' | 'opponent';
 
 export type ZoneWindow = {
     key: string;
-    player: number;
+    player: string;
     side: ZoneWindowSide;
     zone: ReplayZone;
     left: number;
@@ -111,7 +111,7 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
         return { width: Math.min(width, viewer.width - 16), height: Math.min(height, viewer.height - 16) };
     }
 
-    function isOpen(player: number, zone: ReplayZone): boolean {
+    function isOpen(player: string, zone: ReplayZone): boolean {
         return windows.value.some((item) => item.player === player && item.zone === zone);
     }
 
@@ -170,7 +170,7 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
         return { left, top, anchorBottom: side === 'you' ? top + size.height : null };
     }
 
-    function toggle(player: number, zone: ReplayZone, side: ZoneWindowSide, anchor: HTMLElement) {
+    function toggle(player: string, zone: ReplayZone, side: ZoneWindowSide, anchor: HTMLElement) {
         const existing = windows.value.find((item) => item.player === player && item.zone === zone);
 
         if (existing) {

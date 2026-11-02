@@ -1,126 +1,100 @@
-import type { ReplayCard, ReplayFrame, ReplaySideboardEntry } from './types';
+import type { Game, Player } from '@mtgreplay/mtgr';
+import type { CardImageResolver, ReplayCardView } from './types';
 
 /** One card name that moved between deck and sideboard, and how many copies. */
-export type SideboardLine = { key: string; name: string | null; count: number; card: ReplayCard };
+export type SideboardLine = { key: string; name: string; count: number; card: ReplayCardView };
 
 export type SideboardChanges = { in: SideboardLine[]; out: SideboardLine[] };
 
-/** Your sideboard as a game began, with the game it came from; what the next game compares against. */
-export type ReplaySideboardBaseline = { game: number; cards: ReplayCard[] };
+/** A card known only by name, for the sideboard list and its changes: no object in the game stands for it. */
+export function namedCard(name: string, key: string, owner: Player, images: CardImageResolver): ReplayCardView {
+    return {
+        key,
+        id: { n: 0, hypothetical: false },
+        kind: 'card',
+        name,
+        face: null,
+        image: images(name),
+        text: null,
+        sourceName: null,
+        owner,
+        controller: owner,
+        tapped: false,
+        power: null,
+        toughness: null,
+        counters: {},
+        attachedTo: null,
+        exiledWith: null,
+        attacking: null,
+        blocking: null,
+        damage: 0,
+        choices: [],
+    };
+}
 
-/**
- * Your sideboard as the game began: your cards in the first frame that holds
- * any. Later frames are ignored on purpose, so a wish, a Karn fetch or a
- * companion put into hand mid-game never reads as sideboarding. A companion
- * MTGO displays in its own zone still counts, by its `ActualZone`.
- *
- * Null when no frame records your sideboard.
- */
-export function sideboardAtStart(frames: ReplayFrame[]): ReplayCard[] | null {
-    for (const frame of frames) {
-        const local = frame.content.Players?.find((player) => player.IsLocal)?.Id;
+/** The `side` entries of a player's `deck` block, as copies per name. Null when the game lists no deck for them. */
+export function sideboardNames(game: Game, player: Player): Map<string, number> | null {
+    let inDeck = false;
+    let found = false;
+    const names = new Map<string, number>();
 
-        if (local === undefined) {
+    for (const line of game.body) {
+        if (line.kind !== 'statement') {
             continue;
         }
 
-        const sideboard = (frame.content.Cards ?? []).filter((card) => card.Owner === local && (card.Zone === 'Sideboard' || card.ActualZone === 'Sideboard'));
+        const s = line.statement;
 
-        if (sideboard.length) {
-            return sideboard;
+        if (s.type === 'deck') {
+            inDeck = s.player === player;
+            found ||= inDeck;
+        } else if (s.type === 'deck-entry') {
+            if (inDeck && s.board === 'side') {
+                names.set(s.name, (names.get(s.name) ?? 0) + s.count);
+            }
+        } else {
+            inDeck = false;
         }
     }
 
-    return null;
+    return found ? names : null;
+}
+
+/** The sideboard as the window lists it: one card per copy, by name. */
+export function sideboardCards(names: Map<string, number>, owner: Player, images: CardImageResolver): ReplayCardView[] {
+    return [...names]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .flatMap(([name, count]) => Array.from({ length: count }, (_, i) => namedCard(name, `side:${name}:${i}`, owner, images)));
+}
+
+/** Copies in `from` beyond those in `than`, one line per name. */
+function surplus(from: Map<string, number>, than: Map<string, number>, owner: Player, images: CardImageResolver): SideboardLine[] {
+    return [...from]
+        .map(([name, count]) => ({ name, count: count - (than.get(name) ?? 0) }))
+        .filter((line) => line.count > 0)
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((line) => ({ key: line.name, name: line.name, count: line.count, card: namedCard(line.name, `change:${line.name}`, owner, images) }));
 }
 
 /**
- * A game's sideboard as it began. The recorded entries win: the sidecar's
- * frames never hold the sideboard, while MTGO's log, which the entries come
- * from, always does. Frames are the fallback for snapshots from before the
- * entries were recorded.
- *
- * Entries become one card per copy with made-up negative ids, which no real
- * MTGO object uses, so they can key a list and its captions.
+ * What changed between two games' sideboards, counted per name. A card that
+ * left the sideboard was brought in and one that joined it was taken out.
  */
-export function gameSideboard(frames: ReplayFrame[], entries: ReplaySideboardEntry[] | null | undefined): ReplayCard[] | null {
-    if (!entries?.length) {
-        return sideboardAtStart(frames);
-    }
-
-    let id = 0;
-
-    return entries.flatMap((entry) =>
-        Array.from({ length: entry.quantity }, () => ({
-            Id: --id,
-            CatalogID: entry.catalog_id,
-            Zone: 'Sideboard',
-            Owner: -1,
-            name: entry.name,
-            type: entry.type,
-            image: entry.image,
-        })),
-    );
+export function sideboardChanges(before: Map<string, number>, after: Map<string, number>, owner: Player, images: CardImageResolver): SideboardChanges {
+    return { in: surplus(before, after, owner, images), out: surplus(after, before, owner, images) };
 }
 
-/** Cards compare by name; an unresolved card by its catalog id. */
-function cardKey(card: ReplayCard): string {
-    return card.name ?? `#${card.CatalogID}`;
-}
-
-function tally(cards: ReplayCard[]): Map<string, { count: number; card: ReplayCard }> {
-    const counts = new Map<string, { count: number; card: ReplayCard }>();
+/** Marks as many copies in the sideboard as were taken out, keyed by card key. */
+export function sideboardCaptions(cards: ReplayCardView[], changes: SideboardChanges): Map<string, string> {
+    const remaining = new Map(changes.out.map((line) => [line.name, line.count]));
+    const captions = new Map<string, string>();
 
     for (const card of cards) {
-        const key = cardKey(card);
-        const entry = counts.get(key);
+        const left = card.name ? (remaining.get(card.name) ?? 0) : 0;
 
-        counts.set(key, { count: (entry?.count ?? 0) + 1, card: entry?.card ?? card });
-    }
-
-    return counts;
-}
-
-/** Copies in `from` beyond those in `than`, one line per card, by name. */
-function surplus(from: Map<string, { count: number; card: ReplayCard }>, than: Map<string, { count: number; card: ReplayCard }>): SideboardLine[] {
-    const lines: SideboardLine[] = [];
-
-    for (const [key, entry] of from) {
-        const count = entry.count - (than.get(key)?.count ?? 0);
-
-        if (count > 0) {
-            lines.push({ key, name: entry.card.name ?? null, count, card: entry.card });
-        }
-    }
-
-    return lines.sort((a, b) => a.key.localeCompare(b.key));
-}
-
-/**
- * What changed between two sideboards, counted per card. The deck itself is
- * never recorded, so a card that left the sideboard was brought in and one
- * that joined it was taken out. Counting copies keeps a card split between
- * deck and sideboard right: one copy in each, then the deck's copy side out,
- * reads as one taken out.
- */
-export function sideboardChanges(before: ReplayCard[], after: ReplayCard[]): SideboardChanges {
-    const was = tally(before);
-    const now = tally(after);
-
-    return { in: surplus(was, now), out: surplus(now, was) };
-}
-
-/** Marks as many copies in the sideboard as were taken out, keyed by card id. */
-export function sideboardCaptions(cards: ReplayCard[], changes: SideboardChanges): Map<number, string> {
-    const remaining = new Map(changes.out.map((line) => [line.key, line.count]));
-    const captions = new Map<number, string>();
-
-    for (const card of cards) {
-        const left = remaining.get(cardKey(card)) ?? 0;
-
-        if (left > 0) {
-            captions.set(card.Id, 'Taken out');
-            remaining.set(cardKey(card), left - 1);
+        if (left > 0 && card.name) {
+            captions.set(card.key, 'Taken out');
+            remaining.set(card.name, left - 1);
         }
     }
 

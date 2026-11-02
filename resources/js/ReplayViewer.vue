@@ -1,135 +1,144 @@
 <script setup lang="ts">
+import type { Game, Player } from '@mtgreplay/mtgr';
 import { computed, provide, shallowRef, toRef, useTemplateRef, watch, type Component } from 'vue';
 import ReplayCardPreview from './ReplayCardPreview.vue';
 import ReplayCompactBoard from './ReplayCompactBoard.vue';
 import ReplayCompactTransport from './ReplayCompactTransport.vue';
 import { replayContextKey } from './replayContext';
+import ReplayEffects from './ReplayEffects.vue';
 import ReplayEmptyState from './ReplayEmptyState.vue';
+import { buildTimeline, gameInfo, matchGames, timeLabel } from './replayGame';
 import ReplayGameEnd from './ReplayGameEnd.vue';
 import ReplayGamePicker from './ReplayGamePicker.vue';
 import ReplayHand from './ReplayHand.vue';
 import ReplayHandSheet from './ReplayHandSheet.vue';
+import { buildLogItems } from './replayLog';
 import ReplayLogDrawer from './ReplayLogDrawer.vue';
 import ReplayPhaseRail from './ReplayPhaseRail.vue';
-import { phaseMissingText, stepLabel } from './replayPhases';
+import { stepLabel } from './replayPhases';
 import ReplayScrubber from './ReplayScrubber.vue';
 import ReplayScrubTooltip from './ReplayScrubTooltip.vue';
-import ReplaySheet from './ReplaySheet.vue';
+import { startStep } from './replayShare';
 import ReplayShareCard from './ReplayShareCard.vue';
-import { startFrame } from './replayShare';
+import ReplaySheet from './ReplaySheet.vue';
+import { sideboardCaptions, sideboardCards, sideboardChanges, sideboardNames } from './replaySideboard';
 import ReplaySideboardChanges from './ReplaySideboardChanges.vue';
-import { sideboardCaptions, sideboardChanges, type ReplaySideboardBaseline } from './replaySideboard';
 import ReplaySide from './ReplaySide.vue';
 import ReplayStack from './ReplayStack.vue';
-import { normaliseFrames } from './replayFrames';
-import { buildLogItems, deriveTurns, timeOfDay, timelinePositions } from './replayTimeline';
+import { timelinePositions } from './replayTimeline';
 import ReplayTransport from './ReplayTransport.vue';
 import { REPLAY_ZONES } from './replayZones';
 import ReplayZoneWindow from './ReplayZoneWindow.vue';
-import type { ReplayCard, ReplayFrame, ReplayLogEntry, ReplayMatchGame, ReplaySideboardEntry, ReplayZone } from './types';
+import type { CardImageResolver, ReplayCardView, ReplayZone } from './types';
 import { useCardPreview } from './useCardPreview';
 import { useReplayBoard } from './useReplayBoard';
 import { useReplayCardHeight } from './useReplayCardHeight';
 import { useReplayFullscreen } from './useReplayFullscreen';
 import { useReplayKeyboard } from './useReplayKeyboard';
 import { useReplayLayout } from './useReplayLayout';
-import { REPLAY_SPEEDS, frameDuration, useReplayPlayback } from './useReplayPlayback';
-import { useReplayPlayhead } from './useReplayPlayhead';
+import { REPLAY_SPEEDS, stepDuration, useReplayPlayback } from './useReplayPlayback';
 import { useReplayShare } from './useReplayShare';
 import { useScrubTooltip } from './useScrubTooltip';
-import { zoneCardsFor } from './replayZoneCards';
 import { useZoneWindows } from './useZoneWindows';
 
 const props = withDefaults(
     defineProps<{
-        frames: ReplayFrame[];
-        log: ReplayLogEntry[];
-        /** Whether you won this game; null when the result is unknown. */
-        won: boolean | null;
-        gameId: number;
-        /** Every game of the match in play order. */
-        matchGames: ReplayMatchGame[];
-        /** URL of another game in the match. Without it the viewer shows no game switching. */
-        gameHref?: (id: number) => string;
+        /** Every game of the file, as `parse(text).file.games` gives them. */
+        games: Game[];
+        /** Which of `games` to replay. */
+        gameIndex: number;
+        /** The host's card images, by name and face. */
+        cardImage: CardImageResolver;
+        /** URL of another game of the match by index. Without it the picker switches in place through `select-game`. */
+        gameHref?: (index: number) => string;
         /** Renders game links; pass Inertia's Link to keep navigation in the window. */
         linkComponent?: Component | string;
-        /**
-         * Listener for `@select-game`. A host with the whole match on one page
-         * listens instead of passing `gameHref`, and the picker switches in place.
-         */
-        onSelectGame?: (id: number) => void;
-        /**
-         * Your sideboard as the previous recorded game of the match began,
-         * so the sideboard window can show what you sided in and out. Null
-         * for a first game or when the host has no other game.
-         */
-        previousSideboard?: ReplaySideboardBaseline | null;
-        /**
-         * Your sideboard as this game began, when the host recorded it. The
-         * viewer falls back to the frames, which only log-built games fill.
-         */
-        sideboard?: ReplaySideboardEntry[] | null;
-        /** The frame to open on, from a shared link; kept inside the game. */
-        initialFrame?: number | null;
-        /** A link to this game at a frame. Without it the viewer offers no sharing. */
-        shareUrl?: (frame: number) => string;
-        /** Deck archetypes to show beside each player's name; either may be unknown. */
-        archetypes?: { local: string | null; opponent: string | null } | null;
+        /** The moment to open on, from a shared link; kept inside the game. */
+        initialStep?: number | null;
+        /** A link to this game at a moment. Without it the viewer offers no sharing. */
+        shareUrl?: (step: number) => string;
     }>(),
-    { gameHref: undefined, linkComponent: 'a', previousSideboard: null, sideboard: null, initialFrame: null, shareUrl: undefined, archetypes: null },
+    { gameHref: undefined, linkComponent: 'a', initialStep: null, shareUrl: undefined },
 );
 
 const emit = defineEmits<{
     /**
-     * The frame the viewer came to rest on: after a seek, step or jump while
+     * The moment the viewer came to rest on: after a seek, step or jump while
      * paused, and when playback stops. Not sent while playing, so a host
-     * keeping its address in step does not rewrite it every frame.
+     * keeping its address in step does not rewrite it every moment.
      */
-    settle: [frame: number];
+    settle: [step: number];
+    /** The picker or the end card chose another game of the file. */
+    selectGame: [index: number];
 }>();
 
 const root = useTemplateRef<HTMLElement>('root');
-/** Every card in the zone it is really in; see normaliseFrames. */
-const frames = computed(() => normaliseFrames(props.frames));
+const game = computed(() => props.games[props.gameIndex]);
+const info = computed(() => gameInfo(game.value));
+const timeline = computed(() => buildTimeline(game.value));
+const images = toRef(props, 'cardImage');
 
-const total = computed(() => frames.value.length);
-const turns = computed(() => deriveTurns(frames.value, props.log));
-const logItems = computed(() => buildLogItems(frames.value, props.log, turns.value));
+const total = computed(() => timeline.value.moments.length);
+const turns = computed(() => timeline.value.turns);
+const times = computed(() => timeline.value.times);
+const logItems = computed(() =>
+    buildLogItems(
+        timeline.value.moments,
+        timeline.value.steps.map((step) => step.state),
+        turns.value,
+    ),
+);
 
-const playback = useReplayPlayback(frames, turns);
-const { current, playing, speed, markers } = playback;
+const playback = useReplayPlayback(times, turns);
+const { current, playing, speed } = playback;
 
-playback.seek(startFrame(props.initialFrame, frames.value.length));
+playback.seek(startStep(props.initialStep, total.value));
 
-watch([current, playing], ([frameIndex, isPlaying]) => {
+watch([current, playing], ([index, isPlaying]) => {
     if (!isPlaying) {
-        emit('settle', frameIndex);
+        emit('settle', index);
     }
 });
 
-const { frame, local, opponent, cards, cardsById, turn, activeId, step, pairs, stack, hand, opponentHand, revealedSoFar, sides, playerName, startingSideboard, sideboard, discards } =
-    useReplayBoard(frames, current, turns, toRef(props, 'sideboard'));
+/** Each player's sideboard as the game's deck block lists it, so their HUD can open it. */
+const sideboards = computed(() => Object.fromEntries(info.value.players.map((player) => [player, sideboardNames(game.value, player)])) as Record<Player, Map<string, number> | null>);
+const sideboardSizes = computed(
+    () => Object.fromEntries(info.value.players.map((player) => [player, [...(sideboards.value[player]?.values() ?? [])].reduce((sum, count) => sum + count, 0)])) as Record<Player, number>,
+);
 
-const { elapsed, clocks } = useReplayPlayhead(frames, current, playing, speed);
-const positions = computed(() => timelinePositions(frames.value));
-const holdMs = computed(() => frameDuration(frames.value, current.value, speed.value));
+const { moment, local, opponent, cardsByKey, turn, activeId, step, incomplete, pairs, stack, effects, hand, opponentHand, sides, playerName, inZone } = useReplayBoard(
+    game,
+    info,
+    timeline,
+    current,
+    images,
+    sideboardSizes,
+);
+
+const positions = computed(() => timelinePositions(times.value));
+const holdMs = computed(() => stepDuration(times.value, current.value, speed.value));
 
 /** Recorded on press: older Safari does not deliver clicks as PointerEvents, so a click cannot say what made it. */
 const lastPointer = shallowRef<string | null>(null);
 
-const preview = useCardPreview(root, cardsById, playerName, lastPointer, discards);
-const { card: previewCard, position: previewPosition, chips: previewChips, companions: previewCompanions, pinned: previewPinned } = preview;
+const preview = useCardPreview(root, cardsByKey, images, lastPointer);
+const { card: previewCard, position: previewPosition, chips: previewChips, pinned: previewPinned } = preview;
+
+function selectGame(index: number) {
+    emit('selectGame', index);
+}
+
 provide(replayContextKey, {
     showPreview: preview.showPreview,
     hidePreview: preview.hidePreview,
     pinPreview: preview.pinPreview,
+    cardByKey: (key) => cardsByKey.value.get(key) ?? null,
+    images: props.cardImage,
     gameHref: props.gameHref ?? null,
     linkComponent: props.linkComponent,
-    selectGame: props.onSelectGame ?? null,
-    archetype: (player) => (player.IsLocal ? props.archetypes?.local : props.archetypes?.opponent) ?? null,
+    selectGame,
 });
 
-const revealedCards = computed(() => revealedSoFar.value.map((reveal) => reveal.card));
 const { layout, compact } = useReplayLayout(root);
 const cardHeight = useReplayCardHeight(root, compact);
 
@@ -158,7 +167,7 @@ watch(layout, (value) => {
     }
 });
 
-const { tooltip, setHover } = useScrubTooltip(root, frames, turns, logItems);
+const { tooltip, setHover } = useScrubTooltip(root, timeline, logItems);
 
 const logOpen = shallowRef(false);
 
@@ -206,27 +215,14 @@ useReplayKeyboard({
 });
 
 const activeName = computed(() => (activeId.value !== null ? playerName(activeId.value) : null));
-const activeIsLocal = computed(() => activeId.value !== null && activeId.value === local.value?.Id);
-const phasesRecorded = computed(() => frames.value.some((item) => item.content.Step != null || item.content.Phase != null));
+const activeIsLocal = computed(() => activeId.value !== null && activeId.value === local.value?.id);
 const atEnd = computed(() => total.value > 0 && current.value === total.value - 1);
 
-/** Seat of the game's winner, held back until the final frame so the replay does not spoil the result. */
-const winnerId = computed(() => {
-    if (props.won === null || !atEnd.value) {
-        return null;
-    }
-
-    return sides.value.find((side) => side.opponent !== props.won)?.player.Id ?? null;
-});
-const gameIndex = computed(() => props.matchGames.findIndex((item) => item.id === props.gameId));
-const matchGame = computed(() => props.matchGames[gameIndex.value] ?? null);
-const nextGame = computed(() => {
-    if ((!props.gameHref && !props.onSelectGame) || gameIndex.value < 0) {
-        return null;
-    }
-
-    return props.matchGames[gameIndex.value + 1] ?? null;
-});
+/** Seat of the game's winner, held back until the final moment so the replay does not spoil the result. */
+const winnerId = computed(() => (atEnd.value ? info.value.winner : null));
+const games = computed(() => matchGames(props.games));
+const matchGame = computed(() => games.value[props.gameIndex] ?? null);
+const nextGame = computed(() => games.value[props.gameIndex + 1] ?? null);
 
 const endDismissed = shallowRef(false);
 const showGameEnd = computed(() => atEnd.value && !playing.value && !endDismissed.value);
@@ -237,52 +233,46 @@ watch(atEnd, (value) => {
     }
 });
 
-const localId = computed(() => local.value?.Id ?? null);
-/** Reveals stay listed after they leave hand, so each says whether it is still known to be there. */
-const handCaptions = computed(() => {
-    const known = new Set(opponentHand.value.map((card) => card.Id));
+const localId = computed(() => local.value?.id ?? null);
 
-    return new Map(
-        revealedSoFar.value.map((reveal) => {
-            if (known.has(reveal.card.Id)) {
-                return [reveal.card.Id, 'In hand'];
-            }
+/** The sideboard of the perspective player as this game's deck block lists it. */
+const sideboardList = computed(() => {
+    const names = localId.value ? sideboards.value[localId.value] : null;
 
-            return [reveal.card.Id, reveal.turn !== null ? `Seen turn ${reveal.turn}` : 'Seen before turn 1'];
-        }),
-    );
+    return names && localId.value ? sideboardCards(names, localId.value, props.cardImage) : [];
 });
-/**
- * What you sided in and out since the previous game. Both ends are taken as
- * each game began, so a card fetched from the sideboard mid-game is not
- * counted; the window's list itself follows the frame.
- */
-const sideboardDiff = computed(() =>
-    props.previousSideboard && startingSideboard.value ? sideboardChanges(props.previousSideboard.cards, startingSideboard.value) : null,
-);
-/** Your sideboard as the window lists it, by name. */
-const sideboardList = computed(() => [...sideboard.value].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')));
-/** Marks the copies in your sideboard that came out of the deck for this game. */
+/** What was sided in and out since the previous game of the file, when both list a deck. */
+const previousGame = computed(() => props.games[props.gameIndex - 1] ?? null);
+const sideboardDiff = computed(() => {
+    const now = localId.value ? sideboards.value[localId.value] : null;
+    const before = previousGame.value && localId.value ? sideboardNames(previousGame.value, localId.value) : null;
+
+    return now && before && localId.value ? sideboardChanges(before, now, localId.value, props.cardImage) : null;
+});
 const sideboardNotes = computed(() => (sideboardDiff.value ? sideboardCaptions(sideboardList.value, sideboardDiff.value) : null));
+const previousGameNumber = computed(() => (previousGame.value ? gameInfo(previousGame.value).number : null));
 
-function windowCards(player: number, zone: ReplayZone): ReplayCard[] {
-    return zone === 'Sideboard' ? sideboardList.value : zoneCardsFor(cards.value, revealedCards.value, player, zone);
-}
-
-function windowCaptions(zone: ReplayZone): Map<number, string> | null {
-    if (zone === 'Hand') {
-        return handCaptions.value;
+function windowCards(player: Player, zone: ReplayZone): ReplayCardView[] {
+    if (zone === 'Sideboard') {
+        return sideboardList.value;
     }
 
+    if (zone === 'Hand' && player !== localId.value) {
+        return opponentHand.value;
+    }
+
+    return inZone(zone, player);
+}
+
+function windowCaptions(zone: ReplayZone): Map<string, string> | null {
     return zone === 'Sideboard' ? sideboardNotes.value : null;
 }
 
-/** Synced matches carry ISO timestamps; show only the time, as desktop replays do. */
-/** The time of day in the game, running on while playback holds a frame. */
-const clockTime = computed(() => timeOfDay(frames.value, elapsed.value));
+/** The time into the game of the moment showing, as the file writes it. */
+const clockTime = computed(() => (moment.value ? timeLabel(moment.value.time) : ''));
 
-const missingText = computed(() => phaseMissingText(phasesRecorded.value, turn.value?.number ?? null));
 const currentStepLabel = computed(() => (step.value ? stepLabel(step.value) : null));
+const missingText = computed(() => (turn.value?.number === null ? 'Before the first turn' : ''));
 
 const shareLink = useReplayShare(() => (props.shareUrl ? props.shareUrl(current.value) : null));
 const shareMoment = computed(() =>
@@ -295,15 +285,15 @@ const SHEET_TITLES: Record<ReplaySheetKind, string> = {
     stack: 'Stack',
 };
 
-function zoneTitle(player: number, zone: ReplayZone): string {
+function zoneTitle(player: Player, zone: ReplayZone): string {
     return `${playerName(player)} · ${REPLAY_ZONES[zone].label}`;
 }
 
-function openZonesFor(player: number): ReplayZone[] {
+function openZonesFor(player: Player): ReplayZone[] {
     return windows.value.filter((item) => item.player === player).map((item) => item.zone);
 }
 
-function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, opponentSide: boolean) {
+function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, opponentSide: boolean) {
     zoneWindows.toggle(player, zone, opponentSide ? 'opponent' : 'you', event.currentTarget as HTMLElement);
 }
 </script>
@@ -318,12 +308,15 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
         <ReplayEmptyState v-if="!total" />
 
         <template v-else>
+            <div v-if="incomplete" class="flex-none bg-warning/15 px-3 py-1 text-center text-[11.5px] text-warning">
+                The recording is incomplete from here: the board may be missing events until the next keyframe.
+            </div>
+
             <div class="relative flex min-h-0 flex-1">
                 <ReplayCompactBoard
                     v-if="layout !== 'regular'"
                     :sides="sides"
                     :layout="layout"
-                    :clocks="clocks"
                     :winner-id="winnerId"
                     :pairs="pairs"
                     :turn-number="turn?.number ?? null"
@@ -338,7 +331,7 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
 
                 <!--
                     Wide viewers: HUDs and the stack in the left column, the board and
-                    both hands in the middle, and an empty right column mirroring the left so
+                    both hands in the middle, and the effects in the right column so
                     the board centres on the same line as the phase rail.
                 -->
                 <div
@@ -347,20 +340,19 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                 >
                     <ReplaySide
                         v-for="side in sides"
-                        :key="side.player.Id"
+                        :key="side.player.id"
                         :class="side.opponent ? 'order-0' : 'order-2'"
                         :player="side.player"
                         :battlefield="side.battlefield"
                         :opponent="side.opponent"
                         :active="side.active"
                         :priority="side.priority"
-                        :time-left="clocks.get(side.player.Id) ?? null"
-                        :winner="side.player.Id === winnerId"
+                        :winner="side.player.id === winnerId"
                         :zone-counts="side.zoneCounts"
                         :sideboard="side.sideboard"
-                        :open-zones="openZonesFor(side.player.Id)"
+                        :open-zones="openZonesFor(side.player.id)"
                         :pairs="pairs"
-                        @toggle-zone="(zone, event) => toggleZoneWindow(side.player.Id, zone, event, side.opponent)"
+                        @toggle-zone="(zone, event) => toggleZoneWindow(side.player.id, zone, event, side.opponent)"
                     />
 
                     <ReplayPhaseRail
@@ -368,14 +360,16 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                         :active-name="activeName"
                         :active-is-local="activeIsLocal"
                         :step="step"
-                        :phases-recorded="phasesRecorded"
+                        :missing-text="missingText"
                     >
-                        <ReplayStack v-if="stack.length" :items="stack" :player-name="playerName" />
+                        <ReplayStack v-if="stack.length" :items="stack" />
                     </ReplayPhaseRail>
 
-                    <ReplayHand v-if="opponent" :cards="opponentHand" :count="opponent.HandCount ?? opponentHand.length" opponent />
+                    <ReplayEffects v-if="effects.length" :effects="effects" />
 
-                    <ReplayHand :cards="hand" :count="local?.HandCount ?? hand.length" :opponent="false" />
+                    <ReplayHand v-if="opponent" :cards="opponentHand" :count="opponent.handCount" opponent />
+
+                    <ReplayHand :cards="hand" :count="local?.handCount ?? hand.length" :opponent="false" />
 
                     <ReplayShareCard v-if="shareUrl" :moment="shareMoment" :copied="shareLink.copied.value" @share="shareLink.share(false)" />
                 </div>
@@ -413,7 +407,6 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
             <ReplayTransport
                 v-else
                 :turns="turns"
-                :markers="markers"
                 :current="current"
                 :total="total"
                 :positions="positions"
@@ -425,8 +418,8 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                 :log-open="logOpen"
                 :fullscreen-supported="fullscreen.supported.value"
                 :fullscreen="fullscreen.active.value"
-                :game-id="gameId"
-                :match-games="matchGames"
+                :game-id="gameIndex"
+                :match-games="games"
                 :player-name="playerName"
                 @toggle="playback.toggle"
                 @step="playback.step"
@@ -457,10 +450,10 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                     <ReplayHandSheet
                         v-if="sheet === 'hands'"
                         :hand="hand"
-                        :hand-count="local?.HandCount ?? hand.length"
+                        :hand-count="local?.handCount ?? hand.length"
                         :opponent-hand="opponentHand"
-                        :opponent-count="opponent?.HandCount ?? opponentHand.length"
-                        :opponent-name="opponent?.Name ?? 'Opponent'"
+                        :opponent-count="opponent?.handCount ?? opponentHand.length"
+                        :opponent-name="opponent?.name ?? 'Opponent'"
                     />
                     <div v-else-if="sheet === 'timeline'" class="flex flex-col gap-3 px-4 pb-4">
                         <div class="flex items-baseline justify-between gap-2">
@@ -470,7 +463,6 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                         <div class="flex">
                             <ReplayScrubber
                                 :turns="turns"
-                                :markers="markers"
                                 :current="current"
                                 :total="total"
                                 :positions="positions"
@@ -483,7 +475,7 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                             />
                         </div>
                         <div class="flex flex-wrap items-center justify-between gap-2">
-                            <ReplayGamePicker v-if="(gameHref || onSelectGame) && matchGames.length > 1" :games="matchGames" :game-id="gameId" />
+                            <ReplayGamePicker v-if="games.length > 1" :games="games" :game-id="gameIndex" />
                             <div class="flex flex-none items-center gap-0.5 rounded-lg bg-background p-0.5">
                                 <button
                                     v-for="value in REPLAY_SPEEDS"
@@ -499,20 +491,13 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                         </div>
                     </div>
                     <div v-else class="px-3 pb-3">
-                        <ReplayStack v-if="stack.length" class="w-full!" :items="stack" :player-name="playerName" />
+                        <ReplayStack v-if="stack.length" class="w-full!" :items="stack" />
                         <div v-else class="py-4 text-center text-muted-foreground">The stack is empty</div>
                     </div>
                 </ReplaySheet>
             </Transition>
 
-            <ReplayGameEnd
-                v-if="showGameEnd"
-                :game="matchGame"
-                :next="nextGame"
-                :won="won"
-                @restart="playback.toggle"
-                @dismiss="endDismissed = true"
-            />
+            <ReplayGameEnd v-if="showGameEnd" :game="matchGame" :next="nextGame" :won="info.won" @restart="playback.toggle" @dismiss="endDismissed = true" />
 
             <ReplayScrubTooltip v-if="tooltip" :tooltip="tooltip" />
 
@@ -537,8 +522,8 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                     @mounted="(element) => zoneWindows.settle(item.key, element)"
                 >
                     <ReplaySideboardChanges
-                        v-if="item.zone === 'Sideboard' && sideboardDiff && previousSideboard"
-                        :game="previousSideboard.game"
+                        v-if="item.zone === 'Sideboard' && sideboardDiff && previousGameNumber !== null"
+                        :game="previousGameNumber"
                         :changes="sideboardDiff"
                         :small="compact"
                     />
@@ -549,7 +534,6 @@ function toggleZoneWindow(player: number, zone: ReplayZone, event: MouseEvent, o
                 v-if="previewCard && previewPosition"
                 :card="previewCard"
                 :chips="previewChips"
-                :companions="previewCompanions"
                 :position="previewPosition"
                 :pinned="previewPinned"
                 @close="preview.unpin"

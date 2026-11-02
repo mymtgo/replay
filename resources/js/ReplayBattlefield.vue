@@ -2,13 +2,13 @@
 import { computed } from 'vue';
 import ReplayCardPile from './ReplayCardPile.vue';
 import ReplayCardTile from './ReplayCardTile.vue';
-import { frontRowGroups, isFrontRow, isLand, landPiles, type CardGroup, type LandPile } from './replayCards';
-import type { ReplayCard } from './types';
+import { frontRowGroups, isFrontRow, landPiles, type CardGroup, type LandPile } from './replayCards';
+import type { ReplayCardView } from './types';
 
 const props = defineProps<{
-    battlefield: ReplayCard[];
+    battlefield: ReplayCardView[];
     opponent: boolean;
-    pairs: Map<number, number>;
+    pairs: Map<string, number>;
     /**
      * Compact viewers keep cards at a readable height and let a crowded row
      * scroll sideways instead of shrinking and overlapping its cards.
@@ -21,18 +21,11 @@ const props = defineProps<{
 type RowItem = { key: string; group: CardGroup; pile?: never } | { key: string; pile: LandPile; group?: never };
 
 const front = computed<RowItem[]>(() =>
-    frontRowGroups(props.battlefield.filter(isFrontRow), props.pairs).map((group) => ({ key: `${group.card.Id}-${group.count}`, group })),
+    frontRowGroups(props.battlefield.filter(isFrontRow), props.pairs).map((group) => ({ key: `${group.card.key}-${group.count}`, group })),
 );
 
-/** Back row: land piles first, then other non-creature permanents one to a tile. */
-const back = computed<RowItem[]>(() => {
-    const cards = props.battlefield.filter((card) => !isFrontRow(card));
-
-    return [
-        ...landPiles(cards.filter(isLand)).map((pile) => ({ key: `pile-${pile.key}`, pile })),
-        ...cards.filter((card) => !isLand(card)).map((card) => ({ key: String(card.Id), group: { card, count: 1 } })),
-    ];
-});
+/** Back row: every non-creature permanent, copies of a name piled together. */
+const back = computed<RowItem[]>(() => landPiles(props.battlefield.filter((card) => !isFrontRow(card))).map((pile) => ({ key: `pile-${pile.key}`, pile })));
 
 /**
  * Creatures face the centre line; lands and other permanents sit behind them.
@@ -79,7 +72,7 @@ const rows = computed(() => {
                     :card="item.group.card"
                     :count="item.group.count"
                     :opponent="opponent"
-                    :pair="pairs.get(item.group.card.Id) ?? null"
+                    :pair="pairs.get(item.group.card.key) ?? null"
                     :last="scroll || i === row.groups.length - 1"
                 />
             </template>

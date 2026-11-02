@@ -16,10 +16,8 @@ const props = defineProps<{
     playing: boolean;
     /** How long playback holds the current frame. */
     holdMs: number;
-    localId: number | null;
-    playerName: (id: number | undefined) => string;
-    /** Frames where something happened, marked when the game has no turns to segment by. */
-    markers?: number[];
+    localId: string | null;
+    playerName: (id: string | undefined) => string;
 }>();
 
 const emit = defineEmits<{
@@ -60,9 +58,6 @@ const segments = computed(() =>
         };
     }),
 );
-
-/** Past marks read brighter, so the track shows how far into the game's events you are. */
-const ticks = computed(() => (props.markers ?? []).map((frame) => ({ frame, left: position(frame), past: frame <= props.current })));
 
 function frameAt(event: PointerEvent, rect: DOMRect): number {
     return frameAtPosition(props.positions, ((event.clientX - rect.left) / rect.width) * 100);
@@ -142,14 +137,6 @@ function jump(turn: ReplayTurn) {
                 T{{ segment.turn.number }}
             </button>
         </div>
-        <div
-            v-for="tick in ticks"
-            :key="tick.frame"
-            aria-hidden="true"
-            class="pointer-events-none absolute inset-y-1.5 -ml-px w-0.5 rounded-full"
-            :class="tick.past ? 'bg-foreground/70' : 'bg-foreground/25'"
-            :style="{ left: `${tick.left}%` }"
-        />
         <div
             class="pointer-events-none absolute -inset-y-1 -ml-[1.5px] w-0.75 rounded-sm bg-foreground shadow-[0_0_0_2px_var(--card)] transition-[left] ease-linear"
             :style="{ left: `${playhead}%`, ...glide }"

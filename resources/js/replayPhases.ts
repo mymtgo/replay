@@ -1,3 +1,4 @@
+import type { Step } from '@mtgreplay/mtgr';
 import { ArrowDownToLine, Flag, Moon, Shield, Sparkle, Sparkles, Sunrise, Swords, Zap } from 'lucide-vue-next';
 import type { Component } from 'vue';
 
@@ -33,44 +34,33 @@ export const REPLAY_PHASES: ReplayStep[][] = [
 
 export const REPLAY_STEP_ORDER: ReplayStepKey[] = REPLAY_PHASES.flat().map((step) => step.key);
 
-/** MTGO step and phase names that have no icon of their own fold into the nearest one. */
-const ALIASES: Record<string, ReplayStepKey> = {
-    Untap: 'Upkeep',
-    Beginning: 'Upkeep',
-    Combat: 'BeginCombat',
-    FirstStrikeDamage: 'CombatDamage',
-    EndOfCombat: 'CombatDamage',
-    Ending: 'EndOfTurn',
-    Cleanup: 'EndOfTurn',
+/** The file's twelve steps onto the rail's nine icons: untap shares upkeep's, end of combat shares damage's, cleanup shares end's. */
+const STEP_ICONS: Record<Step, ReplayStepKey> = {
+    untap: 'Upkeep',
+    upkeep: 'Upkeep',
+    draw: 'Draw',
+    'precombat-main': 'PreCombatMain',
+    'beginning-of-combat': 'BeginCombat',
+    'declare-attackers': 'DeclareAttackers',
+    'declare-blockers': 'DeclareBlockers',
+    'combat-damage': 'CombatDamage',
+    'end-of-combat': 'CombatDamage',
+    'postcombat-main': 'PostCombatMain',
+    end: 'EndOfTurn',
+    cleanup: 'EndOfTurn',
 };
 
-export function normaliseStep(step: string | undefined, phase: string | undefined): ReplayStepKey | null {
-    for (const name of [step, phase]) {
-        if (!name) {
-            continue;
-        }
+const STEP_LABELS: Partial<Record<Step, string>> = { untap: 'Untap', 'end-of-combat': 'End of combat', cleanup: 'Cleanup' };
 
-        if ((REPLAY_STEP_ORDER as string[]).includes(name)) {
-            return name as ReplayStepKey;
-        }
-
-        if (ALIASES[name]) {
-            return ALIASES[name];
-        }
-    }
-
-    return null;
+export function stepKey(step: Step | null): ReplayStepKey | null {
+    return step ? STEP_ICONS[step] : null;
 }
 
-export function stepLabel(key: ReplayStepKey | null): string {
-    return REPLAY_PHASES.flat().find((step) => step.key === key)?.label ?? '';
-}
-
-/** What the phase rail says when there is no step to show. */
-export function phaseMissingText(phasesRecorded: boolean, turnNumber: number | null): string {
-    if (phasesRecorded) {
-        return turnNumber === null ? 'Before the first turn' : '';
+/** The step's own name: the rail's label, or the finer name for a step that shares an icon. */
+export function stepLabel(step: Step | null): string {
+    if (!step) {
+        return '';
     }
 
-    return turnNumber !== null ? 'Phase and priority not recorded for this game' : 'Turn, phase and priority not recorded for this game';
+    return STEP_LABELS[step] ?? REPLAY_PHASES.flat().find((item) => item.key === STEP_ICONS[step])?.label ?? '';
 }

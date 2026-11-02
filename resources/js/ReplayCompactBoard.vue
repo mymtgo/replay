@@ -11,9 +11,8 @@ const props = defineProps<{
     /** Opponent first, then you. */
     sides: ReplaySideView[];
     layout: Exclude<ReplayLayout, 'regular'>;
-    clocks: Map<number, number>;
-    winnerId: number | null;
-    pairs: Map<number, number>;
+    winnerId: string | null;
+    pairs: Map<string, number>;
     turnNumber: number | null;
     activeName: string | null;
     activeIsLocal: boolean;
@@ -23,7 +22,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    openZone: [player: number, zone: ReplayZone, event: MouseEvent];
+    openZone: [player: string, zone: ReplayZone, event: MouseEvent];
     openStack: [];
 }>();
 
@@ -39,19 +38,18 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
     -->
     <div class="flex min-h-0 min-w-0 flex-1 gap-1.5 px-1.5 pt-1.5" :class="landscape ? 'flex-row' : 'flex-col'">
         <div v-if="landscape" class="flex w-37.5 flex-none flex-col justify-between gap-1.5 overflow-y-auto pb-1.5">
-            <template v-for="side in [opponentSide, localSide]" :key="side?.player.Id">
+            <template v-for="side in [opponentSide, localSide]" :key="side?.player.id">
                 <ReplayCompactHud
                     v-if="side"
                     :player="side.player"
                     :opponent="side.opponent"
                     :active="side.active"
                     :priority="side.priority"
-                    :time-left="clocks.get(side.player.Id) ?? null"
-                    :winner="side.player.Id === winnerId"
+                    :winner="side.player.id === winnerId"
                     :zone-counts="side.zoneCounts"
                     :sideboard="side.sideboard"
                     stacked
-                    @open-zone="(zone, event) => emit('openZone', side.player.Id, zone, event)"
+                    @open-zone="(zone, event) => emit('openZone', side.player.id, zone, event)"
                 />
             </template>
         </div>
@@ -63,12 +61,11 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
                 :opponent="true"
                 :active="opponentSide.active"
                 :priority="opponentSide.priority"
-                :time-left="clocks.get(opponentSide.player.Id) ?? null"
-                :winner="opponentSide.player.Id === winnerId"
+                :winner="opponentSide.player.id === winnerId"
                 :zone-counts="opponentSide.zoneCounts"
                 :sideboard="opponentSide.sideboard"
                 :stacked="false"
-                @open-zone="(zone, event) => emit('openZone', opponentSide!.player.Id, zone, event)"
+                @open-zone="(zone, event) => emit('openZone', opponentSide!.player.id, zone, event)"
             />
 
             <ReplayBattlefield
@@ -105,13 +102,12 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
                 :opponent="false"
                 :active="localSide.active"
                 :priority="localSide.priority"
-                :time-left="clocks.get(localSide.player.Id) ?? null"
-                :winner="localSide.player.Id === winnerId"
+                :winner="localSide.player.id === winnerId"
                 :zone-counts="localSide.zoneCounts"
                 :sideboard="localSide.sideboard"
                 :stacked="false"
                 class="mb-1.5"
-                @open-zone="(zone, event) => emit('openZone', localSide!.player.Id, zone, event)"
+                @open-zone="(zone, event) => emit('openZone', localSide!.player.id, zone, event)"
             />
         </div>
     </div>

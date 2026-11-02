@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import ReplayCardBack from './ReplayCardBack.vue';
 import ReplayCardImage from './ReplayCardImage.vue';
 import { useReplayContext } from './replayContext';
-import type { ReplayCard } from './types';
+import type { ReplayCardView } from './types';
 
 const props = defineProps<{
-    hand: ReplayCard[];
+    hand: ReplayCardView[];
     handCount: number;
     /** Their cards we know: revealed ones still in hand. */
-    opponentHand: ReplayCard[];
+    opponentHand: ReplayCardView[];
     opponentCount: number;
     opponentName: string;
 }>();
@@ -34,20 +33,20 @@ const sections = computed(() => [
             <div class="flex h-32 gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <div
                     v-for="card in section.cards"
-                    :key="card.Id"
+                    :key="card.key"
                     class="relative aspect-[63/88] h-full flex-none rounded shadow-[0_1px_4px_rgba(0,0,0,.35)]"
                     @mouseenter="showPreview($event, card)"
                     @mouseleave="hidePreview"
                     @click="pinPreview($event, card)"
                 >
-                    <ReplayCardImage :name="card.name" :type="card.type" :image="card.image" show-type />
+                    <ReplayCardImage :name="card.name" :image="card.image" />
                 </div>
                 <div
                     v-for="n in section.hidden"
                     :key="`hidden-${n}`"
                     class="relative aspect-[63/88] h-full flex-none rounded shadow-[0_1px_4px_rgba(0,0,0,.35)]"
                 >
-                    <ReplayCardBack />
+                    <ReplayCardImage :name="null" />
                 </div>
                 <span v-if="!section.cards.length && !section.hidden" class="self-center text-muted-foreground">No cards in hand</span>
             </div>
