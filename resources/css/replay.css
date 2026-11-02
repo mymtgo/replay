@@ -66,9 +66,9 @@
 
     /*
      * A player's half of the table: a faint honeycomb in the player's own
-     * colour on black, and a firm rule in that colour on the centre
-     * line. The honeycomb is a mask on a layer behind the content, so one
-     * pattern takes either player's colour.
+     * colour on black, fading in toward the centre line, which is a firm
+     * rule in that colour. The honeycomb and the fade are masks on a layer
+     * behind the content, so one pattern takes either player's colour.
      */
     .replay-area {
         --area: var(--replay-opponent);
@@ -84,13 +84,15 @@
         inset: 0;
         z-index: -1;
         pointer-events: none;
-        background-color: color-mix(in oklab, var(--area) 8%, transparent);
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24.249' height='42'%3E%3Cpath d='M0 7.0L12.1245 0L24.249 7.0V21.0L12.1245 28L0 21.0ZM12.1245 28V42' fill='none' stroke='black' stroke-width='1'/%3E%3C/svg%3E");
-        mask-size: 24.249px 42px;
+        background-color: color-mix(in oklab, var(--area) 15%, transparent);
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24.249' height='42'%3E%3Cpath d='M0 7.0L12.1245 0L24.249 7.0V21.0L12.1245 28L0 21.0ZM12.1245 28V42' fill='none' stroke='black' stroke-width='1'/%3E%3C/svg%3E"), linear-gradient(var(--area-dir, to bottom), transparent, #000);
+        mask-size: 24.249px 42px, 100% 100%;
+        mask-composite: intersect;
     }
 
     .replay-area-local {
         --area: var(--primary);
+        --area-dir: to top;
     }
 
     .replay-glow {
