@@ -26,7 +26,7 @@ const props = defineProps<{
 }>();
 
 /** White ring, red ring and glow: reads against every card art and apart from the attack and block rings. */
-const TARGET_SHADOW = '0 0 0 2px #fff, 0 0 0 5px #e5484d, 0 0 16px 6px rgba(229,72,77,.7)';
+const TARGET_SHADOW = '0 0 0 2px #e5484d, 0 2px 6px rgba(0,0,0,.35)';
 
 const { showPreview, hidePreview, pinPreview, highlightedTargets } = useReplayContext();
 
