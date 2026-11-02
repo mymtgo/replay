@@ -25,7 +25,7 @@ import ReplaySideboardChanges from './ReplaySideboardChanges.vue';
 import ReplaySide from './ReplaySide.vue';
 import ReplayStack from './ReplayStack.vue';
 import { pregameEnd, stepDuration, timelinePositions } from './replayTimeline';
-import { exiledBy } from './replayExile';
+import { arrivedBy } from './replayArrival';
 import { pregameView } from './replayPregame';
 import ReplayPregame from './ReplayPregame.vue';
 import ReplayTransport from './ReplayTransport.vue';
@@ -125,12 +125,16 @@ const pregame = computed(() =>
         : null,
 );
 
-const exileContext = (key: string) =>
-    zones.value.get(key) === 'exile'
-        ? exiledBy(timeline.value.moments, states.value, current.value, key)
-        : null;
+/** How a card in a graveyard or exile got there, for its preview and its zone window row. */
+const arrivalContext = (key: string) => {
+    const zone = zones.value.get(key);
 
-const preview = useCardPreview(root, cardsByKey, images, lastPointer, exileContext);
+    return zone === 'exile' || zone === 'graveyard'
+        ? arrivedBy(timeline.value.moments, states.value, current.value, key, zone)
+        : null;
+};
+
+const preview = useCardPreview(root, cardsByKey, images, lastPointer, arrivalContext);
 const { card: previewCard, position: previewPosition, chips: previewChips, pinned: previewPinned } = preview;
 
 const targets = useTargetHighlight(stack, zones, cardsByKey, lastPointer);
@@ -332,8 +336,26 @@ function windowCards(player: Player, zone: ReplayZone): ReplayCardView[] {
     return inZone(zone, player);
 }
 
-function windowCaptions(zone: ReplayZone): Map<string, string> | null {
-    return zone === 'Sideboard' ? sideboardNotes.value : null;
+function windowCaptions(player: Player, zone: ReplayZone): Map<string, string> | null {
+    if (zone === 'Sideboard') {
+        return sideboardNotes.value;
+    }
+
+    if (zone !== 'Graveyard' && zone !== 'Exile') {
+        return null;
+    }
+
+    const captions = new Map<string, string>();
+
+    for (const card of windowCards(player, zone)) {
+        const note = card.exiledWith === null ? arrivalContext(card.key) : null;
+
+        if (note) {
+            captions.set(card.key, note);
+        }
+    }
+
+    return captions;
 }
 
 /** The time into the game of the moment showing, as the file writes it. */
@@ -568,7 +590,7 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                     :title="zoneTitle(item.player, item.zone)"
                     :zone="item.zone"
                     :cards="windowCards(item.player, item.zone)"
-                    :captions="windowCaptions(item.zone)"
+                    :captions="windowCaptions(item.player, item.zone)"
                     :left="item.left"
                     :top="item.top"
                     :size="item.size"

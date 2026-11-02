@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { parse } from '@mtgreplay/mtgr';
 import { buildTimeline } from '../../resources/js/replayGame.ts';
-import { exiledBy } from '../../resources/js/replayExile.ts';
+import { arrivedBy } from '../../resources/js/replayArrival.ts';
 import { pregameBadges, pregameView } from '../../resources/js/replayPregame.ts';
 
 const load = (name: string) => {
@@ -64,7 +64,7 @@ test('opening-hand actions show one per moment', () => {
 });
 
 const lastStep = opening.timeline.moments.length - 1;
-const exiled = (key: string, step = lastStep) => exiledBy(opening.timeline.moments, opening.states, step, key);
+const exiled = (key: string, step = lastStep) => arrivedBy(opening.timeline.moments, opening.states, step, key, 'exile');
 
 test('a card exiled by an object says who and when', () => {
     assert.equal(exiled('#9'), 'Exiled by Gemstone Caverns at 0:36');

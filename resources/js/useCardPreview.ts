@@ -25,7 +25,7 @@ export function useCardPreview(
     /** Type of the latest press on the viewer; a tap pins the preview, a mouse click does not. */
     lastPointer: Readonly<Ref<string | null>>,
     /** Who exiled a card in exile and when; null when the file does not say or the card is not in exile. */
-    exiledBy: (key: string) => string | null,
+    arrivedBy: (key: string) => string | null,
 ) {
     const hovered = shallowRef<{ card: ReplayCardView; position: CardPreviewPosition } | null>(null);
     const pinned = shallowRef(false);
@@ -145,7 +145,7 @@ export function useCardPreview(
         if (exiler) {
             chips.push(`Exiled with ${exiler.name ?? 'a permanent'}`);
         } else if (current.exiledWith === null) {
-            const by = exiledBy(current.key);
+            const by = arrivedBy(current.key);
 
             if (by) {
                 chips.push(by);
