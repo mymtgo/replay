@@ -73,6 +73,7 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
                 :battlefield="opponentSide.battlefield"
                 :opponent="true"
                 :pairs="pairs"
+                :tucked="opponentSide.tucked"
                 scroll
                 :single-row="landscape"
             />
@@ -92,6 +93,7 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
                 :battlefield="localSide.battlefield"
                 :opponent="false"
                 :pairs="pairs"
+                :tucked="localSide.tucked"
                 scroll
                 :single-row="landscape"
             />

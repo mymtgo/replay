@@ -352,6 +352,7 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                         :sideboard="side.sideboard"
                         :open-zones="openZonesFor(side.player.id)"
                         :pairs="pairs"
+                        :tucked="side.tucked"
                         @toggle-zone="(zone, event) => toggleZoneWindow(side.player.id, zone, event, side.opponent)"
                     />
 

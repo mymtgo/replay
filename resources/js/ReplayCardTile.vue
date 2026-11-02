@@ -3,6 +3,7 @@ import { Shield, Swords } from 'lucide-vue-next';
 import { computed } from 'vue';
 import ReplayCardImage from './ReplayCardImage.vue';
 import ReplayDie from './ReplayDie.vue';
+import { TUCK_LAYERS, TUCK_PEEK, tuckExtraWidth } from './replayLinks';
 import { counterDice, isCreature, ptCounterLabel } from './replayCards';
 import { useReplayContext } from './replayContext';
 import type { ReplayCardView } from './types';
@@ -15,6 +16,8 @@ const props = defineProps<{
     opponent: boolean;
     /** Shared number linking a blocker to the attacker it blocks. */
     pair?: number | null;
+    /** Cards tucked under this one: what it exiled and what is attached to it. They peek out to its right. */
+    under?: ReplayCardView[];
     /** The last card in a row never shrinks, so crowded rows overlap instead of wrapping. */
     last: boolean;
 }>();
@@ -27,6 +30,9 @@ const blocking = computed(() => props.card.blocking !== null);
 const ptCounters = computed(() => ptCounterLabel(props.card));
 const dice = computed(() => counterDice(props.card));
 const showPt = computed(() => isCreature(props.card));
+
+const hostWidth = computed(() => (tapped.value ? 'var(--replay-card-h)' : 'calc(var(--replay-card-h) * 63 / 88)'));
+const tuckedShown = computed(() => (props.under ?? []).slice(0, TUCK_LAYERS));
 
 const lift = computed(() => (attacking.value ? (props.opponent ? 14 : -14) : 0));
 
@@ -41,11 +47,24 @@ const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5
     <div
         class="relative h-(--replay-card-h) min-w-[18px] hover:z-20!"
         :style="{
-            width: tapped ? 'var(--replay-card-h)' : 'calc(var(--replay-card-h) * 63 / 88)',
+            width: under?.length ? `calc(${hostWidth} + ${tuckExtraWidth(under.length)})` : hostWidth,
             flex: `0 ${last ? 0 : 1} auto`,
             zIndex: attacking ? 3 : 1,
         }"
     >
+        <div
+            v-for="(tuckedCard, i) in tuckedShown"
+            :key="tuckedCard.key"
+            data-replay-tucked
+            class="absolute top-0 h-(--replay-card-h) w-[calc(var(--replay-card-h)*63/88)] rounded-[5px] bg-muted shadow-[0_2px_6px_rgba(0,0,0,.35)]"
+            :style="{ left: `calc(${hostWidth} - var(--replay-card-h) * 63 / 88 * ${1 - TUCK_PEEK * (tuckedShown.length - i)})`, zIndex: 0 }"
+            @mouseenter="showPreview($event, tuckedCard)"
+            @mouseleave="hidePreview"
+            @click="pinPreview($event, tuckedCard)"
+        >
+            <ReplayCardImage :name="tuckedCard.name" :image="tuckedCard.image" />
+        </div>
+
         <div
             class="absolute top-0 left-0 h-(--replay-card-h) w-[calc(var(--replay-card-h)*63/88)] rounded-[5px] bg-muted transition-[transform,box-shadow] duration-200 ease-out"
             :style="{

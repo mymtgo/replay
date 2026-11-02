@@ -9,6 +9,8 @@ const props = defineProps<{
     battlefield: ReplayCardView[];
     opponent: boolean;
     pairs: Map<string, number>;
+    /** Cards under a permanent, by the host's key. */
+    tucked: ReadonlyMap<string, ReplayCardView[]>;
     /**
      * Compact viewers keep cards at a readable height and let a crowded row
      * scroll sideways instead of shrinking and overlapping its cards.
@@ -21,7 +23,7 @@ const props = defineProps<{
 type RowItem = { key: string; group: CardGroup; pile?: never } | { key: string; pile: LandPile; group?: never };
 
 const front = computed<RowItem[]>(() =>
-    frontRowGroups(props.battlefield.filter(isFrontRow), props.pairs).map((group) => ({ key: `${group.card.key}-${group.count}`, group })),
+    frontRowGroups(props.battlefield.filter(isFrontRow), props.pairs, props.tucked).map((group) => ({ key: `${group.card.key}-${group.count}`, group })),
 );
 
 /** Back row: every non-creature permanent, copies of a name piled together. */
@@ -66,13 +68,14 @@ const rows = computed(() => {
             "
         >
             <template v-for="(item, i) in row.groups" :key="item.key">
-                <ReplayCardPile v-if="item.pile" :pile="item.pile" :opponent="opponent" />
+                <ReplayCardPile v-if="item.pile" :pile="item.pile" :opponent="opponent" :tucked="tucked" />
                 <ReplayCardTile
                     v-else
                     :card="item.group.card"
                     :count="item.group.count"
                     :opponent="opponent"
                     :pair="pairs.get(item.group.card.key) ?? null"
+                    :under="tucked.get(item.group.card.key)"
                     :last="scroll || i === row.groups.length - 1"
                 />
             </template>

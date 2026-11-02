@@ -22,12 +22,13 @@ export const FRONT_ROW_GROUP_MIN = 5;
  * Front row: one tile per card, except where a run of identical creatures
  * (a swarm of tokens) collapses into one counted tile where the first sat.
  * Identical means everything a tile shows: name, tapped, size, counters,
- * damage and who it attacks. A creature in a block always keeps its own
- * tile, since the pairing badge names that one card.
+ * damage and who it attacks. A creature in a block, or with cards tucked
+ * under it, always keeps its own tile, since the badge or the tucked cards
+ * belong to that one card.
  */
-export function frontRowGroups(cards: ReplayCardView[], pairs: Map<string, number>): CardGroup[] {
+export function frontRowGroups(cards: ReplayCardView[], pairs: Map<string, number>, tucked: ReadonlyMap<string, ReplayCardView[]> = new Map()): CardGroup[] {
     const key = (card: ReplayCardView): string | null =>
-        pairs.has(card.key) ? null : JSON.stringify([card.name, card.face, card.tapped, card.power, card.toughness, card.damage, card.attacking, card.counters]);
+        pairs.has(card.key) || tucked.has(card.key) ? null : JSON.stringify([card.name, card.face, card.tapped, card.power, card.toughness, card.damage, card.attacking, card.counters]);
 
     const sizes = new Map<string, number>();
     cards.forEach((card) => {

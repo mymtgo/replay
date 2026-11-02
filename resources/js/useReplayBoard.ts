@@ -2,6 +2,7 @@ import type { Game, GameState, Player } from '@mtgreplay/mtgr';
 import { computed, type Ref } from 'vue';
 import type { ReplayGameInfo, ReplayTimeline } from './replayGame';
 import { cardViews, effectViews, liveObjects, objectZone, playerView, stackItems, WINDOW_ZONES } from './replayState';
+import { tuckedKeys, tuckedUnder } from './replayLinks';
 import { turnAt } from './replayTimeline';
 import type { CardImageResolver, ReplayCardView, ReplayDerived, ReplayPlayerView, ReplayZone } from './types';
 
@@ -11,6 +12,8 @@ export type ReplaySideView = {
     active: boolean;
     priority: boolean;
     battlefield: ReplayCardView[];
+    /** Cards under a permanent on either side, by the host's key. */
+    tucked: ReadonlyMap<string, ReplayCardView[]>;
     /** Visible cards per zone; an opponent's hand counts the cards whose faces are known. */
     zoneCounts: Record<ReplayZone, number>;
     /** Whether the HUD offers a sideboard: when the game lists the player's deck with one. */
@@ -75,6 +78,10 @@ export function useReplayBoard(
         return map;
     });
 
+    /** Exiled-with and attached cards, drawn under their host instead of in a row or only in the exile window. */
+    const tucked = computed(() => tuckedUnder(cards.value, zones.value));
+    const hiddenInRows = computed(() => tuckedKeys(tucked.value));
+
     const stack = computed(() => (state.value ? stackItems(state.value, cardsByKey.value) : []));
     const effects = computed(() => (state.value ? effectViews(state.value) : []));
 
@@ -90,7 +97,8 @@ export function useReplayBoard(
                 opponent: player.id !== local.value?.id,
                 active: activeId.value === player.id,
                 priority: derived.value.priority === player.id,
-                battlefield: cards.value.filter((card) => zones.value.get(card.key) === 'battlefield' && card.controller === player.id),
+                battlefield: cards.value.filter((card) => zones.value.get(card.key) === 'battlefield' && card.controller === player.id && !hiddenInRows.value.has(card.key)),
+                tucked: tucked.value,
                 zoneCounts: {
                     Hand: player.id === local.value?.id ? hand.value.length : opponentHand.value.length,
                     Graveyard: inZone('Graveyard', player.id).length,

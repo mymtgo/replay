@@ -14,6 +14,7 @@ defineProps<{
     sideboard: boolean;
     openZones: ReplayZone[];
     pairs: Map<string, number>;
+    tucked: ReadonlyMap<string, ReplayCardView[]>;
 }>();
 
 const emit = defineEmits<{
@@ -51,6 +52,7 @@ const emit = defineEmits<{
             :battlefield="battlefield"
             :opponent="opponent"
             :pairs="pairs"
+            :tucked="tucked"
             :scroll="false"
         />
     </div>
