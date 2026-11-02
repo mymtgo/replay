@@ -63,17 +63,17 @@ test('each line carries its cause, linked to the object when one caused it', () 
     assert.deepEqual(tapped.cause, { text: "cost of Ugin's Labyrinth's mana ability", objectKey: '#23' });
 });
 
-test('turn headers sit first in their turn and carry the active player', () => {
+test('turn headers sit first in their turn, count the active player\'s own turns and carry them', () => {
     const headers = items.filter((item) => item.kind === 'header');
 
     assert.deepEqual(
         headers.map((item) => [item.text, item.player]),
         [
-            ['Turn 1', 'PlayerA'],
-            ['Turn 2', 'PlayerB'],
-            ['Turn 3', 'PlayerA'],
-            ['Turn 4', 'PlayerB'],
-            ['Turn 5', 'PlayerA'],
+            ['PlayerA · Turn 1', 'PlayerA'],
+            ['PlayerB · Turn 1', 'PlayerB'],
+            ['PlayerA · Turn 2', 'PlayerA'],
+            ['PlayerB · Turn 2', 'PlayerB'],
+            ['PlayerA · Turn 3', 'PlayerA'],
         ],
     );
 

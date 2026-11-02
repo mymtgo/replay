@@ -1,4 +1,4 @@
-import { idKey, type GameState, type ObjectState, type Player } from '@mtgreplay/mtgr';
+import { getObject, idKey, type GameState, type ObjectState, type Player } from '@mtgreplay/mtgr';
 import type { ReplayGameInfo } from './replayGame';
 import { choiceText, targetText } from './replayWords';
 import type { CardImageResolver, ReplayCardView, ReplayDerived, ReplayEffectView, ReplayPlayerView, ReplayStackItem, ReplayZone } from './types';
@@ -89,6 +89,9 @@ export function playerView(name: Player, state: GameState, derived: ReplayDerive
     };
 }
 
+/** Choices that read as a bare value ("green", "PlayerB"), so the stack says they were chosen. */
+const CHOSEN_KINDS = new Set(['player', 'color', 'option', 'number', 'name', 'type']);
+
 /** The stack, top first, each object with its targets and other choices worded. */
 export function stackItems(state: GameState, cards: Map<string, ReplayCardView>): ReplayStackItem[] {
     return state.stack.flatMap((id) => {
@@ -99,7 +102,18 @@ export function stackItems(state: GameState, cards: Map<string, ReplayCardView>)
         }
 
         const targets = card.choices.filter((choice) => choice.kind === 'target').map((choice) => choiceText(state, choice));
-        const choices = card.choices.filter((choice) => choice.kind !== 'target').map((choice) => choiceText(state, choice));
+        const chosen = card.choices.flatMap((choice) => {
+            if (choice.kind !== 'object') {
+                return [];
+            }
+
+            const name = getObject(state, choice.object.id)?.name ?? choice.object.name;
+
+            return name ? [{ name, card: cards.get(idKey(choice.object.id)) ?? null }] : [];
+        });
+        const choices = card.choices
+            .filter((choice) => choice.kind !== 'target' && choice.kind !== 'object')
+            .map((choice) => (CHOSEN_KINDS.has(choice.kind) ? `Chose ${choiceText(state, choice)}` : choiceText(state, choice)));
 
         return [
             {
@@ -108,6 +122,7 @@ export function stackItems(state: GameState, cards: Map<string, ReplayCardView>)
                 text: card.kind === 'ability' || card.kind === 'copy' ? card.text : null,
                 controller: card.controller,
                 targets,
+                chosen,
                 choices,
             },
         ];

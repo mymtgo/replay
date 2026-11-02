@@ -1,17 +1,16 @@
 import { nextTick, onMounted, onUnmounted, readonly, shallowRef, watch, type Ref } from 'vue';
-import { fitBoard, type BoardFit, type FitMode, type FitSide } from './replayBoardFit';
+import { emptyRowWeight, fitBoard, type BoardFit, type FitMode, type FitSide } from './replayBoardFit';
 import { CARD_HEIGHT_BOUNDS, type ReplayLayout } from './replayLayout';
 import type { SideRows } from './replayRows';
 
-const INITIAL: BoardFit = { height: 112, merged: [] };
+const INITIAL: BoardFit = { height: 112 };
 
-const MODES: Record<ReplayLayout, FitMode> = { regular: 'merge', 'compact-portrait': 'split', 'compact-landscape': 'single' };
+const MODES: Record<ReplayLayout, FitMode> = { regular: 'split', 'compact-portrait': 'split', 'compact-landscape': 'single' };
 
 const px = (value: string): number => parseFloat(value) || 0;
 
 /**
- * The one card height the whole board shares, and which sides draw their
- * creatures and other permanents in a single row, so a card is the same size
+ * The one card height the whole board shares, and so a card is the same size
  * in a hand, a land pile or the creature row. This only reads the DOM: how
  * much room each battlefield has, how tall a row is beyond its cards, how
  * wide a row is. `fitBoard` decides. A resize, a layout switch or a change in
@@ -66,10 +65,11 @@ export function useReplayBoardFit(root: Readonly<Ref<HTMLElement | null>>, layou
             fieldPad: px(fieldStyle.paddingTop) + px(fieldStyle.paddingBottom),
             gap: px(rowStyle.columnGap),
             mode: MODES[layout.value],
+            emptyWeight: emptyRowWeight(scrolls),
             bounds: CARD_HEIGHT_BOUNDS[scrolls ? 'compact' : 'regular'],
         });
 
-        if (next.height !== fit.value.height || next.merged.join() !== fit.value.merged.join()) {
+        if (next.height !== fit.value.height) {
             fit.value = next;
         }
     }

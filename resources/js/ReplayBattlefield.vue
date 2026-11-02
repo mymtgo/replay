@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import ReplayCardPile from './ReplayCardPile.vue';
 import ReplayCardTile from './ReplayCardTile.vue';
-import { rowWeight } from './replayBoardFit';
+import { emptyRowWeight, rowWeight } from './replayBoardFit';
 import type { RowItem, SideRows } from './replayRows';
 import type { ReplayCardView } from './types';
 
@@ -17,20 +17,21 @@ const props = defineProps<{
      * scroll sideways instead of shrinking and overlapping its cards.
      */
     scroll: boolean;
-    /** Creatures and the rest share one row, as on landscape phones and wherever the board is wide enough. */
+    /** Creatures and the rest share one row, as on landscape phones. */
     singleRow?: boolean;
 }>();
 
 type DrawnRow = { key: string; items: RowItem[]; weight: number; lift: number; /** Index of the first back-row item in a shared row, which gets a little room before it. */ spacerAt: number };
 
 /**
- * Creatures face the centre line; lands and other permanents sit behind them.
- * A row with cards is one card tall and an empty row only part of one, so
- * cards stay one size on the board and an empty row does not hold a gap open.
+ * Two fixed rows: creatures face the centre line, and lands and other
+ * permanents sit behind them, toward the player's own edge. Both rows span the
+ * whole area and stay a card tall when empty, so nothing moves when a creature
+ * arrives. A phone's empty row only keeps part of a card.
  */
 const drawn = computed<DrawnRow[]>(() => {
     const { front, back } = props.rows;
-    const row = (key: string, items: RowItem[], spacerAt = -1): DrawnRow => ({ key, items, weight: rowWeight(items), lift: items.length ? rowWeight(items) - 1 : 0, spacerAt });
+    const row = (key: string, items: RowItem[], spacerAt = -1): DrawnRow => ({ key, items, weight: rowWeight(items, emptyRowWeight(props.scroll)), lift: items.length ? rowWeight(items, 0) - 1 : 0, spacerAt });
 
     if (props.singleRow) {
         return [row('all', [...front, ...back], front.length && back.length ? front.length : -1)];

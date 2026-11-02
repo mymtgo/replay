@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Layers } from 'lucide-vue-next';
+import type { ReplayTurn } from './types';
 
 defineProps<{
-    turnNumber: number | null;
+    turn: ReplayTurn | null;
     activeName: string | null;
     activeIsLocal: boolean;
     /** Current step's name; null when the game has no phase data or the step is unknown. */
@@ -24,12 +25,12 @@ const emit = defineEmits<{
 
         <div class="replay-texture-bg relative min-w-0 rounded-md">
             <div class="replay-inset flex h-7 min-w-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] whitespace-nowrap">
-                <template v-if="turnNumber !== null">
-                    <span class="font-bold">T{{ turnNumber }}</span>
+                <template v-if="turn?.number != null">
                     <span v-if="activeName" class="flex min-w-0 items-center gap-1">
-                        <span class="size-1.5 flex-none rounded-full" :class="activeIsLocal ? 'bg-primary' : 'bg-muted-foreground'" />
+                        <span class="size-1.5 flex-none rounded-full" :class="activeIsLocal ? 'bg-primary' : 'bg-(--replay-opponent)'" />
                         <span class="max-w-28 truncate">{{ activeName }}</span>
                     </span>
+                    <span class="font-bold">T{{ turn.playerTurn }}</span>
                     <template v-if="stepLabel">
                         <span class="text-muted-foreground">·</span>
                         <span class="font-semibold">{{ stepLabel }}</span>

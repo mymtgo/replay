@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { ArrowDown, ArrowUp, Crosshair } from 'lucide-vue-next';
+import { ArrowDown, ArrowUp, Crosshair, Quote } from 'lucide-vue-next';
 import ReplayCardImage from './ReplayCardImage.vue';
 import { useReplayContext } from './replayContext';
 import ReplayPanel from './ui/ReplayPanel.vue';
 import type { ReplayStackItem } from './types';
 
-/** Stack items, top of the stack first, each with its targets and the choices made for it. */
+/**
+ * Stack items, top of the stack first, each with its targets and the choices
+ * made for it. It is a column of its own beside the board on wide viewers,
+ * so the top entry gets large art and its full text; the entries beneath it
+ * are smaller and clamp long text.
+ */
 defineProps<{
     items: ReplayStackItem[];
 }>();
@@ -32,10 +37,10 @@ const KIND_LABELS: Record<string, string> = { ability: 'Ability', copy: 'Copy', 
 </script>
 
 <template>
-    <!-- Opaque backing so the board never shows through the floating list. -->
-    <div class="replay-texture-bg relative flex max-h-full w-64 max-w-full flex-none rounded-md">
+    <!-- Opaque backing so the board never shows through the panel. -->
+    <div class="replay-texture-bg relative flex max-h-full w-full flex-none rounded-md">
         <ReplayPanel class="max-h-full min-w-0 flex-1 gap-2 px-3 py-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
-            <div class="flex items-baseline gap-1.5 text-[11px] leading-tight">
+            <div class="flex items-baseline gap-1.5 text-xs leading-tight">
                 <span class="font-semibold">Stack</span>
                 <span class="text-muted-foreground tabular-nums">{{ items.length }}</span>
             </div>
@@ -53,7 +58,7 @@ const KIND_LABELS: Record<string, string> = { ability: 'Ability', copy: 'Copy', 
 
                     <TransitionGroup
                         tag="ol"
-                        class="flex min-h-0 flex-col gap-1 overflow-y-auto"
+                        class="flex min-h-0 flex-col gap-1.5 overflow-y-auto"
                         enter-active-class="transition duration-200 ease-out"
                         enter-from-class="-translate-y-2 opacity-0"
                         leave-active-class="transition duration-150 ease-in"
@@ -65,7 +70,7 @@ const KIND_LABELS: Record<string, string> = { ability: 'Ability', copy: 'Copy', 
                             :data-stack-key="item.card.key"
                             :tabindex="item.targets.length ? 0 : undefined"
                             :aria-pressed="item.targets.length ? pinnedStack === item.card.key : undefined"
-                            class="flex items-start gap-2 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            class="flex items-start gap-2.5 rounded-md p-1.5 outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             :class="[
                                 i === 0 ? 'bg-white/5' : '',
                                 item.targets.length ? 'cursor-pointer' : '',
@@ -80,29 +85,45 @@ const KIND_LABELS: Record<string, string> = { ability: 'Ability', copy: 'Copy', 
                             @click="onTap($event, item)"
                         >
                             <div
-                                class="relative aspect-[63/88] w-8 flex-none overflow-hidden rounded-[3px] shadow-[0_1px_4px_rgba(0,0,0,0.5)]"
+                                class="relative aspect-[63/88] flex-none overflow-hidden rounded-[5px] shadow-[0_2px_8px_rgba(0,0,0,0.55)]"
+                                :class="i === 0 ? 'w-28' : 'w-16'"
                                 @click.stop="pinPreview($event, item.card)"
                             >
                                 <ReplayCardImage :name="item.title" :image="item.card.image" />
                             </div>
-                            <div class="flex min-w-0 flex-col gap-0.5">
-                                <span class="flex items-baseline gap-1">
-                                    <span class="truncate font-semibold">{{ item.title }}</span>
+                            <div class="flex min-w-0 flex-1 flex-col gap-1">
+                                <span class="flex flex-wrap items-baseline gap-x-1.5">
+                                    <span class="font-semibold" :class="i === 0 ? 'text-sm' : ''">{{ item.title }}</span>
                                     <span v-if="KIND_LABELS[item.card.kind]" class="flex-none text-[10px] text-muted-foreground uppercase">{{ KIND_LABELS[item.card.kind] }}</span>
                                 </span>
-                                <span class="truncate text-[11px] text-muted-foreground">{{ item.controller }}</span>
-                                <span v-if="item.text" class="line-clamp-3 text-[11px] leading-snug text-foreground/80">{{ item.text }}</span>
+                                <span class="text-[11px] text-muted-foreground">{{ item.controller }}</span>
+                                <span v-if="item.text" class="text-xs leading-snug text-foreground/85" :class="i < 2 ? '' : 'line-clamp-4'">{{ item.text }}</span>
                                 <span
                                     v-for="(target, n) in item.targets"
                                     :key="n"
-                                    class="flex items-center gap-1 rounded text-[11px]"
+                                    class="flex items-start gap-1.5 rounded text-xs"
                                     @mouseenter.stop="pointStack(item.card.key, n)"
                                     @mouseleave.stop="pointStack(item.card.key)"
                                 >
-                                    <Crosshair :size="11" class="flex-none text-[#e5484d]" />
-                                    <span class="truncate">{{ target }}</span>
+                                    <Crosshair :size="12" class="mt-0.5 flex-none text-[#e5484d]" />
+                                    <span>{{ target }}</span>
                                 </span>
-                                <span v-if="item.choices.length" class="truncate text-[11px] text-muted-foreground">{{ item.choices.join(' · ') }}</span>
+                                <span
+                                    v-for="pick in item.chosen"
+                                    :key="pick.name"
+                                    data-stack-chosen
+                                    class="flex items-center gap-1.5 rounded text-xs text-muted-foreground"
+                                    @mouseenter.stop="pick.card && showPreview($event, pick.card)"
+                                    @mouseleave.stop="hidePreview"
+                                    @click.stop="pick.card && pinPreview($event, pick.card)"
+                                >
+                                    <Quote :size="11" class="flex-none" />
+                                    <span v-if="pick.card?.image" class="relative aspect-[63/88] w-5 flex-none overflow-hidden rounded-[2px]">
+                                        <ReplayCardImage :name="pick.name" :image="pick.card.image" />
+                                    </span>
+                                    <span>Chose <span class="text-foreground/90">{{ pick.name }}</span></span>
+                                </span>
+                                <span v-for="choice in item.choices" :key="choice" class="text-xs text-muted-foreground">{{ choice }}</span>
                             </div>
                         </li>
                     </TransitionGroup>

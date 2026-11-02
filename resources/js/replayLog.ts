@@ -163,7 +163,7 @@ export function buildLogItems(moments: ReplayMoment[], states: GameState[], turn
             key: items.length,
             kind: 'header',
             timestamp: timeLabel(moments[turn.from]?.time ?? 0),
-            text: `Turn ${turn.number}`,
+            text: `${turn.player} · Turn ${turn.playerTurn}`,
             step: turn.from,
             player: turn.player,
             cause: null,

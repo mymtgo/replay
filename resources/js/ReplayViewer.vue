@@ -299,7 +299,7 @@ const missingText = computed(() => (turn.value?.number === null ? 'Pregame' : ''
 
 const shareLink = useReplayShare(() => (props.shareUrl ? props.shareUrl(current.value) : null));
 const shareMoment = computed(() =>
-    turn.value?.number != null ? [`Turn ${turn.value.number}`, currentStepLabel.value].filter(Boolean).join(' · ') : null,
+    turn.value?.number != null ? [`${turn.value.player} · Turn ${turn.value.playerTurn}`, currentStepLabel.value].filter(Boolean).join(' · ') : null,
 );
 
 const SHEET_TITLES: Record<ReplaySheetKind, string> = {
@@ -342,7 +342,7 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                     :layout="layout"
                     :winner-id="winnerId"
                     :pairs="pairs"
-                    :turn-number="turn?.number ?? null"
+                    :turn="turn"
                     :active-name="activeName"
                     :active-is-local="activeIsLocal"
                     :step-label="currentStepLabel"
@@ -353,51 +353,43 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                 />
 
                 <!--
-                    Wide viewers: HUDs and the stack in the left column, the board and
-                    both hands in the middle, and the effects in the right column so
-                    the board centres on the same line as the phase rail.
+                    Wide viewers: the board is two full-width player areas ruled off by
+                    the phase bar, with your hand docked under them. The stack, when
+                    there is one, is a column of its own beside all of it, so it never
+                    covers a permanent and the rows share what is left.
                 -->
-                <div
-                    v-else
-                    class="relative flex min-w-0 flex-1 flex-col @7xl:grid @7xl:grid-cols-[15rem_minmax(0,1fr)_15rem] @7xl:grid-rows-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto] @7xl:gap-x-2 @7xl:px-2"
-                >
-                    <ReplaySide
-                        v-for="(side, i) in sides"
-                        :key="side.player.id"
-                        :class="side.opponent ? 'order-0' : 'order-2'"
-                        :player="side.player"
-                        :rows="side.rows"
-                        :one-row="boardFit.merged[i] ?? false"
-                        :opponent="side.opponent"
-                        :active="side.active"
-                        :priority="side.priority"
-                        :winner="side.player.id === winnerId"
-                        :zone-counts="side.zoneCounts"
-                        :sideboard="side.sideboard"
-                        :open-zones="openZonesFor(side.player.id)"
-                        :pairs="pairs"
-                        :tucked="side.tucked"
-                        @toggle-zone="(zone, event) => toggleZoneWindow(side.player.id, zone, event, side.opponent)"
-                    />
+                <template v-else>
+                    <div class="relative flex min-w-0 flex-1 flex-col">
+                        <ReplaySide
+                            v-for="side in sides"
+                            :key="side.player.id"
+                            :player="side.player"
+                            :rows="side.rows"
+                            :opponent="side.opponent"
+                            :active="side.active"
+                            :priority="side.priority"
+                            :winner="side.player.id === winnerId"
+                            :zone-counts="side.zoneCounts"
+                            :sideboard="side.sideboard"
+                            :open-zones="openZonesFor(side.player.id)"
+                            :pairs="pairs"
+                            :tucked="side.tucked"
+                            :known-hand="side.opponent ? opponentHand : undefined"
+                            @toggle-zone="(zone, event) => toggleZoneWindow(side.player.id, zone, event, side.opponent)"
+                        >
+                            <ReplayEffects v-if="side.opponent && effects.length" :effects="effects" />
+                            <ReplayShareCard v-else-if="!side.opponent && shareUrl" :moment="shareMoment" :copied="shareLink.copied.value" @share="shareLink.share(false)" />
+                        </ReplaySide>
 
-                    <ReplayPhaseRail
-                        :turn-number="turn?.number ?? null"
-                        :active-name="activeName"
-                        :active-is-local="activeIsLocal"
-                        :step="step"
-                        :missing-text="missingText"
-                    >
-                        <ReplayStack v-if="stack.length" :items="stack" />
-                    </ReplayPhaseRail>
+                        <ReplayPhaseRail :turn="turn" :active-name="activeName" :active-is-local="activeIsLocal" :step="step" :missing-text="missingText" />
 
-                    <ReplayEffects v-if="effects.length" :effects="effects" />
+                        <ReplayHand :cards="hand" :count="local?.handCount ?? hand.length" />
+                    </div>
 
-                    <ReplayHand v-if="opponent" :cards="opponentHand" :count="opponent.handCount" opponent />
-
-                    <ReplayHand :cards="hand" :count="local?.handCount ?? hand.length" :opponent="false" />
-
-                    <ReplayShareCard v-if="shareUrl" :moment="shareMoment" :copied="shareLink.copied.value" @share="shareLink.share(false)" />
-                </div>
+                    <div v-if="stack.length" class="flex min-h-0 w-72 flex-none flex-col py-2 pr-2 @7xl:w-88">
+                        <ReplayStack :items="stack" />
+                    </div>
+                </template>
 
                 <ReplayPregame v-if="pregame" :view="pregame" :local-id="localId" />
 

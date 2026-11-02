@@ -54,7 +54,7 @@ const segments = computed(() =>
             mine,
             fill: widthPct > 0 ? Math.max(0, Math.min(100, ((playhead.value - left) / widthPct) * 100)) : playhead.value >= left ? 100 : 0,
             showLabel: turn.number !== null && (widthPct / 100) * width.value >= MIN_LABEL_WIDTH_PX,
-            title: `Jump to turn ${turn.number}${turn.player !== null ? ` · ${props.playerName(turn.player)}` : ''}`,
+            title: `Jump to ${turn.player !== null ? `${props.playerName(turn.player)}, ` : ''}turn ${turn.playerTurn} (game turn ${turn.number})`,
         };
     }),
 );
@@ -120,10 +120,10 @@ function jump(turn: ReplayTurn) {
             class="absolute inset-y-0 box-border overflow-hidden px-0.5 py-0.75"
             :style="{ left: `${segment.left}%`, width: `${segment.width}%` }"
         >
-            <div class="relative h-full overflow-hidden rounded" :class="segment.mine ? 'bg-primary/20' : 'bg-foreground/7'">
+            <div class="relative h-full overflow-hidden rounded" :class="segment.turn.player === null ? 'bg-foreground/7' : segment.mine ? 'bg-primary/20' : 'bg-(--replay-opponent)/20'">
                 <div
                     class="absolute inset-y-0 left-0 transition-[width] ease-linear"
-                    :class="segment.mine ? 'bg-primary/80' : 'bg-foreground/35'"
+                    :class="segment.turn.player === null ? 'bg-foreground/35' : segment.mine ? 'bg-primary/80' : 'bg-(--replay-opponent)/75'"
                     :style="{ width: `${segment.fill}%`, ...glide }"
                 />
             </div>
@@ -134,7 +134,7 @@ function jump(turn: ReplayTurn) {
                 class="absolute top-1/2 left-1.5 h-4.25 -translate-y-1/2 cursor-pointer rounded bg-card px-1.25 text-[10.5px] font-bold hover:bg-accent"
                 @pointerdown.stop="jump(segment.turn)"
             >
-                T{{ segment.turn.number }}
+                T{{ segment.turn.playerTurn }}
             </button>
         </div>
         <div

@@ -30,7 +30,8 @@ export function useScrubTooltip(root: Readonly<Ref<HTMLElement | null>>, timelin
         let title = `Line ${hovered.line.line}`;
 
         if (turn?.number != null) {
-            title = step ? `Turn ${turn.number} · ${stepLabel(step)}` : `Turn ${turn.number}`;
+            const label = `${turn.player} · Turn ${turn.playerTurn}`;
+            title = step ? `${label} · ${stepLabel(step)}` : label;
         }
 
         return {

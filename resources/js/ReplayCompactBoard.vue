@@ -4,7 +4,7 @@ import ReplayBattlefield from './ReplayBattlefield.vue';
 import ReplayCompactHud from './ReplayCompactHud.vue';
 import ReplayCompactPhase from './ReplayCompactPhase.vue';
 import type { ReplayLayout } from './replayLayout';
-import type { ReplayZone } from './types';
+import type { ReplayTurn, ReplayZone } from './types';
 import type { ReplaySideView } from './useReplayBoard';
 
 const props = defineProps<{
@@ -13,7 +13,7 @@ const props = defineProps<{
     layout: Exclude<ReplayLayout, 'regular'>;
     winnerId: string | null;
     pairs: Map<string, number>;
-    turnNumber: number | null;
+    turn: ReplayTurn | null;
     activeName: string | null;
     activeIsLocal: boolean;
     stepLabel: string | null;
@@ -79,7 +79,7 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
             />
 
             <ReplayCompactPhase
-                :turn-number="turnNumber"
+                :turn="turn"
                 :active-name="activeName"
                 :active-is-local="activeIsLocal"
                 :step-label="stepLabel"

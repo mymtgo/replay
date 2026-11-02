@@ -10,7 +10,7 @@ defineProps<{
 </script>
 
 <template>
-    <div class="order-1 hidden @7xl:col-start-3 @7xl:row-span-2 @7xl:row-start-1 @7xl:mt-2 @7xl:block @7xl:self-start">
+    <div class="min-h-0">
         <ReplayPanel class="max-h-full w-60 gap-2 overflow-y-auto px-3 py-2.5">
             <div class="flex items-baseline gap-1.5 text-[11px] leading-tight">
                 <span class="font-semibold">Effects</span>

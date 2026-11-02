@@ -69,3 +69,27 @@ test('a target that is gone marks only its key, which nothing draws', () => {
     assert.deepEqual([...marks], ['#99']);
     assert.equal(NO_MARKS.size, 0);
 });
+
+test('a choice made while resolving is not a target: Impulse at 2:24 targets nothing and shows no face-down card', () => {
+    const { stack, zones, cards } = at(load('mycospawn-turn-5.mtgr'), '2:24');
+    const impulse = stack.find((item) => item.title === 'Impulse')!;
+
+    assert.ok(impulse.card.choices.some((choice) => choice.kind === 'object'));
+    assert.deepEqual(impulse.targets, []);
+    assert.deepEqual(impulse.chosen, []);
+    assert.ok(impulse.choices.every((text) => !text.includes('face-down')));
+    assert.equal(targetMarks(impulse.card.choices, zones, cards).size, 0);
+});
+
+test('Thoughtseize lists the player it targets, and the card it then chose apart from it, with the card to preview', () => {
+    const timeline = load('targeting.mtgr');
+    const state = timeline.steps[timeline.moments[36].index].state;
+    const cards = cardViews(state, timeline.derived[timeline.moments[36].index], () => null);
+    const zones = new Map(liveObjects(state).map((object) => [`#${object.id.n}`, objectZone(object)]));
+    const [thoughtseize] = stackItems(state, cards);
+
+    assert.deepEqual(thoughtseize.targets, ['PlayerB']);
+    assert.deepEqual(thoughtseize.chosen.map((pick) => pick.name), ['Ragavan, Nimble Pilferer']);
+    assert.equal(thoughtseize.chosen[0].card?.name, 'Ragavan, Nimble Pilferer');
+    assert.deepEqual([...targetMarks(thoughtseize.card.choices, zones, cards)], [playerMark('PlayerB')]);
+});

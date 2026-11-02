@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Hand, Heart, Layers, Skull, Timer, Trophy } from 'lucide-vue-next';
+import { ChevronDown, Hand, Heart, Layers, Skull, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { poolSymbols } from './replayCards';
 import { useReplayContext } from './replayContext';
@@ -25,10 +25,13 @@ const props = defineProps<{
     sideboard: boolean;
     /** Zones of this player with a window open. */
     openZones: ReplayZone[];
+    /** Their hand is open as a strip of cards; only an opponent's count opens one. */
+    handOpen?: boolean;
 }>();
 
 const emit = defineEmits<{
     toggleZone: [zone: ReplayZone, event: MouseEvent];
+    toggleHand: [];
 }>();
 
 const { highlightedTargets } = useReplayContext();
@@ -53,7 +56,8 @@ const clockClass = computed(() => {
     return props.priority ? 'text-foreground' : 'text-muted-foreground';
 });
 
-const zones = computed(() => hudZones(props.opponent, props.sideboard));
+/** An opponent's known cards open from their hand count, so the zone button would only say it twice. */
+const zones = computed(() => hudZones(props.opponent, props.sideboard).filter((item) => item.zone !== 'Hand'));
 </script>
 
 <template>
@@ -72,8 +76,8 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
             <div
                 class="grid size-6.5 flex-none place-items-center rounded-full text-xs font-bold transition-shadow"
                 :class="[
-                    opponent ? 'bg-accent text-foreground' : 'bg-primary text-primary-foreground',
-                    active ? 'ring-2 ring-primary ring-offset-2 ring-offset-transparent' : '',
+                    opponent ? 'bg-(--replay-opponent) text-white' : 'bg-primary text-primary-foreground',
+                    active ? (opponent ? 'ring-2 ring-(--replay-opponent)' : 'ring-2 ring-primary') + ' ring-offset-2 ring-offset-transparent' : '',
                 ]"
             >
                 {{ player.name.charAt(0).toUpperCase() }}
@@ -116,7 +120,20 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
                 <span class="min-w-[5ch] font-mono text-[12.5px] tabular-nums">{{ clock }}</span>
             </div>
 
-            <div title="Cards in hand" class="flex flex-none items-center gap-1 text-muted-foreground">
+            <button
+                v-if="opponent"
+                type="button"
+                title="Show their hand"
+                :aria-expanded="handOpen"
+                class="-mx-1 flex h-6 flex-none cursor-pointer items-center gap-1 rounded px-1 text-muted-foreground hover:bg-accent/50"
+                :class="handOpen ? 'bg-accent/60' : ''"
+                @click="emit('toggleHand')"
+            >
+                <Hand :size="14" />
+                <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.handCount }}</span>
+                <ChevronDown :size="12" class="transition-transform" :class="handOpen ? 'rotate-180' : ''" />
+            </button>
+            <div v-else title="Cards in hand" class="flex flex-none items-center gap-1 text-muted-foreground">
                 <Hand :size="14" />
                 <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.handCount }}</span>
             </div>

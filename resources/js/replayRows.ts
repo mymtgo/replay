@@ -3,7 +3,7 @@ import { tuckHeadroom } from './replayLinks';
 import type { ReplayCardView } from './types';
 
 /** How much of each card behind the front one of a pile shows, as a share of its width. */
-export const PILE_PEEK = 0.28;
+export const PILE_PEEK = 0.36;
 
 /** A tapped card lies sideways, as wide as it is tall: this many untapped card widths. */
 const TAPPED_WIDTH = 88 / 63;

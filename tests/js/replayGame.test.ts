@@ -91,3 +91,17 @@ test('timeLabel writes seconds as the file does', () => {
     assert.equal(timeLabel(117), '1:57');
     assert.equal(timeLabel(3725), '1:02:05');
 });
+
+test('each turn counts the active player\'s own turns: game turn 2 is PlayerB\'s first, game turn 5 is PlayerA\'s third', () => {
+    const { turns } = buildTimeline(mycospawn);
+    const own = (game: number) => turns.find((turn) => turn.number === game)!;
+
+    assert.equal(turns[0].playerTurn, null);
+    assert.deepEqual([own(1), own(2), own(3), own(4), own(5)].map((turn) => [turn.player, turn.playerTurn]), [
+        ['PlayerA', 1],
+        ['PlayerB', 1],
+        ['PlayerA', 2],
+        ['PlayerB', 2],
+        ['PlayerA', 3],
+    ]);
+});

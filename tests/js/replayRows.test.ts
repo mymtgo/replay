@@ -56,8 +56,8 @@ test('a land with tucked cards leaves its pile, and its row gains headroom only 
     const withTuck = sideRows(lands, new Map(), new Map([['#2', [card('#9')]]]));
 
     assert.equal(plain.back.length, 1);
-    assert.equal(rowWeight(plain.back), 1);
+    assert.equal(rowWeight(plain.back, 1), 1);
     assert.equal(withTuck.back.length, 2);
     assert.deepEqual(withTuck.back.find((item) => item.pile?.parts[0].cards[0].key === '#2')?.pile?.parts[0].cards.map((c) => c.key), ['#2']);
-    assert.ok(rowWeight(withTuck.back) > 1);
+    assert.ok(rowWeight(withTuck.back, 1) > 1);
 });

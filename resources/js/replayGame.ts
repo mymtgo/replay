@@ -189,9 +189,10 @@ export function gameMoments(game: Game): ReplayMoment[] {
     return mergeMoments(moments);
 }
 
-/** Turn boundaries over the moments: the pregame first, then one per `turn` line. */
+/** Turn boundaries over the moments: the pregame first, then one per `turn` line. `playerTurn` counts each player's own turns, so the file's `turn 2` of the second player is their turn 1. */
 export function deriveTurns(moments: ReplayMoment[]): ReplayTurn[] {
     const turns: ReplayTurn[] = [];
+    const had = new Map<string, number>();
 
     moments.forEach((moment, step) => {
         const s = moment.line.statement;
@@ -204,11 +205,13 @@ export function deriveTurns(moments: ReplayMoment[]): ReplayTurn[] {
             turns[turns.length - 1].to = step;
         }
 
-        turns.push({ number: s.number, from: step, to: moments.length, player: s.player });
+        const playerTurn = (had.get(s.player) ?? 0) + 1;
+        had.set(s.player, playerTurn);
+        turns.push({ number: s.number, playerTurn, from: step, to: moments.length, player: s.player });
     });
 
     if (!turns.length || turns[0].from > 0) {
-        turns.unshift({ number: null, from: 0, to: turns[0]?.from ?? moments.length, player: null });
+        turns.unshift({ number: null, playerTurn: null, from: 0, to: turns[0]?.from ?? moments.length, player: null });
     }
 
     return turns;

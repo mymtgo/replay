@@ -74,9 +74,13 @@ export type ReplayStackItem = {
     text: string | null;
     controller: Player;
     targets: string[];
-    /** Every other choice, worded. */
+    /** Cards chosen while it resolves (Thoughtseize's pick), which are not targets. Hidden cards are left out: "a face-down card" tells nobody anything. */
+    chosen: ReplayChosenCard[];
+    /** Every other choice, worded; a choice of a player, colour or the like reads "Chose ...". */
     choices: string[];
 };
+
+export type ReplayChosenCard = { name: string; card: ReplayCardView | null };
 
 /** A lasting effect or an emblem in play. */
 export type ReplayEffectView = {
@@ -102,8 +106,10 @@ export type ReplayMoment = {
 };
 
 export type ReplayTurn = {
-    /** The file's turn number. Null for the pregame. */
+    /** The file's turn number, which counts every player's turns together. Null for the pregame. */
     number: number | null;
+    /** How many turns this player has had by the end of this one: the number the players themselves count. Null for the pregame. */
+    playerTurn: number | null;
     /** First moment of the turn. */
     from: number;
     /** Exclusive end moment. */
