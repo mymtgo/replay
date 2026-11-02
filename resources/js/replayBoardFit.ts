@@ -6,9 +6,6 @@ export const CARD_ASPECT = 63 / 88;
 /** A phone's empty card row keeps only half a card's height, so it does not take a row's worth of room. The wide viewer keeps empty rows a full card tall, so a creature arriving never pushes the lands. */
 export const emptyRowWeight = (compact: boolean): number => (compact ? 0.5 : 1);
 
-/** The docked hand is drawn this share of the board's card height: hover shows the card in full, so it can be a little smaller. */
-export const HAND_SCALE = 0.7;
-
 /** Extra room, in pixels, between the creatures and the rest when they share one row. */
 export const GROUP_SPACER = 10;
 
@@ -29,12 +26,7 @@ export type FitSide = {
 
 export type FitInput = {
     sides: FitSide[];
-    /** The docked hand's share of the card height; empty where the viewer has none. */
-    hands: number[];
-    /** Height the docked hand takes now, which the battlefields give back when it shrinks. */
-    handsHeight: number;
-    /** Height around the cards, in pixels, of the hand, a battlefield row, and a battlefield's own padding. */
-    handPad: number;
+    /** Height around the cards, in pixels, of a battlefield row and of a battlefield's own padding. */
     rowPad: number;
     fieldPad: number;
     /** Gap between items of a row. */
@@ -79,12 +71,11 @@ function plan(side: FitSide, height: number, input: FitInput): Plan {
 }
 
 /**
- * The biggest card height the board can share. Each battlefield and the hand
- * split the viewer's height between them, so a height is only allowed when
- * every battlefield's two rows, plus its share of the docked hand, fit in the
- * room it has, and each row fits across the player's whole area. When
- * nothing does, the smallest height is used and a crowded row overlaps its
- * cards.
+ * The biggest card height the board can share. A height is only allowed when
+ * every battlefield's two rows fit in the room it has, and each row fits
+ * across the player's whole area. Windows and the stack float over the board,
+ * so they take no room. When nothing fits, the smallest height is used and a
+ * crowded row overlaps its cards.
  */
 export function fitBoard(input: FitInput): BoardFit {
     const [min, max] = input.bounds;
@@ -94,12 +85,9 @@ export function fitBoard(input: FitInput): BoardFit {
         return { height: min };
     }
 
-    const handsAt = (height: number) => input.hands.reduce((sum, weight) => sum + weight * height + input.handPad, 0);
-    const room = input.sides.map((side) => side.fieldHeight + input.handsHeight / count);
-
     for (let height = Math.floor(max); height >= min; height--) {
         const plans = input.sides.map((side) => plan(side, height, input));
-        const tall = plans.every((p, i) => p.weights.reduce((sum, weight) => sum + weight * height + input.rowPad, input.fieldPad) + handsAt(height) / count <= room[i] + 0.5);
+        const tall = plans.every((p, i) => p.weights.reduce((sum, weight) => sum + weight * height + input.rowPad, input.fieldPad) <= input.sides[i].fieldHeight + 0.5);
 
         if (tall && plans.every((p) => p.fits)) {
             return { height };

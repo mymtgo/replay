@@ -30,7 +30,6 @@ export function useReplayBoardFit(root: Readonly<Ref<HTMLElement | null>>, layou
         }
 
         const fields = [...board.querySelectorAll<HTMLElement>('[data-replay-field]')];
-        const hands = [...board.querySelectorAll<HTMLElement>('[data-replay-hand]')];
         const height = fit.value.height;
         const scrolls = layout.value !== 'regular';
 
@@ -54,13 +53,9 @@ export function useReplayBoardFit(root: Readonly<Ref<HTMLElement | null>>, layou
                 width: scrolls ? Infinity : row.clientWidth - px(style.paddingLeft) - px(style.paddingRight),
             };
         });
-        const hand = hands[0];
 
         const next = fitBoard({
             sides,
-            hands: hands.map((item) => Number(item.dataset.weight)),
-            handsHeight: hands.reduce((sum, item) => sum + item.offsetHeight, 0),
-            handPad: hand ? hand.offsetHeight - Number(hand.dataset.weight) * height : 0,
             rowPad: first.offsetHeight - Number(first.dataset.weight) * height,
             fieldPad: px(fieldStyle.paddingTop) + px(fieldStyle.paddingBottom),
             gap: px(rowStyle.columnGap),

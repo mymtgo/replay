@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Game, Player } from '@mtgreplay/mtgr';
-import { computed, provide, shallowRef, toRef, useTemplateRef, watch, type Component } from 'vue';
+import { computed, nextTick, onMounted, provide, shallowRef, toRef, useTemplateRef, watch, type Component } from 'vue';
 import ReplayCardPreview from './ReplayCardPreview.vue';
 import ReplayCompactBoard from './ReplayCompactBoard.vue';
 import ReplayCompactTransport from './ReplayCompactTransport.vue';
@@ -10,7 +10,6 @@ import ReplayEmptyState from './ReplayEmptyState.vue';
 import { buildTimeline, gameInfo, matchGames, timeLabel } from './replayGame';
 import ReplayGameEnd from './ReplayGameEnd.vue';
 import ReplayGamePicker from './ReplayGamePicker.vue';
-import ReplayHand from './ReplayHand.vue';
 import ReplayHandSheet from './ReplayHandSheet.vue';
 import { buildLogItems } from './replayLog';
 import ReplayLogDrawer from './ReplayLogDrawer.vue';
@@ -187,8 +186,51 @@ watch(layout, (value) => {
 
     if (value === 'regular') {
         sheet.value = null;
+        nextTick(openHands);
     }
 });
+
+/**
+ * Hands open by themselves, as windows like any zone: yours when the game
+ * opens, theirs when an effect starts showing cards from it and when the
+ * first of its cards becomes known. A hand the viewer closes stays closed
+ * until the next reveal. Phones keep their hands sheet instead.
+ */
+function openHand(own: boolean) {
+    const player = own ? local.value : opponent.value;
+
+    if (player && layout.value === 'regular') {
+        zoneWindows.open(player.id, 'Hand', own ? 'you' : 'opponent', null);
+    }
+}
+
+function openHands() {
+    openHand(true);
+
+    if (reveal.value.keys.size || opponentHand.value.length) {
+        openHand(false);
+    }
+}
+
+onMounted(() => nextTick(openHands));
+watch(() => props.gameIndex, () => nextTick(() => openHand(true)));
+watch(
+    () => [reveal.value.keys.size > 0, opponentHand.value.length > 0],
+    ([revealing, known], [wasRevealing, wasKnown]) => {
+        if ((revealing && !wasRevealing) || (known && !wasKnown)) {
+            openHand(false);
+        }
+    },
+);
+
+function handInfo(player: Player) {
+    return {
+        count: (player === local.value?.id ? local.value?.handCount : opponent.value?.handCount) ?? 0,
+        revealed: reveal.value.keys,
+        revealedBy: reveal.value.by,
+        chosen: chosenKeys.value,
+    };
+}
 
 const { tooltip, setHover } = useScrubTooltip(root, timeline, logItems);
 
@@ -357,9 +399,8 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
 
                 <!--
                     Wide viewers: the board is two full-width player areas ruled off by
-                    the phase bar, with your hand docked under them. The stack floats
-                    over the right edge on the centre line, so it appearing never
-                    moves or resizes a card.
+                    the phase bar. The stack and the zone windows (hands included) float
+                    over the board, so opening one never moves or resizes a card.
                 -->
                 <template v-else>
                     <div class="relative flex min-w-0 flex-1 flex-col">
@@ -377,10 +418,6 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                             :open-zones="openZonesFor(side.player.id)"
                             :pairs="pairs"
                             :tucked="side.tucked"
-                            :known-hand="side.opponent ? opponentHand : undefined"
-                            :revealed="reveal.keys"
-                            :revealed-by="reveal.by"
-                            :chosen="chosenKeys"
                             @toggle-zone="(zone, event) => toggleZoneWindow(side.player.id, zone, event, side.opponent)"
                         >
                             <ReplayEffects v-if="side.opponent && effects.length" :effects="effects" />
@@ -390,8 +427,6 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                         <ReplayPhaseRail :turn="turn" :active-name="activeName" :active-is-local="activeIsLocal" :step="step" :missing-text="missingText">
                             <ReplayStack v-if="stack.length" :items="stack" collapsible :collapsed="stackCollapsed" @toggle="stackCollapsed = !stackCollapsed" />
                         </ReplayPhaseRail>
-
-                        <ReplayHand :cards="hand" :count="local?.handCount ?? hand.length" :revealed="reveal.keys" :revealed-by="reveal.by" :chosen="chosenKeys" />
                     </div>
 
                 </template>
@@ -539,6 +574,7 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                     :size="item.size"
                     :z="item.z"
                     :compact="compact"
+                    :hand="item.zone === 'Hand' ? handInfo(item.player) : undefined"
                     @close="zoneWindows.close(item.key)"
                     @focus="zoneWindows.focus(item.key)"
                     @drag-start="(event, element) => zoneWindows.startDrag(item.key, event, element)"

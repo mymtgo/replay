@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { X } from 'lucide-vue-next';
-import { onMounted, useTemplateRef } from 'vue';
+import { onMounted, onUnmounted, useTemplateRef } from 'vue';
+import ReplayHandCards from './ReplayHandCards.vue';
 import ReplayZoneCards from './ReplayZoneCards.vue';
 import type { WindowSize } from './replayWindows';
 import type { ReplayCardView, ReplayZone } from './types';
 import { COMPACT_ZONE_WINDOW_WIDTH_PX, ZONE_WINDOW_WIDTH_PX } from './useZoneWindows';
 
-defineProps<{
+const props = defineProps<{
     title: string;
     zone: ReplayZone;
     cards: ReplayCardView[];
@@ -17,6 +18,8 @@ defineProps<{
     size: WindowSize | null;
     z: number;
     compact: boolean;
+    /** A hand's size and what is showing or choosing its cards; its window draws card images, backs for the unknown ones. */
+    hand?: { count: number; revealed: ReadonlySet<string>; revealedBy: string | null; chosen: ReadonlySet<string> };
 }>();
 
 const emit = defineEmits<{
@@ -24,17 +27,29 @@ const emit = defineEmits<{
     focus: [];
     dragStart: [event: PointerEvent, element: HTMLElement];
     resizeStart: [event: PointerEvent, element: HTMLElement];
-    /** Rendered, so its real height can be used to place it. */
+    /** Rendered, or fitted to different content: its real height can be used to place it. */
     mounted: [element: HTMLElement];
 }>();
 
 const panel = useTemplateRef<HTMLElement>('panel');
 
+let observer: ResizeObserver | null = null;
+
 onMounted(() => {
-    if (panel.value) {
-        emit('mounted', panel.value);
+    if (!panel.value) {
+        return;
+    }
+
+    emit('mounted', panel.value);
+
+    /** Cards load and wrap after it opens, so a window that fits its content places itself again as it grows. */
+    if (typeof ResizeObserver !== 'undefined') {
+        observer = new ResizeObserver(() => !props.size && panel.value && emit('mounted', panel.value));
+        observer.observe(panel.value);
     }
 });
+
+onUnmounted(() => observer?.disconnect());
 
 </script>
 
@@ -62,7 +77,7 @@ onMounted(() => {
             @pointerdown="panel && emit('dragStart', $event, panel)"
         >
             <span class="truncate font-semibold">{{ title }}</span>
-            <span class="text-muted-foreground tabular-nums">{{ cards.length }}</span>
+            <span class="text-muted-foreground tabular-nums">{{ hand ? hand.count : cards.length }}</span>
             <div class="flex-1" />
             <button
                 type="button"
@@ -75,7 +90,8 @@ onMounted(() => {
                 <X :size="15" />
             </button>
         </div>
-        <ReplayZoneCards :zone="zone" :cards="cards" :captions="captions" :small="compact" />
+        <ReplayHandCards v-if="hand" :cards="cards" :count="hand.count" :revealed="hand.revealed" :revealed-by="hand.revealedBy" :chosen="hand.chosen" />
+        <ReplayZoneCards v-else :zone="zone" :cards="cards" :captions="captions" :small="compact" />
         <slot />
 
         <!-- Resize grip; a touch target on phones, a small corner on desktop. -->

@@ -7,18 +7,24 @@ import {
     toStoredPosition,
     windowStorageKey,
     type WindowPoint,
+    WINDOW_EDGE_PX,
     type WindowSize,
 } from './replayWindows';
 import type { ReplayZone } from './types';
 
-export const ZONE_WINDOW_WIDTH_PX = 380;
+export const ZONE_WINDOW_WIDTH_PX = 300;
 /** Phones get a narrower window so some of the board stays in view around it. */
 export const COMPACT_ZONE_WINDOW_WIDTH_PX = 272;
 
 /** Used to place a window before it has rendered and can be measured. */
-const ASSUMED_HEIGHT_PX = 340;
+const ASSUMED_HEIGHT_PX = 300;
 const COMPACT_ASSUMED_HEIGHT_PX = 240;
-const MIN_SIZE: WindowSize = { width: 260, height: 150 };
+const MIN_SIZE: WindowSize = { width: 220, height: 150 };
+/** Wide viewers keep a column on the left for the HUDs, so a window opened without an anchor sits beside it, clear of the stack and effects on the right. */
+const SIDE_COLUMN_PX = 256;
+const WIDE_VIEWER_PX = 1280;
+/** The transport bar a window opened at the bottom keeps clear of. */
+const TRANSPORT_PX = 84;
 const CASCADE_PX = 24;
 const ANCHOR_GAP_PX = 6;
 
@@ -170,12 +176,31 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
         return { left, top, anchorBottom: side === 'you' ? top + size.height : null };
     }
 
+    /** Without a button to open from (a hand that opens by itself): the left edge, yours at the bottom and theirs at the top. */
+    function edgePoint(side: ZoneWindowSide, size: WindowSize, viewer: WindowSize): WindowPoint & { anchorBottom: number | null } {
+        const left = viewer.width >= WIDE_VIEWER_PX ? SIDE_COLUMN_PX : WINDOW_EDGE_PX;
+        const cascade = windows.value.length * CASCADE_PX;
+
+        return side === 'you'
+            ? { left: left + cascade, top: viewer.height - TRANSPORT_PX - size.height, anchorBottom: viewer.height - TRANSPORT_PX }
+            : { left: left + cascade, top: 52 + cascade, anchorBottom: null };
+    }
+
     function toggle(player: string, zone: ReplayZone, side: ZoneWindowSide, anchor: HTMLElement) {
         const existing = windows.value.find((item) => item.player === player && item.zone === zone);
 
         if (existing) {
             close(existing.key);
 
+            return;
+        }
+
+        open(player, zone, side, anchor);
+    }
+
+    /** Opens a window unless it is open already; a remembered position wins over the anchor. */
+    function open(player: string, zone: ReplayZone, side: ZoneWindowSide, anchor: HTMLElement | null) {
+        if (isOpen(player, zone)) {
             return;
         }
 
@@ -188,7 +213,7 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
         const stored = readStored(side, zone, compact.value);
         const storedSize = stored?.width && stored.height ? { width: stored.width, height: stored.height } : null;
         const placed = storedSize ?? defaultSize(viewer);
-        const anchored = stored ? null : anchoredPoint(anchor, side, placed);
+        const anchored = stored ? null : anchor ? anchoredPoint(anchor, side, placed) : edgePoint(side, placed, viewer);
         const point = clampWindow(anchored ?? fromStoredPosition(stored!, viewer), placed, viewer);
         const size = storedSize ? clampSize(storedSize, point, MIN_SIZE, viewer) : null;
 
@@ -214,7 +239,7 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
         const size = { width: element.offsetWidth, height: element.offsetHeight };
         const top = target.anchorBottom !== null ? target.anchorBottom - size.height : target.top;
 
-        update(key, { ...clampWindow({ left: target.left, top }, size, viewer), anchorBottom: null });
+        update(key, clampWindow({ left: target.left, top }, size, viewer));
     }
 
     /** Drags by the title bar; the position is saved once the pointer lets go. */
@@ -248,6 +273,7 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
 
         event.stopPropagation();
         focus(key);
+        update(key, { anchorBottom: null });
 
         const start = { width: element.offsetWidth, height: element.offsetHeight };
 
@@ -258,5 +284,5 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
         );
     }
 
-    return { windows: readonly(windows), isOpen, toggle, close, closeTop, closeAll, focus, settle, startDrag, startResize };
+    return { windows: readonly(windows), isOpen, toggle, open, close, closeTop, closeAll, focus, settle, startDrag, startResize };
 }

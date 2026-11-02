@@ -12,16 +12,17 @@ export const REPLAY_ZONES: Record<ReplayZone, ReplayZoneInfo> = {
 };
 
 /**
- * Zones a player's HUD can open. Your hand has its own strip; an opponent's
- * hand window lists the cards whose faces the file knows. A sideboard is
- * offered when the game's deck block lists one for the player.
+ * Zones a player's HUD can open. An opponent's hand window shows the cards
+ * whose faces the file knows, with backs for the rest. Yours is offered
+ * only where `ownHand` is set: phones have the hands sheet instead. A
+ * sideboard is offered when the game's deck block lists one for the player.
  */
-export function hudZones(opponent: boolean, sideboard = false): ReplayZoneInfo[] {
+export function hudZones(opponent: boolean, sideboard = false, ownHand = false): ReplayZoneInfo[] {
     const zones = [REPLAY_ZONES.Graveyard, REPLAY_ZONES.Exile];
 
     if (opponent) {
         return [REPLAY_ZONES.Hand, ...zones];
     }
 
-    return sideboard ? [...zones, REPLAY_ZONES.Sideboard] : zones;
+    return [...(ownHand ? [REPLAY_ZONES.Hand] : []), ...zones, ...(sideboard ? [REPLAY_ZONES.Sideboard] : [])];
 }

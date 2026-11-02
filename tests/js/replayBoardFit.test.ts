@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { parse } from '@mtgreplay/mtgr';
-import { CARD_ASPECT, emptyRowWeight, fitBoard, HAND_SCALE, type FitInput, type FitSide } from '../../resources/js/replayBoardFit.ts';
+import { CARD_ASPECT, emptyRowWeight, fitBoard, type FitInput, type FitSide } from '../../resources/js/replayBoardFit.ts';
 import { buildTimeline } from '../../resources/js/replayGame.ts';
 import { CARD_HEIGHT_BOUNDS } from '../../resources/js/replayLayout.ts';
 import { sideRows, type RowItem, type SideRows } from '../../resources/js/replayRows.ts';
@@ -14,13 +14,10 @@ const rows = (front: number, back: number): SideRows => ({
     back: Array.from({ length: back }, (_, i) => item(`b${i}`)),
 });
 
-/** The 2000x893 regular viewer as measured: two 303px battlefields and a 122px docked hand, rows 1472px wide. */
+/** The 2000x893 regular viewer as measured: two 366px battlefields, rows 1472px wide. */
 function board(sides: SideRows[], over: Partial<FitInput> = {}, width = 1472): FitInput {
     return {
-        sides: sides.map((r): FitSide => ({ rows: r, fieldHeight: 303, width })),
-        hands: [HAND_SCALE],
-        handsHeight: HAND_SCALE * 131 + 17,
-        handPad: 17,
+        sides: sides.map((r): FitSide => ({ rows: r, fieldHeight: 366, width })),
         rowPad: 14,
         fieldPad: 8,
         gap: 6,
@@ -35,15 +32,13 @@ function board(sides: SideRows[], over: Partial<FitInput> = {}, width = 1472): F
 function stackHeight(input: FitInput, fit: ReturnType<typeof fitBoard>, side: number): number {
     const { front, back } = input.sides[side].rows;
     const weights = [front.length ? 1 : input.emptyWeight, back.length ? 1 : input.emptyWeight];
-    const hands = input.hands.reduce((sum, w) => sum + w * fit.height + input.handPad, 0) / input.sides.length;
-
-    return weights.reduce((sum, w) => sum + w * fit.height + input.rowPad, input.fieldPad) + hands;
+    return weights.reduce((sum, w) => sum + w * fit.height + input.rowPad, input.fieldPad);
 }
 
-test('the board always has two rows a side, and the cards fill the room both rows leave', () => {
+test('the board always has two rows a side, and the cards fill the room both rows leave, with no hand taking any', () => {
     const input = board([rows(0, 2), rows(3, 2)]);
     const fit = fitBoard(input);
-    const room = 303 + input.handsHeight / 2 + 0.5;
+    const room = 366.5;
 
     assert.ok(fit.height > 101 && fit.height <= CARD_HEIGHT_BOUNDS.regular[1]);
     assert.ok(stackHeight(input, fit, 1) <= room);
@@ -58,7 +53,7 @@ test('an empty row on the wide viewer keeps its full height, so a quiet side dra
 });
 
 test('a phone keeps half a row for an empty one, so a side with only lands gets bigger cards', () => {
-    const phone = (r: SideRows[]) => board(r, { emptyWeight: emptyRowWeight(true), bounds: CARD_HEIGHT_BOUNDS.compact, sides: r.map((x) => ({ rows: x, fieldHeight: 260, width: Infinity })), hands: [], handsHeight: 0 });
+    const phone = (r: SideRows[]) => board(r, { emptyWeight: emptyRowWeight(true), bounds: CARD_HEIGHT_BOUNDS.compact, sides: r.map((x) => ({ rows: x, fieldHeight: 260, width: Infinity })) });
 
     assert.ok(fitBoard(phone([rows(0, 3), rows(0, 3)])).height > fitBoard(phone([rows(3, 3), rows(3, 3)])).height);
 });
@@ -68,7 +63,7 @@ test('a row that overflows across shrinks the cards until it fits', () => {
     const fit = fitBoard(wide);
 
     assert.ok(30 * CARD_ASPECT * fit.height + 29 * 6 <= 1472);
-    assert.ok(30 * CARD_ASPECT * (fit.height + 1) + 29 * 6 > 1472 || stackHeight(wide, { height: fit.height + 1 }, 1) > 303 + wide.handsHeight / 2);
+    assert.ok(30 * CARD_ASPECT * (fit.height + 1) + 29 * 6 > 1472 || stackHeight(wide, { height: fit.height + 1 }, 1) > 366);
 });
 
 test('the stack column narrows every row, so the same board draws smaller cards beside a stack', () => {
@@ -85,25 +80,25 @@ test('a board that cannot fit at all settles on the smallest height', () => {
 });
 
 test('the scrolling layouts ignore width and keep their own bounds', () => {
-    const compact = board([rows(0, 40), rows(0, 40)], { mode: 'split', emptyWeight: emptyRowWeight(true), bounds: CARD_HEIGHT_BOUNDS.compact, hands: [], handsHeight: 0, sides: [rows(0, 40), rows(0, 40)].map((r) => ({ rows: r, fieldHeight: 300, width: Infinity })) });
+    const compact = board([rows(0, 40), rows(0, 40)], { mode: 'split', emptyWeight: emptyRowWeight(true), bounds: CARD_HEIGHT_BOUNDS.compact, sides: [rows(0, 40), rows(0, 40)].map((r) => ({ rows: r, fieldHeight: 300, width: Infinity })) });
     const fit = fitBoard(compact);
 
     assert.equal(fit.height, CARD_HEIGHT_BOUNDS.compact[1]);
 });
 
 test('a landscape phone keeps one row a side', () => {
-    const fit = fitBoard(board([rows(3, 4), rows(3, 4)], { mode: 'single', emptyWeight: emptyRowWeight(true), bounds: CARD_HEIGHT_BOUNDS.compact, hands: [], handsHeight: 0, rowPad: 20, sides: [rows(3, 4), rows(3, 4)].map((r) => ({ rows: r, fieldHeight: 140, width: Infinity })) }));
+    const fit = fitBoard(board([rows(3, 4), rows(3, 4)], { mode: 'single', emptyWeight: emptyRowWeight(true), bounds: CARD_HEIGHT_BOUNDS.compact, rowPad: 20, sides: [rows(3, 4), rows(3, 4)].map((r) => ({ rows: r, fieldHeight: 140, width: Infinity })) }));
 
     assert.equal(fit.height, 112);
 });
 
 test('1280x720 and 1440x900 boards fit their room', () => {
-    for (const [room, width, hands] of [[(720 - 47 - 56) / 2 - 60, 760, 150], [303, 912, 153]] as const) {
-        const input = board([rows(2, 5), rows(4, 6)], { handsHeight: hands }, width);
+    for (const [room, width] of [[(720 - 47 - 56) / 2 - 20, 760], [366, 912]] as const) {
+        const input = board([rows(2, 5), rows(4, 6)], {}, width);
         input.sides.forEach((side) => (side.fieldHeight = room));
         const fit = fitBoard(input);
 
-        input.sides.forEach((_, i) => assert.ok(fit.height === 56 || stackHeight(input, fit, i) <= room + hands / 2 + 1));
+        input.sides.forEach((_, i) => assert.ok(fit.height === 56 || stackHeight(input, fit, i) <= room + 1));
     }
 });
 
