@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowDown, ArrowUp, Crosshair, Quote } from 'lucide-vue-next';
+import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Crosshair, Layers, Quote } from 'lucide-vue-next';
 import ReplayCardImage from './ReplayCardImage.vue';
 import { useReplayContext } from './replayContext';
 import ReplayPanel from './ui/ReplayPanel.vue';
@@ -13,6 +13,13 @@ import type { ReplayStackItem } from './types';
  */
 defineProps<{
     items: ReplayStackItem[];
+    /** Floating over the board, the stack can fold to a pill to show what is under it. */
+    collapsible?: boolean;
+    collapsed?: boolean;
+}>();
+
+const emit = defineEmits<{
+    toggle: [];
 }>();
 
 const { showPreview, hidePreview, pinPreview, highlightedTargets, pinnedStack, pointStack, leaveStack, focusStack, blurStack, togglePinStack } = useReplayContext();
@@ -37,12 +44,33 @@ const KIND_LABELS: Record<string, string> = { ability: 'Ability', copy: 'Copy', 
 </script>
 
 <template>
+    <button
+        v-if="collapsible && collapsed"
+        type="button"
+        title="Show the stack"
+        class="replay-texture-bg inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-primary/60 px-2.5 text-xs font-semibold shadow-[0_6px_20px_rgba(0,0,0,0.5)]"
+        @click="emit('toggle')"
+    >
+        <Layers :size="14" class="replay-glow" />
+        <span>Stack</span>
+        <span class="tabular-nums">{{ items.length }}</span>
+        <ChevronDown :size="13" class="text-muted-foreground" />
+    </button>
     <!-- Opaque backing so the board never shows through the panel. -->
-    <div class="replay-texture-bg relative flex max-h-full w-full flex-none rounded-md">
+    <div v-else class="replay-texture-bg relative flex max-h-full w-full flex-none rounded-md shadow-[0_14px_40px_rgba(0,0,0,0.6)]">
         <ReplayPanel class="max-h-full min-w-0 flex-1 gap-2 px-3 py-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
-            <div class="flex items-baseline gap-1.5 text-xs leading-tight">
+            <div class="flex items-center gap-1.5 text-xs leading-tight">
                 <span class="font-semibold">Stack</span>
                 <span class="text-muted-foreground tabular-nums">{{ items.length }}</span>
+                <button
+                    v-if="collapsible"
+                    type="button"
+                    title="Hide the stack"
+                    class="ml-auto grid size-6 cursor-pointer place-items-center rounded text-muted-foreground hover:bg-accent/50"
+                    @click="emit('toggle')"
+                >
+                    <ChevronUp :size="14" />
+                </button>
             </div>
 
             <!-- Resolution order reads top to bottom; the arrow only earns its place with two or more. -->

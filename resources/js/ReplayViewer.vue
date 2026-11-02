@@ -105,7 +105,7 @@ const sideboardSizes = computed(
     () => Object.fromEntries(info.value.players.map((player) => [player, [...(sideboards.value[player]?.values() ?? [])].reduce((sum, count) => sum + count, 0)])) as Record<Player, number>,
 );
 
-const { moment, local, opponent, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, hand, opponentHand, sides, playerName, inZone } = useReplayBoard(
+const { moment, local, opponent, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, reveal, chosenKeys, hand, opponentHand, sides, playerName, inZone } = useReplayBoard(
     game,
     info,
     timeline,
@@ -191,6 +191,9 @@ watch(layout, (value) => {
 });
 
 const { tooltip, setHover } = useScrubTooltip(root, timeline, logItems);
+
+/** Kept across moments, so a stack folded away stays folded as entries come and go. */
+const stackCollapsed = shallowRef(false);
 
 const logOpen = shallowRef(false);
 
@@ -354,9 +357,9 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
 
                 <!--
                     Wide viewers: the board is two full-width player areas ruled off by
-                    the phase bar, with your hand docked under them. The stack, when
-                    there is one, is a column of its own beside all of it, so it never
-                    covers a permanent and the rows share what is left.
+                    the phase bar, with your hand docked under them. The stack floats
+                    over the right edge on the centre line, so it appearing never
+                    moves or resizes a card.
                 -->
                 <template v-else>
                     <div class="relative flex min-w-0 flex-1 flex-col">
@@ -375,20 +378,22 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                             :pairs="pairs"
                             :tucked="side.tucked"
                             :known-hand="side.opponent ? opponentHand : undefined"
+                            :revealed="reveal.keys"
+                            :revealed-by="reveal.by"
+                            :chosen="chosenKeys"
                             @toggle-zone="(zone, event) => toggleZoneWindow(side.player.id, zone, event, side.opponent)"
                         >
                             <ReplayEffects v-if="side.opponent && effects.length" :effects="effects" />
                             <ReplayShareCard v-else-if="!side.opponent && shareUrl" :moment="shareMoment" :copied="shareLink.copied.value" @share="shareLink.share(false)" />
                         </ReplaySide>
 
-                        <ReplayPhaseRail :turn="turn" :active-name="activeName" :active-is-local="activeIsLocal" :step="step" :missing-text="missingText" />
+                        <ReplayPhaseRail :turn="turn" :active-name="activeName" :active-is-local="activeIsLocal" :step="step" :missing-text="missingText">
+                            <ReplayStack v-if="stack.length" :items="stack" collapsible :collapsed="stackCollapsed" @toggle="stackCollapsed = !stackCollapsed" />
+                        </ReplayPhaseRail>
 
-                        <ReplayHand :cards="hand" :count="local?.handCount ?? hand.length" />
+                        <ReplayHand :cards="hand" :count="local?.handCount ?? hand.length" :revealed="reveal.keys" :revealed-by="reveal.by" :chosen="chosenKeys" />
                     </div>
 
-                    <div v-if="stack.length" class="flex min-h-0 w-72 flex-none flex-col py-2 pr-2 @7xl:w-88">
-                        <ReplayStack :items="stack" />
-                    </div>
                 </template>
 
                 <ReplayPregame v-if="pregame" :view="pregame" :local-id="localId" />

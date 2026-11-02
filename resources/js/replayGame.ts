@@ -1,4 +1,5 @@
 import { replay, tagValue, type Game, type Player, type ReplayStep, type StatementLine, type StatementType } from '@mtgreplay/mtgr';
+import { deriveReveals, type RevealView } from './replayReveals';
 import type { ReplayDerived, ReplayMatchGame, ReplayMoment, ReplayTurn } from './types';
 
 /** The two seats, the perspective, the result and the archetypes a game's tags give. */
@@ -308,6 +309,8 @@ export type ReplayTimeline = {
     moments: ReplayMoment[];
     turns: ReplayTurn[];
     derived: ReplayDerived[];
+    /** What each moment has revealed from a hand. */
+    reveals: RevealView[];
     /** Each moment's time in seconds. */
     times: number[];
 };
@@ -315,7 +318,9 @@ export type ReplayTimeline = {
 export function buildTimeline(game: Game): ReplayTimeline {
     const moments = gameMoments(game);
 
-    return { steps: replay(game), moments, turns: deriveTurns(moments), derived: deriveLines(game), times: moments.map((moment) => moment.time) };
+    const steps = replay(game);
+
+    return { steps, moments, turns: deriveTurns(moments), derived: deriveLines(game), reveals: deriveReveals(moments, steps.map((step) => step.state)), times: moments.map((moment) => moment.time) };
 }
 
 /** Seconds into the game as the file writes them: `m:ss`, or `h:mm:ss` past an hour. */

@@ -3,6 +3,7 @@ import { computed, type Ref } from 'vue';
 import type { ReplayGameInfo, ReplayTimeline } from './replayGame';
 import { cardViews, effectViews, liveObjects, objectZone, playerView, stackItems, WINDOW_ZONES } from './replayState';
 import { tuckedKeys, tuckedUnder } from './replayLinks';
+import { NO_REVEAL } from './replayReveals';
 import { sideRows, type SideRows } from './replayRows';
 import { turnAt } from './replayTimeline';
 import type { CardImageResolver, ReplayCardView, ReplayDerived, ReplayPlayerView, ReplayZone } from './types';
@@ -87,6 +88,10 @@ export function useReplayBoard(
     const stack = computed(() => (state.value ? stackItems(state.value, cardsByKey.value) : []));
     const effects = computed(() => (state.value ? effectViews(state.value) : []));
 
+    /** Hand cards being shown by an effect right now, and what is showing them. */
+    const reveal = computed(() => timeline.value.reveals[current.value] ?? NO_REVEAL);
+    const chosenKeys = computed(() => new Set(stack.value.flatMap((item) => item.chosen.flatMap((pick) => (pick.card ? [pick.card.key] : [])))));
+
     const hand = computed(() => (local.value ? inZone('Hand', local.value.id) : []));
     /** Their hand cards whose faces are known: identified or revealed while there. */
     const opponentHand = computed(() => (opponent.value ? inZone('Hand', opponent.value.id).filter((card) => card.name !== null) : []));
@@ -115,5 +120,5 @@ export function useReplayBoard(
             })),
     );
 
-    return { moment, state, derived, players, local, opponent, cards, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, hand, opponentHand, sides, playerName, inZone };
+    return { moment, state, derived, players, local, opponent, cards, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, reveal, chosenKeys, hand, opponentHand, sides, playerName, inZone };
 }

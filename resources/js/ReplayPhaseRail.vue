@@ -80,5 +80,10 @@ watch(
             </template>
             <span v-else class="truncate text-xs text-muted-foreground">{{ missingText }}</span>
         </div>
+
+        <!-- Floats over the right edge of both areas, centred on the divider, so it never takes room from a row. -->
+        <div v-if="$slots.default" class="absolute top-1/2 right-3 z-40 flex max-h-[26rem] w-80 -translate-y-1/2 justify-end @7xl:w-88">
+            <slot />
+        </div>
     </div>
 </template>
