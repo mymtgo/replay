@@ -65,18 +65,32 @@
     }
 
     /*
-     * A player's half of the table. The tint deepens toward the centre line, and
-     * the line itself is a firm rule in the player's own colour.
+     * A player's half of the table: a light tint in the player's own colour
+     * under a faint honeycomb, and a firm rule in that colour on the centre
+     * line. The honeycomb is a mask on a layer behind the content, so one
+     * pattern takes either player's colour.
      */
     .replay-area {
         --area: var(--replay-opponent);
+        position: relative;
+        isolation: isolate;
         border-color: color-mix(in oklab, var(--area) 75%, black);
-        background-image: linear-gradient(var(--area-dir, to bottom), color-mix(in oklab, var(--area) 7%, transparent), color-mix(in oklab, var(--area) 20%, transparent));
+        background-color: color-mix(in oklab, var(--area) 10%, transparent);
+    }
+
+    .replay-area::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-color: color-mix(in oklab, var(--area) 22%, transparent);
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24.249' height='42'%3E%3Cpath d='M0 7.0L12.1245 0L24.249 7.0V21.0L12.1245 28L0 21.0ZM12.1245 28V42' fill='none' stroke='black' stroke-width='1'/%3E%3C/svg%3E");
+        mask-size: 24.249px 42px;
     }
 
     .replay-area-local {
         --area: var(--primary);
-        --area-dir: to top;
     }
 
     .replay-glow {
