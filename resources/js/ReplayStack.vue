@@ -10,7 +10,23 @@ defineProps<{
     items: ReplayStackItem[];
 }>();
 
-const { showPreview, hidePreview, pinPreview } = useReplayContext();
+const { showPreview, hidePreview, pinPreview, highlightedTargets, pinnedStack, pointStack, leaveStack, focusStack, blurStack, togglePinStack } = useReplayContext();
+
+/** Only keyboard focus marks targets: a click also focuses the entry, and the marks must go when the mouse does. */
+function onFocus(event: FocusEvent, key: string) {
+    if ((event.currentTarget as HTMLElement).matches(':focus-visible')) {
+        focusStack(key);
+    }
+}
+
+/** An entry with targets pins them on a tap; one without keeps the tap for its card preview. */
+function onTap(event: MouseEvent, item: ReplayStackItem) {
+    if (item.targets.length) {
+        togglePinStack(item.card.key);
+    } else {
+        pinPreview(event, item.card);
+    }
+}
 
 const KIND_LABELS: Record<string, string> = { ability: 'Ability', copy: 'Copy', token: 'Token' };
 </script>
@@ -46,13 +62,27 @@ const KIND_LABELS: Record<string, string> = { ability: 'Ability', copy: 'Copy', 
                         <li
                             v-for="(item, i) in items"
                             :key="item.card.key"
-                            class="flex items-start gap-2 rounded-md px-1 py-1"
-                            :class="i === 0 ? 'bg-white/5' : ''"
-                            @mouseenter="showPreview($event, item.card)"
-                            @mouseleave="hidePreview"
-                            @click="pinPreview($event, item.card)"
+                            :data-stack-key="item.card.key"
+                            :tabindex="item.targets.length ? 0 : undefined"
+                            :aria-pressed="item.targets.length ? pinnedStack === item.card.key : undefined"
+                            class="flex items-start gap-2 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            :class="[
+                                i === 0 ? 'bg-white/5' : '',
+                                item.targets.length ? 'cursor-pointer' : '',
+                                highlightedTargets.has(item.card.key) ? 'ring-2 ring-[#e5484d]' : pinnedStack === item.card.key ? 'ring-1 ring-[#e5484d]/70' : '',
+                            ]"
+                            @mouseenter="showPreview($event, item.card); pointStack(item.card.key)"
+                            @mouseleave="hidePreview(); leaveStack()"
+                            @focus="onFocus($event, item.card.key)"
+                            @blur="blurStack(item.card.key)"
+                            @keydown.enter.stop.prevent="togglePinStack(item.card.key, true)"
+                            @keydown.space.stop.prevent="togglePinStack(item.card.key, true)"
+                            @click="onTap($event, item)"
                         >
-                            <div class="relative aspect-[63/88] w-8 flex-none overflow-hidden rounded-[3px] shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
+                            <div
+                                class="relative aspect-[63/88] w-8 flex-none overflow-hidden rounded-[3px] shadow-[0_1px_4px_rgba(0,0,0,0.5)]"
+                                @click.stop="pinPreview($event, item.card)"
+                            >
                                 <ReplayCardImage :name="item.title" :image="item.card.image" />
                             </div>
                             <div class="flex min-w-0 flex-col gap-0.5">
@@ -62,7 +92,13 @@ const KIND_LABELS: Record<string, string> = { ability: 'Ability', copy: 'Copy', 
                                 </span>
                                 <span class="truncate text-[11px] text-muted-foreground">{{ item.controller }}</span>
                                 <span v-if="item.text" class="line-clamp-3 text-[11px] leading-snug text-foreground/80">{{ item.text }}</span>
-                                <span v-for="target in item.targets" :key="target" class="flex items-center gap-1 text-[11px]">
+                                <span
+                                    v-for="(target, n) in item.targets"
+                                    :key="n"
+                                    class="flex items-center gap-1 rounded text-[11px]"
+                                    @mouseenter.stop="pointStack(item.card.key, n)"
+                                    @mouseleave.stop="pointStack(item.card.key)"
+                                >
                                     <Crosshair :size="11" class="flex-none text-[#e5484d]" />
                                     <span class="truncate">{{ target }}</span>
                                 </span>

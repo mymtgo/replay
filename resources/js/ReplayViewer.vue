@@ -32,13 +32,14 @@ import ReplayZoneWindow from './ReplayZoneWindow.vue';
 import type { CardImageResolver, ReplayCardView, ReplayZone } from './types';
 import { useCardPreview } from './useCardPreview';
 import { useReplayBoard } from './useReplayBoard';
-import { useReplayCardHeight } from './useReplayCardHeight';
+import { useReplayBoardFit } from './useReplayBoardFit';
 import { useReplayFullscreen } from './useReplayFullscreen';
 import { useReplayKeyboard } from './useReplayKeyboard';
 import { useReplayLayout } from './useReplayLayout';
 import { REPLAY_SPEEDS, stepDuration, useReplayPlayback } from './useReplayPlayback';
 import { useReplayShare } from './useReplayShare';
 import { useScrubTooltip } from './useScrubTooltip';
+import { useTargetHighlight } from './useTargetHighlight';
 import { useZoneWindows } from './useZoneWindows';
 
 const props = withDefaults(
@@ -106,7 +107,7 @@ const sideboardSizes = computed(
     () => Object.fromEntries(info.value.players.map((player) => [player, [...(sideboards.value[player]?.values() ?? [])].reduce((sum, count) => sum + count, 0)])) as Record<Player, number>,
 );
 
-const { moment, local, opponent, cardsByKey, turn, activeId, step, incomplete, pairs, stack, effects, hand, opponentHand, sides, playerName, inZone } = useReplayBoard(
+const { moment, local, opponent, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, hand, opponentHand, sides, playerName, inZone } = useReplayBoard(
     game,
     info,
     timeline,
@@ -124,6 +125,11 @@ const lastPointer = shallowRef<string | null>(null);
 const preview = useCardPreview(root, cardsByKey, images, lastPointer);
 const { card: previewCard, position: previewPosition, chips: previewChips, pinned: previewPinned } = preview;
 
+const targets = useTargetHighlight(stack, zones, cardsByKey, lastPointer);
+
+/** A pin belongs to the moment it was made. */
+watch(current, targets.unpin);
+
 function selectGame(index: number) {
     emit('selectGame', index);
 }
@@ -133,6 +139,13 @@ provide(replayContextKey, {
     hidePreview: preview.hidePreview,
     pinPreview: preview.pinPreview,
     cardByKey: (key) => cardsByKey.value.get(key) ?? null,
+    highlightedTargets: targets.marks,
+    pinnedStack: targets.pinned,
+    pointStack: targets.point,
+    leaveStack: targets.leave,
+    focusStack: targets.focus,
+    blurStack: targets.blur,
+    togglePinStack: targets.togglePin,
     images: props.cardImage,
     gameHref: props.gameHref ?? null,
     linkComponent: props.linkComponent,
@@ -140,7 +153,8 @@ provide(replayContextKey, {
 });
 
 const { layout, compact } = useReplayLayout(root);
-const cardHeight = useReplayCardHeight(root, compact);
+const boardRows = computed(() => sides.value.map((side) => side.rows));
+const boardFit = useReplayBoardFit(root, layout, boardRows);
 
 const zoneWindows = useZoneWindows(root, compact);
 const { windows } = zoneWindows;
@@ -301,7 +315,7 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
 <template>
     <div
         ref="root"
-        :style="{ '--replay-card-h': `${cardHeight}px` }"
+        :style="{ '--replay-card-h': `${boardFit.height}px` }"
         class="replay-theme replay-texture-bg @container relative flex size-full min-h-0 flex-col overflow-hidden text-[13px] leading-snug text-foreground select-none"
         @pointerdown.capture="lastPointer = $event.pointerType"
     >
@@ -339,11 +353,12 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                     class="relative flex min-w-0 flex-1 flex-col @7xl:grid @7xl:grid-cols-[15rem_minmax(0,1fr)_15rem] @7xl:grid-rows-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto] @7xl:gap-x-2 @7xl:px-2"
                 >
                     <ReplaySide
-                        v-for="side in sides"
+                        v-for="(side, i) in sides"
                         :key="side.player.id"
                         :class="side.opponent ? 'order-0' : 'order-2'"
                         :player="side.player"
-                        :battlefield="side.battlefield"
+                        :rows="side.rows"
+                        :one-row="boardFit.merged[i] ?? false"
                         :opponent="side.opponent"
                         :active="side.active"
                         :priority="side.priority"

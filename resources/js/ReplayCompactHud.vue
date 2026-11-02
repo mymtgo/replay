@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Hand, Heart, Layers, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useReplayContext } from './replayContext';
+import ReplayTargetMark from './ReplayTargetMark.vue';
+import { playerMark, zoneMark } from './replayTargets';
 import { hudZones } from './replayZones';
 import type { ReplayPlayerView, ReplayZone } from './types';
 
@@ -23,6 +26,8 @@ const emit = defineEmits<{
     openZone: [zone: ReplayZone, event: MouseEvent];
 }>();
 
+const { highlightedTargets } = useReplayContext();
+
 const clock = computed(() => {
     if (props.player.clock === null) {
         return null;
@@ -39,9 +44,11 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
 <template>
     <!-- One line under or over the board in portrait; a short column in the landscape rail. -->
     <div
-        class="flex min-w-0 flex-none rounded-md border border-white/5 bg-black/40 outline-1 outline-black/60"
-        :class="stacked ? 'flex-col gap-2 p-2' : 'h-10 items-center gap-2 px-1.5'"
+        class="relative flex min-w-0 flex-none rounded-md border border-white/5 bg-black/40 outline-1 outline-black/60"
+        :class="[stacked ? 'flex-col gap-2 p-2' : 'h-10 items-center gap-2 px-1.5', highlightedTargets.has(playerMark(player.id)) ? 'ring-2 ring-[#e5484d]' : '']"
     >
+        <ReplayTargetMark v-if="highlightedTargets.has(playerMark(player.id))" variant="corner" />
+
         <!-- The name gives way first on a narrow phone; the centre line names the active player anyway. -->
         <div class="flex min-w-0 items-center gap-1.5" :class="stacked ? '' : 'flex-[1_1_0]'">
             <div
@@ -92,11 +99,13 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
                 :key="item.zone"
                 type="button"
                 :title="item.zone === 'Hand' ? 'Known cards' : item.label"
-                class="replay-bevel inline-flex h-7.5 cursor-pointer items-center gap-0.5 rounded-md border border-black/60 px-1.25 text-[12px]"
+                class="replay-bevel relative inline-flex h-7.5 cursor-pointer items-center gap-0.5 rounded-md border border-black/60 px-1.25 text-[12px]"
+                :class="highlightedTargets.has(zoneMark(player.id, item.zone)) ? 'ring-2 ring-[#e5484d]' : ''"
                 @click="emit('openZone', item.zone, $event)"
             >
                 <component :is="item.icon" :size="13" class="text-muted-foreground" />
                 <span class="tabular-nums">{{ zoneCounts[item.zone] }}</span>
+                <ReplayTargetMark v-if="highlightedTargets.has(zoneMark(player.id, item.zone))" variant="corner" />
             </button>
         </div>
     </div>

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import ReplayBattlefield from './ReplayBattlefield.vue';
 import ReplayPlayerHud from './ReplayPlayerHud.vue';
+import type { SideRows } from './replayRows';
 import type { ReplayCardView, ReplayPlayerView, ReplayZone } from './types';
 
 defineProps<{
     player: ReplayPlayerView;
-    battlefield: ReplayCardView[];
+    rows: SideRows;
+    /** Creatures and other permanents share one row. */
+    oneRow: boolean;
     opponent: boolean;
     active: boolean;
     priority: boolean;
@@ -49,7 +52,8 @@ const emit = defineEmits<{
         <ReplayBattlefield
             class="order-1 @7xl:col-start-2"
             :class="opponent ? '@7xl:row-start-2' : '@7xl:row-start-4'"
-            :battlefield="battlefield"
+            :rows="rows"
+            :single-row="oneRow"
             :opponent="opponent"
             :pairs="pairs"
             :tucked="tucked"

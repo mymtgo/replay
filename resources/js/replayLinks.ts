@@ -3,8 +3,25 @@ import type { ReplayCardView } from './types';
 /** Cards drawn behind one host; a bigger stack still counts every card but draws no deeper. */
 export const TUCK_LAYERS = 3;
 
-/** How much of each tucked card shows past the one in front, as a share of its width. */
-export const TUCK_PEEK = 0.32;
+/**
+ * How much of each tucked card shows above the one in front of it, as a share
+ * of a card's height: the first shows its name bar, and each further card
+ * shows a smaller step.
+ */
+export const TUCK_STEPS = [0.18, 0.12, 0.08];
+
+/** A tapped host lies sideways, so its top edge sits this share of a card's height below the row's top. */
+export const TAPPED_TOP = (1 - 63 / 88) / 2;
+
+/** Cards drawn above a host, in card heights, from the host's own top edge. */
+export function tuckLift(count: number): number {
+    return TUCK_STEPS.slice(0, Math.min(count, TUCK_LAYERS)).reduce((sum, step) => sum + step, 0);
+}
+
+/** The headroom a host needs above the row's top: a tapped host already leaves a gap there. */
+export function tuckHeadroom(count: number, tapped: boolean): number {
+    return Math.max(0, tuckLift(count) - (tapped ? TAPPED_TOP : 0));
+}
 
 /**
  * Cards that sit under a permanent on a real table: what it exiled
@@ -43,9 +60,4 @@ export function tuckedUnder(cards: ReplayCardView[], zones: ReadonlyMap<string, 
 /** Keys of every card the map tucks, which the battlefield rows leave out. */
 export function tuckedKeys(tucked: ReadonlyMap<string, ReplayCardView[]>): Set<string> {
     return new Set([...tucked.values()].flat().map((card) => card.key));
-}
-
-/** The extra width a host tile grows by to leave room for the cards peeking out from under it. */
-export function tuckExtraWidth(count: number): string {
-    return `calc(var(--replay-card-h) * 63 / 88 * ${TUCK_PEEK * Math.min(count, TUCK_LAYERS)})`;
 }

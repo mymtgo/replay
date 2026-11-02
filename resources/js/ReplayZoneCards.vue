@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Crosshair } from 'lucide-vue-next';
 import ReplayCardImage from './ReplayCardImage.vue';
 import { useReplayContext } from './replayContext';
 import { REPLAY_ZONES } from './replayZones';
@@ -18,7 +19,7 @@ defineProps<{
     small?: boolean;
 }>();
 
-const { showPreview, hidePreview, pinPreview } = useReplayContext();
+const { showPreview, hidePreview, pinPreview, highlightedTargets } = useReplayContext();
 </script>
 
 <template>
@@ -30,7 +31,7 @@ const { showPreview, hidePreview, pinPreview } = useReplayContext();
             v-for="(card, i) in cards"
             :key="card.key"
             class="flex cursor-default items-center gap-2.5 px-3 hover:bg-accent/50"
-            :class="small ? 'py-1.5' : 'py-1'"
+            :class="[small ? 'py-1.5' : 'py-1', highlightedTargets.has(card.key) ? 'bg-[#e5484d]/20' : '']"
             @mouseenter="showPreview($event, card)"
             @mouseleave="hidePreview"
             @click="pinPreview($event, card)"
@@ -40,7 +41,10 @@ const { showPreview, hidePreview, pinPreview } = useReplayContext();
                 <ReplayCardImage :name="card.name ?? ''" :image="card.image" />
             </div>
             <div class="flex min-w-0 flex-1 flex-col leading-tight">
-                <span class="truncate font-medium">{{ card.name ?? 'Unknown card' }}</span>
+                <span class="flex items-center gap-1 font-medium">
+                    <Crosshair v-if="highlightedTargets.has(card.key)" :size="12" class="flex-none text-[#e5484d]" />
+                    <span class="truncate">{{ card.name ?? 'Unknown card' }}</span>
+                </span>
                 <span v-if="captions?.get(card.key)" class="truncate text-[11px] text-muted-foreground">{{ captions.get(card.key) }}</span>
             </div>
         </li>

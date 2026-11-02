@@ -13,7 +13,8 @@ export function isCreature(card: ReplayCardView): boolean {
     return isFrontRow(card);
 }
 
-export type CardGroup = { card: ReplayCardView; count: number };
+/** `members` are the keys of every card the tile stands for, the one shown first. */
+export type CardGroup = { card: ReplayCardView; count: number; members: string[] };
 
 /** Identical creatures collapse into one counted tile only from this many, so a few copies stay readable apart. */
 export const FRONT_ROW_GROUP_MIN = 5;
@@ -47,14 +48,14 @@ export function frontRowGroups(cards: ReplayCardView[], pairs: Map<string, numbe
         const size = k !== null ? (sizes.get(k) ?? 1) : 1;
 
         if (k === null || size < FRONT_ROW_GROUP_MIN) {
-            groups.push({ card, count: 1 });
+            groups.push({ card, count: 1, members: [card.key] });
 
             return;
         }
 
         if (!placed.has(k)) {
             placed.add(k);
-            groups.push({ card, count: size });
+            groups.push({ card, count: size, members: cards.filter((other) => key(other) === k).map((other) => other.key) });
         }
     });
 
@@ -64,8 +65,8 @@ export function frontRowGroups(cards: ReplayCardView[], pairs: Map<string, numbe
 /** The most cards a pile draws: a playset of any nonbasic shows every copy. */
 export const PILE_LAYERS = 4;
 
-/** One side of a pile: the copies drawn, and how many there are in all. */
-export type PilePart = { tapped: boolean; cards: ReplayCardView[]; count: number };
+/** One side of a pile: the copies drawn, how many there are in all, and the keys of the copies left undrawn. */
+export type PilePart = { tapped: boolean; cards: ReplayCardView[]; count: number; hidden: string[] };
 
 export type LandPile = { key: string; parts: PilePart[] };
 
@@ -75,12 +76,14 @@ export type LandPile = { key: string; parts: PilePart[] };
  * card so tapping one of four shows. Past four copies the pile still draws
  * four, shared between the two states by how many of each there are (at
  * least one of each state held), and each part counts its hidden copies.
+ * A card with cards tucked above it stands alone, since they peek out above
+ * that card and would be hidden by its pile mates.
  */
-export function landPiles(cards: ReplayCardView[]): LandPile[] {
+export function landPiles(cards: ReplayCardView[], tucked: ReadonlyMap<string, ReplayCardView[]> = new Map()): LandPile[] {
     const byName = new Map<string, ReplayCardView[]>();
 
     cards.forEach((card) => {
-        const name = card.face ?? card.name ?? card.key;
+        const name = tucked.has(card.key) ? card.key : (card.face ?? card.name ?? card.key);
         const copies = byName.get(name);
 
         if (copies) {
@@ -101,8 +104,8 @@ export function landPiles(cards: ReplayCardView[]): LandPile[] {
 
         const untappedLayers = Math.min(untapped.length, PILE_LAYERS - tappedLayers);
         const parts = [
-            { tapped: false, cards: untapped.slice(0, untappedLayers), count: untapped.length },
-            { tapped: true, cards: tapped.slice(0, tappedLayers), count: tapped.length },
+            { tapped: false, cards: untapped.slice(0, untappedLayers), count: untapped.length, hidden: untapped.slice(untappedLayers).map((card) => card.key) },
+            { tapped: true, cards: tapped.slice(0, tappedLayers), count: tapped.length, hidden: tapped.slice(tappedLayers).map((card) => card.key) },
         ].filter((part) => part.count > 0);
 
         return { key, parts };

@@ -3,6 +3,7 @@ import { computed, type Ref } from 'vue';
 import type { ReplayGameInfo, ReplayTimeline } from './replayGame';
 import { cardViews, effectViews, liveObjects, objectZone, playerView, stackItems, WINDOW_ZONES } from './replayState';
 import { tuckedKeys, tuckedUnder } from './replayLinks';
+import { sideRows, type SideRows } from './replayRows';
 import { turnAt } from './replayTimeline';
 import type { CardImageResolver, ReplayCardView, ReplayDerived, ReplayPlayerView, ReplayZone } from './types';
 
@@ -11,7 +12,8 @@ export type ReplaySideView = {
     opponent: boolean;
     active: boolean;
     priority: boolean;
-    battlefield: ReplayCardView[];
+    /** The battlefield's creatures and other permanents as the board draws them, in rows. */
+    rows: SideRows;
     /** Cards under a permanent on either side, by the host's key. */
     tucked: ReadonlyMap<string, ReplayCardView[]>;
     /** Visible cards per zone; an opponent's hand counts the cards whose faces are known. */
@@ -97,7 +99,11 @@ export function useReplayBoard(
                 opponent: player.id !== local.value?.id,
                 active: activeId.value === player.id,
                 priority: derived.value.priority === player.id,
-                battlefield: cards.value.filter((card) => zones.value.get(card.key) === 'battlefield' && card.controller === player.id && !hiddenInRows.value.has(card.key)),
+                rows: sideRows(
+                    cards.value.filter((card) => zones.value.get(card.key) === 'battlefield' && card.controller === player.id && !hiddenInRows.value.has(card.key)),
+                    pairs.value,
+                    tucked.value,
+                ),
                 tucked: tucked.value,
                 zoneCounts: {
                     Hand: player.id === local.value?.id ? hand.value.length : opponentHand.value.length,

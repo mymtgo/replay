@@ -3,7 +3,8 @@ import { Shield, Swords } from 'lucide-vue-next';
 import { computed } from 'vue';
 import ReplayCardImage from './ReplayCardImage.vue';
 import ReplayDie from './ReplayDie.vue';
-import { TUCK_LAYERS, TUCK_PEEK, tuckExtraWidth } from './replayLinks';
+import ReplayTargetMark from './ReplayTargetMark.vue';
+import { TAPPED_TOP, TUCK_LAYERS, tuckLift } from './replayLinks';
 import { counterDice, isCreature, ptCounterLabel } from './replayCards';
 import { useReplayContext } from './replayContext';
 import type { ReplayCardView } from './types';
@@ -16,13 +17,18 @@ const props = defineProps<{
     opponent: boolean;
     /** Shared number linking a blocker to the attacker it blocks. */
     pair?: number | null;
+    /** Keys of the other cards this tile stands for: the rest of a counted swarm, the copies a pile does not draw. */
+    represents?: string[];
     /** Cards tucked under this one: what it exiled and what is attached to it. They peek out to its right. */
     under?: ReplayCardView[];
     /** The last card in a row never shrinks, so crowded rows overlap instead of wrapping. */
     last: boolean;
 }>();
 
-const { showPreview, hidePreview, pinPreview } = useReplayContext();
+/** White ring, red ring and glow: reads against every card art and apart from the attack and block rings. */
+const TARGET_SHADOW = '0 0 0 2px #fff, 0 0 0 5px #e5484d, 0 0 16px 6px rgba(229,72,77,.7)';
+
+const { showPreview, hidePreview, pinPreview, highlightedTargets } = useReplayContext();
 
 const tapped = computed(() => props.card.tapped);
 const attacking = computed(() => props.card.attacking !== null);
@@ -33,6 +39,14 @@ const showPt = computed(() => isCreature(props.card));
 
 const hostWidth = computed(() => (tapped.value ? 'var(--replay-card-h)' : 'calc(var(--replay-card-h) * 63 / 88)'));
 const tuckedShown = computed(() => (props.under ?? []).slice(0, TUCK_LAYERS));
+
+/** Where a tucked card's top edge sits, in card heights from the tile's top: above the host's own top, each further card a smaller step higher. */
+const tuckTop = (i: number): number => (tapped.value ? TAPPED_TOP : 0) - tuckLift(i + 1);
+
+const marked = (key: string) => highlightedTargets.value.has(key);
+
+/** A stack entry targets this card, a card it stands for, or one tucked under it that is not drawn. */
+const targeted = computed(() => marked(props.card.key) || (props.represents ?? []).some(marked) || (props.under ?? []).slice(TUCK_LAYERS).some((card) => marked(card.key)));
 
 const lift = computed(() => (attacking.value ? (props.opponent ? 14 : -14) : 0));
 
@@ -47,28 +61,29 @@ const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5
     <div
         class="relative h-(--replay-card-h) min-w-[18px] hover:z-20!"
         :style="{
-            width: under?.length ? `calc(${hostWidth} + ${tuckExtraWidth(under.length)})` : hostWidth,
+            width: hostWidth,
             flex: `0 ${last ? 0 : 1} auto`,
-            zIndex: attacking ? 3 : 1,
+            zIndex: targeted ? 8 : attacking ? 3 : 1,
         }"
     >
         <div
             v-for="(tuckedCard, i) in tuckedShown"
             :key="tuckedCard.key"
             data-replay-tucked
-            class="absolute top-0 h-(--replay-card-h) w-[calc(var(--replay-card-h)*63/88)] rounded-[5px] bg-muted shadow-[0_2px_6px_rgba(0,0,0,.35)]"
-            :style="{ left: `calc(${hostWidth} - var(--replay-card-h) * 63 / 88 * ${1 - TUCK_PEEK * (tuckedShown.length - i)})`, zIndex: 0 }"
+            class="absolute h-(--replay-card-h) w-[calc(var(--replay-card-h)*63/88)] rounded-[5px] bg-muted"
+            :style="{ boxShadow: marked(tuckedCard.key) ? TARGET_SHADOW : '0 2px 6px rgba(0,0,0,.35)', top: `calc(var(--replay-card-h) * ${tuckTop(i)})`, left: `calc((${hostWidth} - var(--replay-card-h) * 63 / 88) / 2)`, zIndex: -i }"
             @mouseenter="showPreview($event, tuckedCard)"
             @mouseleave="hidePreview"
             @click="pinPreview($event, tuckedCard)"
         >
             <ReplayCardImage :name="tuckedCard.name" :image="tuckedCard.image" />
+            <ReplayTargetMark v-if="marked(tuckedCard.key)" variant="corner" />
         </div>
 
         <div
             class="absolute top-0 left-0 h-(--replay-card-h) w-[calc(var(--replay-card-h)*63/88)] rounded-[5px] bg-muted transition-[transform,box-shadow] duration-200 ease-out"
             :style="{
-                boxShadow: `0 0 0 2px ${ring}, 0 2px 6px rgba(0,0,0,.35)`,
+                boxShadow: targeted ? TARGET_SHADOW : `0 0 0 2px ${ring}, 0 2px 6px rgba(0,0,0,.35)`,
                 transform: `translate(${tapped ? 19.8 : 0}%, ${lift}px) rotate(${tapped ? 90 : 0}deg)`,
             }"
             @mouseenter="showPreview($event, card)"
@@ -76,6 +91,8 @@ const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5
             @click="pinPreview($event, card)"
         >
             <ReplayCardImage :name="card.name" :image="card.image" />
+
+            <ReplayTargetMark v-if="targeted" variant="card" />
 
             <div
                 v-if="(count ?? 1) > 1"

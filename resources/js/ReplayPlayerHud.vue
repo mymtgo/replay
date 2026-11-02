@@ -2,7 +2,10 @@
 import { Hand, Heart, Layers, Skull, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { poolSymbols } from './replayCards';
+import { useReplayContext } from './replayContext';
+import ReplayTargetMark from './ReplayTargetMark.vue';
 import ReplayToggleButton from './ReplayToggleButton.vue';
+import { playerMark, zoneMark } from './replayTargets';
 import { hudZones } from './replayZones';
 import type { ReplayPlayerView, ReplayZone } from './types';
 import ManaSymbol from './ui/ManaSymbol.vue';
@@ -27,6 +30,8 @@ const props = defineProps<{
 const emit = defineEmits<{
     toggleZone: [zone: ReplayZone, event: MouseEvent];
 }>();
+
+const { highlightedTargets } = useReplayContext();
 
 const pool = computed(() => poolSymbols(props.player.pool));
 
@@ -58,8 +63,11 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
         The groups are display:contents in bar mode, so the bar lays out flat.
     -->
     <ReplayPanel
-        class="h-11.5 flex-none flex-row items-center gap-3.5 px-3.5 py-0 @7xl:h-auto @7xl:max-h-full @7xl:w-60 @7xl:flex-col @7xl:items-stretch @7xl:gap-3 @7xl:overflow-y-auto @7xl:p-3"
+        :class="highlightedTargets.has(playerMark(player.id)) ? 'ring-2 ring-[#e5484d] ring-offset-2 ring-offset-transparent' : ''"
+        class="relative h-11.5 flex-none flex-row items-center gap-3.5 px-3.5 py-0 @7xl:h-auto @7xl:max-h-full @7xl:w-60 @7xl:flex-col @7xl:items-stretch @7xl:gap-3 @7xl:overflow-y-auto @7xl:p-3"
     >
+        <ReplayTargetMark v-if="highlightedTargets.has(playerMark(player.id))" variant="inset" />
+
         <div class="contents @7xl:flex @7xl:min-w-0 @7xl:items-center @7xl:gap-2.5">
             <div
                 class="grid size-6.5 flex-none place-items-center rounded-full text-xs font-bold transition-shadow"
@@ -136,6 +144,7 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
                 :key="item.zone"
                 :active="openZones.includes(item.zone)"
                 :icon="item.icon"
+                :targeted="highlightedTargets.has(zoneMark(player.id, item.zone))"
                 :title="item.zone === 'Hand' ? 'Known cards in hand' : undefined"
                 @click="emit('toggleZone', item.zone, $event)"
             >

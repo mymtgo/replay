@@ -2,11 +2,12 @@
 import { computed } from 'vue';
 import ReplayCardPile from './ReplayCardPile.vue';
 import ReplayCardTile from './ReplayCardTile.vue';
-import { frontRowGroups, isFrontRow, landPiles, type CardGroup, type LandPile } from './replayCards';
+import { rowWeight } from './replayBoardFit';
+import type { RowItem, SideRows } from './replayRows';
 import type { ReplayCardView } from './types';
 
 const props = defineProps<{
-    battlefield: ReplayCardView[];
+    rows: SideRows;
     opponent: boolean;
     pairs: Map<string, number>;
     /** Cards under a permanent, by the host's key. */
@@ -16,67 +17,67 @@ const props = defineProps<{
      * scroll sideways instead of shrinking and overlapping its cards.
      */
     scroll: boolean;
-    /** Landscape phones have room for one row a side, so creatures and the rest share it. */
+    /** Creatures and the rest share one row, as on landscape phones and wherever the board is wide enough. */
     singleRow?: boolean;
 }>();
 
-type RowItem = { key: string; group: CardGroup; pile?: never } | { key: string; pile: LandPile; group?: never };
-
-const front = computed<RowItem[]>(() =>
-    frontRowGroups(props.battlefield.filter(isFrontRow), props.pairs, props.tucked).map((group) => ({ key: `${group.card.key}-${group.count}`, group })),
-);
-
-/** Back row: every non-creature permanent, copies of a name piled together. */
-const back = computed<RowItem[]>(() => landPiles(props.battlefield.filter((card) => !isFrontRow(card))).map((pile) => ({ key: `pile-${pile.key}`, pile })));
+type DrawnRow = { key: string; items: RowItem[]; weight: number; lift: number; /** Index of the first back-row item in a shared row, which gets a little room before it. */ spacerAt: number };
 
 /**
  * Creatures face the centre line; lands and other permanents sit behind them.
- * Every row is one card tall, empty or not, so cards keep one size on the
- * whole board and nothing moves as rows fill and empty.
+ * A row with cards is one card tall and an empty row only part of one, so
+ * cards stay one size on the board and an empty row does not hold a gap open.
  */
-const rows = computed(() => {
-    const creatures = { key: 'front', groups: front.value };
-    const lands = { key: 'back', groups: back.value };
+const drawn = computed<DrawnRow[]>(() => {
+    const { front, back } = props.rows;
+    const row = (key: string, items: RowItem[], spacerAt = -1): DrawnRow => ({ key, items, weight: rowWeight(items), lift: items.length ? rowWeight(items) - 1 : 0, spacerAt });
 
     if (props.singleRow) {
-        return [{ key: 'all', groups: [...front.value, ...back.value] }];
+        return [row('all', [...front, ...back], front.length && back.length ? front.length : -1)];
     }
 
-    return props.opponent ? [lands, creatures] : [creatures, lands];
+    return props.opponent ? [row('back', back), row('front', front)] : [row('front', front), row('back', back)];
 });
+
+/** Height around a row's cards: the padding the layout gives it. */
+const rowPad = computed(() => (props.scroll ? (props.singleRow ? '1.25rem' : '2rem') : '0.875rem'));
 </script>
 
 <template>
     <!--
-        Rows are one shared card height (useReplayCardHeight sizes it to fit),
+        Rows are one shared card height (useReplayBoardFit sizes it to fit),
         and what is left over gathers on the far side so the cards stay near
         the centre line.
     -->
     <div data-replay-field class="flex min-h-0 min-w-0 flex-1 basis-0 flex-col py-1" :class="opponent ? 'justify-end' : 'justify-start'">
         <div
-            v-for="row in rows"
+            v-for="row in drawn"
             :key="row.key"
             data-replay-row
-            class="flex flex-none items-stretch gap-1.5"
+            :data-weight="row.weight"
+            class="flex flex-none items-stretch gap-1.5 [&>*]:mt-[calc(var(--replay-card-h)*var(--replay-lift))]"
+            :style="{ height: `calc(var(--replay-card-h) * ${row.weight} + ${rowPad})`, '--replay-lift': row.lift }"
             :class="
                 scroll
                     ? [
                           'justify-center-safe overflow-x-auto overflow-y-hidden px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-                          singleRow ? 'h-[calc(var(--replay-card-h)+1.25rem)] py-2.5' : 'h-[calc(var(--replay-card-h)+2rem)] py-4',
+                          singleRow ? 'py-2.5' : 'py-4',
                       ]
-                    : 'h-[calc(var(--replay-card-h)+0.875rem)] justify-center-safe px-2 py-1.75'
+                    : 'justify-center-safe px-2 py-1.75'
             "
         >
-            <template v-for="(item, i) in row.groups" :key="item.key">
-                <ReplayCardPile v-if="item.pile" :pile="item.pile" :opponent="opponent" :tucked="tucked" />
+            <template v-for="(item, i) in row.items" :key="item.key">
+                <ReplayCardPile v-if="item.pile" :class="i === row.spacerAt ? 'ml-2.5' : ''" :pile="item.pile" :opponent="opponent" :tucked="tucked" />
                 <ReplayCardTile
                     v-else
+                    :class="i === row.spacerAt ? 'ml-2.5' : ''"
                     :card="item.group.card"
+                    :represents="item.group.members"
                     :count="item.group.count"
                     :opponent="opponent"
                     :pair="pairs.get(item.group.card.key) ?? null"
                     :under="tucked.get(item.group.card.key)"
-                    :last="scroll || i === row.groups.length - 1"
+                    :last="scroll || i === row.items.length - 1"
                 />
             </template>
         </div>

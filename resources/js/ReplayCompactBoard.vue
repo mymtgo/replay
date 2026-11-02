@@ -70,7 +70,7 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
 
             <ReplayBattlefield
                 v-if="opponentSide"
-                :battlefield="opponentSide.battlefield"
+                :rows="opponentSide.rows"
                 :opponent="true"
                 :pairs="pairs"
                 :tucked="opponentSide.tucked"
@@ -90,7 +90,7 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
 
             <ReplayBattlefield
                 v-if="localSide"
-                :battlefield="localSide.battlefield"
+                :rows="localSide.rows"
                 :opponent="false"
                 :pairs="pairs"
                 :tucked="localSide.tucked"
