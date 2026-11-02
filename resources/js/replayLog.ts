@@ -172,27 +172,33 @@ export function buildLogItems(moments: ReplayMoment[], states: GameState[], turn
     });
 
     moments.forEach((moment, step) => {
-        const state = states[moment.index];
-
-        if (!moment.logged || !state || moment.line.statement.type === 'turn') {
+        if (!moment.logged) {
             return;
         }
 
-        const text = describeLine(moment.line, state);
+        moment.members.forEach(({ index, line }) => {
+            const state = states[index];
 
-        if (text === null) {
-            return;
-        }
+            if (!state || line.statement.type === 'turn') {
+                return;
+            }
 
-        items.push({
-            key: items.length,
-            kind: 'line',
-            timestamp: timeLabel(moment.time),
-            text,
-            step,
-            player: null,
-            cause: causeView(state, moment.line.cause),
-            objectKey: lineObject(moment.line.statement),
+            const text = describeLine(line, state);
+
+            if (text === null) {
+                return;
+            }
+
+            items.push({
+                key: items.length,
+                kind: 'line',
+                timestamp: timeLabel(line.time ?? moment.time),
+                text,
+                step,
+                player: null,
+                cause: causeView(state, line.cause),
+                objectKey: lineObject(line.statement),
+            });
         });
     });
 

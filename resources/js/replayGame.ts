@@ -73,7 +73,103 @@ function isMoment(line: StatementLine): boolean {
     return !(s.type === 'new-ability' && !s.inStack);
 }
 
-/** The body lines the scrubber visits, in order, with the time each happened. */
+const sameCause = (a: StatementLine, b: StatementLine) => JSON.stringify(a.cause) === JSON.stringify(b.cause);
+
+/** Which half of a mulligan a pregame line belongs to: taking the hand back and drawing anew, or bottoming cards and keeping. */
+function mulliganPart(line: StatementLine): 'redraw' | 'bottom' | 'keep' | null {
+    const s = line.statement;
+    const rule = line.cause?.by === 'rule' && line.cause.rule === 'mulligan';
+
+    if (s.type === 'mulligan' || (s.type === 'shuffle' && rule)) {
+        return 'redraw';
+    }
+
+    if (s.type === 'keep') {
+        return 'keep';
+    }
+
+    if (s.type === 'move' && rule) {
+        return s.position === 'bottom' ? 'bottom' : 'redraw';
+    }
+
+    return null;
+}
+
+/**
+ * Whether `next` is part of the same event as `prev` and shows as one moment,
+ * so cards do not pop in one at a time.
+ *
+ * Anywhere: consecutive moves between the same zones with the same action and
+ * cause, in the same second (one effect drawing three cards, a mass discard).
+ *
+ * Before the first turn, where a second's gap is only the players' pace:
+ * the rolls and re-rolls are one moment; moves of the same kind and cause
+ * join whatever the second, so both opening hands appear together; a
+ * mulligan is its line, the hand going back, the shuffle and the new hand;
+ * and the cards put on the bottom join the keep that follows them.
+ */
+function joins(prev: ReplayMoment, next: ReplayMoment, pregame: boolean): boolean {
+    const a = prev.members.at(-1)!.line;
+    const b = next.line;
+    const p = a.statement;
+    const n = b.statement;
+
+    if (pregame) {
+        if (p.type === 'roll' && n.type === 'roll') {
+            return true;
+        }
+
+        const first = mulliganPart(a);
+        const second = mulliganPart(b);
+
+        if (first && second) {
+            if (n.type === 'mulligan') {
+                return false;
+            }
+
+            if (first === 'redraw') {
+                return second === 'redraw';
+            }
+
+            return first === 'bottom' && (second === 'bottom' || second === 'keep');
+        }
+    }
+
+    if (p.type !== 'move' || n.type !== 'move' || !sameCause(a, b)) {
+        return false;
+    }
+
+    const sameKind = p.from.zone === n.from.zone && p.to.zone === n.to.zone && p.as === n.as && p.position === n.position;
+
+    return sameKind && (pregame || prev.time === next.time);
+}
+
+function mergeMoments(moments: ReplayMoment[]): ReplayMoment[] {
+    const firstTurn = moments.findIndex((moment) => moment.line.statement.type === 'turn');
+    const pregameEnd = firstTurn === -1 ? moments.length : firstTurn;
+    const merged: ReplayMoment[] = [];
+
+    moments.forEach((moment, step) => {
+        const last = merged.at(-1);
+
+        if (last && joins(last, moment, step < pregameEnd)) {
+            last.members.push(...moment.members);
+            last.index = moment.index;
+            last.logged ||= moment.logged;
+
+            return;
+        }
+
+        merged.push({ ...moment, members: [...moment.members] });
+    });
+
+    return merged;
+}
+
+/**
+ * The body lines the scrubber visits, in order, with the time each happened.
+ * Lines that are one event show as one moment (see `joins`).
+ */
 export function gameMoments(game: Game): ReplayMoment[] {
     const moments: ReplayMoment[] = [];
     let time = 0;
@@ -86,11 +182,11 @@ export function gameMoments(game: Game): ReplayMoment[] {
         time = line.time ?? time;
 
         if (isMoment(line)) {
-            moments.push({ index, line, time, logged: !UNLOGGED_TYPES.has(line.statement.type) });
+            moments.push({ index, line, members: [{ index, line }], time, logged: !UNLOGGED_TYPES.has(line.statement.type) });
         }
     });
 
-    return moments;
+    return mergeMoments(moments);
 }
 
 /** Turn boundaries over the moments: the pregame first, then one per `turn` line. */

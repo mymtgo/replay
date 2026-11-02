@@ -4,7 +4,12 @@ import { test } from 'node:test';
 import { parse } from '@mtgreplay/mtgr';
 import { buildTimeline } from '../../resources/js/replayGame.ts';
 import { buildLogItems } from '../../resources/js/replayLog.ts';
-import { frameAtPosition, timelinePositions, turnAt } from '../../resources/js/replayTimeline.ts';
+import { frameAtPosition, pregameEnd, PREGAME_SHARE, stepDuration, timelinePositions, turnAt } from '../../resources/js/replayTimeline.ts';
+
+const near = (actual: number[], expected: number[]) => {
+    assert.equal(actual.length, expected.length);
+    actual.forEach((value, i) => assert.ok(Math.abs(value - expected[i]) < 1e-9, `${value} vs ${expected[i]}`));
+};
 
 const fixture = (name: string) => parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8')).file.games;
 
@@ -80,10 +85,50 @@ test('turn headers sit first in their turn and carry the active player', () => {
 });
 
 test('the scrubber spreads moments by game time and finds the moment at a position', () => {
-    const positions = timelinePositions([0, 10, 30, 40]);
+    const positions = timelinePositions([0, 2, 4, 6]);
 
-    assert.deepEqual(positions, [0, 25, 75, 100, 100]);
-    assert.equal(frameAtPosition(positions, 26), 1);
+    near(positions, [0, 100 / 3, 200 / 3, 100, 100]);
+    assert.equal(frameAtPosition(positions, 34), 1);
     assert.equal(frameAtPosition(positions, 100), 3);
     assert.deepEqual(timelinePositions([5, 5, 5]), [0, 50, 100, 100]);
 });
+
+test('a long wait counts for at most five seconds on the scrubber', () => {
+    near(timelinePositions([0, 60, 62]), [0, (5 / 7) * 100, 100, 100]);
+});
+
+test('the pregame takes a fixed share of the scrubber, split evenly, however long it ran', () => {
+    const positions = timelinePositions([0, 100, 200, 300, 301], 3);
+
+    near(positions.slice(0, 4), [0, PREGAME_SHARE / 3, (PREGAME_SHARE * 2) / 3, PREGAME_SHARE]);
+    assert.equal(positions[4], 100);
+});
+
+test('playback holds a moment for the real wait, between 0.4 and 2 seconds at 1x', () => {
+    const times = [0, 0, 1, 61];
+
+    assert.equal(stepDuration(times, 0, 1), 400);
+    assert.equal(stepDuration(times, 1, 1), 1000);
+    assert.equal(stepDuration(times, 2, 1), 2000);
+    assert.equal(stepDuration(times, 2, 2), 1000);
+    assert.equal(stepDuration(times, 3, 1), 400);
+});
+
+test('the pregame of the Mycospawn game is a handful of moments with the real clock kept', () => {
+    const end = pregameEnd(timeline.turns);
+    const pregame = timeline.moments.slice(0, end);
+
+    assert.deepEqual(
+        pregame.map((moment) => [moment.line.statement.type, moment.members.length, moment.time]),
+        [['pregame', 1, 0], ['roll', 2, 2], ['choose-first', 1, 12], ['move', 14, 12], ['keep', 1, 29], ['mulligan', 16, 32], ['move', 2, 39]],
+    );
+    assert.equal(timeline.moments[end].line.statement.type, 'turn');
+});
+
+test('merged moments keep their lines in the log and show the state after the last one', () => {
+    const draws = timeline.moments[3];
+
+    assert.equal(draws.index, draws.members.at(-1)!.index);
+    assert.equal(items.filter((item) => item.step === 3 && item.text.includes('draws')).length, 14);
+});
+

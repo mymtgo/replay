@@ -25,7 +25,10 @@ import { sideboardCaptions, sideboardCards, sideboardChanges, sideboardNames } f
 import ReplaySideboardChanges from './ReplaySideboardChanges.vue';
 import ReplaySide from './ReplaySide.vue';
 import ReplayStack from './ReplayStack.vue';
-import { timelinePositions } from './replayTimeline';
+import { pregameEnd, stepDuration, timelinePositions } from './replayTimeline';
+import { exiledBy } from './replayExile';
+import { pregameView } from './replayPregame';
+import ReplayPregame from './ReplayPregame.vue';
 import ReplayTransport from './ReplayTransport.vue';
 import { REPLAY_ZONES } from './replayZones';
 import ReplayZoneWindow from './ReplayZoneWindow.vue';
@@ -36,7 +39,7 @@ import { useReplayBoardFit } from './useReplayBoardFit';
 import { useReplayFullscreen } from './useReplayFullscreen';
 import { useReplayKeyboard } from './useReplayKeyboard';
 import { useReplayLayout } from './useReplayLayout';
-import { REPLAY_SPEEDS, stepDuration, useReplayPlayback } from './useReplayPlayback';
+import { REPLAY_SPEEDS, useReplayPlayback } from './useReplayPlayback';
 import { useReplayShare } from './useReplayShare';
 import { useScrubTooltip } from './useScrubTooltip';
 import { useTargetHighlight } from './useTargetHighlight';
@@ -82,13 +85,8 @@ const images = toRef(props, 'cardImage');
 const total = computed(() => timeline.value.moments.length);
 const turns = computed(() => timeline.value.turns);
 const times = computed(() => timeline.value.times);
-const logItems = computed(() =>
-    buildLogItems(
-        timeline.value.moments,
-        timeline.value.steps.map((step) => step.state),
-        turns.value,
-    ),
-);
+const states = computed(() => timeline.value.steps.map((step) => step.state));
+const logItems = computed(() => buildLogItems(timeline.value.moments, states.value, turns.value));
 
 const playback = useReplayPlayback(times, turns);
 const { current, playing, speed } = playback;
@@ -116,13 +114,24 @@ const { moment, local, opponent, cardsByKey, zones, turn, activeId, step, incomp
     sideboardSizes,
 );
 
-const positions = computed(() => timelinePositions(times.value));
+const positions = computed(() => timelinePositions(times.value, pregameEnd(turns.value)));
 const holdMs = computed(() => stepDuration(times.value, current.value, speed.value));
 
 /** Recorded on press: older Safari does not deliver clicks as PointerEvents, so a click cannot say what made it. */
 const lastPointer = shallowRef<string | null>(null);
 
-const preview = useCardPreview(root, cardsByKey, images, lastPointer);
+const pregame = computed(() =>
+    turn.value?.number === null && moment.value
+        ? pregameView(game.value, states.value, moment.value, info.value.players)
+        : null,
+);
+
+const exileContext = (key: string) =>
+    zones.value.get(key) === 'exile'
+        ? exiledBy(timeline.value.moments, states.value, current.value, key)
+        : null;
+
+const preview = useCardPreview(root, cardsByKey, images, lastPointer, exileContext);
 const { card: previewCard, position: previewPosition, chips: previewChips, pinned: previewPinned } = preview;
 
 const targets = useTargetHighlight(stack, zones, cardsByKey, lastPointer);
@@ -286,7 +295,7 @@ function windowCaptions(zone: ReplayZone): Map<string, string> | null {
 const clockTime = computed(() => (moment.value ? timeLabel(moment.value.time) : ''));
 
 const currentStepLabel = computed(() => (step.value ? stepLabel(step.value) : null));
-const missingText = computed(() => (turn.value?.number === null ? 'Before the first turn' : ''));
+const missingText = computed(() => (turn.value?.number === null ? 'Pregame' : ''));
 
 const shareLink = useReplayShare(() => (props.shareUrl ? props.shareUrl(current.value) : null));
 const shareMoment = computed(() =>
@@ -389,6 +398,8 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
 
                     <ReplayShareCard v-if="shareUrl" :moment="shareMoment" :copied="shareLink.copied.value" @share="shareLink.share(false)" />
                 </div>
+
+                <ReplayPregame v-if="pregame" :view="pregame" :local-id="localId" />
 
                 <ReplayLogDrawer
                     :open="logOpen"

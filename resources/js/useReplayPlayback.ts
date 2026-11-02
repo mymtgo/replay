@@ -1,22 +1,8 @@
 import { computed, onUnmounted, readonly, shallowRef, watch, type Ref } from 'vue';
+import { stepDuration } from './replayTimeline';
 import type { ReplayTurn } from './types';
 
 export const REPLAY_SPEEDS = [0.5, 1, 1.5, 2, 4];
-
-/** Moments recorded in the same second still show for a while, so a burst of lines can be followed. */
-const MIN_STEP_MS = 400;
-
-/** How long playback holds a moment: the real time until the next one, thinking included, scaled by speed. */
-export function stepDuration(times: number[], index: number, speed: number): number {
-    const from = times[index];
-    const to = times[index + 1];
-
-    if (from === undefined || to === undefined) {
-        return MIN_STEP_MS / speed;
-    }
-
-    return Math.max(MIN_STEP_MS, (to - from) * 1000) / speed;
-}
 
 /** Moment cursor, play/pause and turn jumps for a replay. */
 export function useReplayPlayback(times: Readonly<Ref<number[]>>, turns: Readonly<Ref<ReplayTurn[]>>) {

@@ -89,9 +89,12 @@ export type ReplayEffectView = {
 
 /** One of the body lines the scrubber visits. */
 export type ReplayMoment = {
-    /** Index into `replay(game)`'s steps, which is also the index into `game.body`. */
+    /** Index into `replay(game)`'s steps, which is also the index into `game.body`: the moment's last line, so the state is the one after the whole moment. */
     index: number;
+    /** The moment's first line. */
     line: StatementLine;
+    /** Every line of the moment with its body index; more than one when atomic lines were merged. */
+    members: { index: number; line: StatementLine }[];
     /** Seconds since the game started. */
     time: number;
     /** Whether the log lists it: priority, passes and step lines move the board but say nothing. */

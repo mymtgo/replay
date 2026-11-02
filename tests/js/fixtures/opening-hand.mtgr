@@ -1,0 +1,217 @@
+[Mtgr "0.3.0"]
+[Event "Modern League"]
+[Site "MTGO"]
+[Date "2026.11.02"]
+[Round "-"]
+[Player1 "PlayerA"]
+[Player2 "PlayerB"]
+[Result "*"]
+[Format "Modern"]
+[Match "example-opening-hand"]
+[Game "1"]
+[Perspective "PlayerA"]
+[TimeControl "1500"]
+[UTCDate "2026.11.02"]
+[UTCTime "19:05:00"]
+
+0:00 deck "PlayerA" unknown
+0:00 pregame
+0:00   keyframe
+0:00     player "PlayerA" life 20 poison 0 library 60
+0:00     player "PlayerB" life 20 poison 0 library 60
+0:03   "PlayerA" roll 5
+0:03   "PlayerB" roll 2
+0:08   "PlayerA" choose first "PlayerA"
+0:09   new card #1 "Serum Powder" owner "PlayerA" in library
+0:09   #1 "Serum Powder" move library -> hand as draw by rule:opening-hand
+0:09   new card #2 "Swamp" owner "PlayerA" in library
+0:09   #2 "Swamp" move library -> hand as draw by rule:opening-hand
+0:09   new card #3 "Swamp" owner "PlayerA" in library
+0:09   #3 "Swamp" move library -> hand as draw by rule:opening-hand
+0:09   new card #4 "Swamp" owner "PlayerA" in library
+0:09   #4 "Swamp" move library -> hand as draw by rule:opening-hand
+0:09   new card #5 "Swamp" owner "PlayerA" in library
+0:09   #5 "Swamp" move library -> hand as draw by rule:opening-hand
+0:09   new card #6 "Griselbrand" owner "PlayerA" in library
+0:09   #6 "Griselbrand" move library -> hand as draw by rule:opening-hand
+0:09   new card #7 "Griselbrand" owner "PlayerA" in library
+0:09   #7 "Griselbrand" move library -> hand as draw by rule:opening-hand
+0:09   new hidden #8 owner "PlayerB" in library
+0:09   #8 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #9 owner "PlayerB" in library
+0:09   #9 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #10 owner "PlayerB" in library
+0:09   #10 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #11 owner "PlayerB" in library
+0:09   #11 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #12 owner "PlayerB" in library
+0:09   #12 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #13 owner "PlayerB" in library
+0:09   #13 move library -> hand as draw by rule:opening-hand
+0:09   new hidden #14 owner "PlayerB" in library
+0:09   #14 move library -> hand as draw by rule:opening-hand
+0:17   #1 "Serum Powder" move hand -> exile by #1
+0:17   #2 "Swamp" move hand -> exile by #1
+0:17   #3 "Swamp" move hand -> exile by #1
+0:17   #4 "Swamp" move hand -> exile by #1
+0:17   #5 "Swamp" move hand -> exile by #1
+0:17   #6 "Griselbrand" move hand -> exile by #1
+0:17   #7 "Griselbrand" move hand -> exile by #1
+0:17   new card #15 "Leyline of the Void" owner "PlayerA" in library
+0:17   #15 "Leyline of the Void" move library -> hand as draw by #1
+0:17   new card #16 "Chancellor of the Annex" owner "PlayerA" in library
+0:17   #16 "Chancellor of the Annex" move library -> hand as draw by #1
+0:17   new card #17 "Swamp" owner "PlayerA" in library
+0:17   #17 "Swamp" move library -> hand as draw by #1
+0:17   new card #18 "Thoughtseize" owner "PlayerA" in library
+0:17   #18 "Thoughtseize" move library -> hand as draw by #1
+0:17   new card #19 "Griselbrand" owner "PlayerA" in library
+0:17   #19 "Griselbrand" move library -> hand as draw by #1
+0:17   new card #20 "Polluted Delta" owner "PlayerA" in library
+0:17   #20 "Polluted Delta" move library -> hand as draw by #1
+0:17   new card #21 "Watery Grave" owner "PlayerA" in library
+0:17   #21 "Watery Grave" move library -> hand as draw by #1
+0:24   "PlayerA" keep
+0:29   "PlayerB" keep
+0:31   #15 "Leyline of the Void" move hand -> battlefield by #15
+0:32   #16 "Chancellor of the Annex" reveal by #16
+0:32   new effect #22 of #16 "Chancellor of the Annex" "When each opponent casts their first spell of the game, counter that spell unless that player pays {1}." controller "PlayerA" by #16
+0:36   #8 identify "Gemstone Caverns"
+0:36   #8 "Gemstone Caverns" move hand -> battlefield by #8
+0:36   #8 "Gemstone Caverns" counters "luck" 0 -> 1 by #8
+0:36   #9 identify "Lightning Bolt"
+0:36   #9 "Lightning Bolt" move hand -> exile by #8
+0:38 turn 1 "PlayerA"
+0:38   keyframe
+0:38     player "PlayerA" life 20 poison 0 library 46
+0:38     player "PlayerB" life 20 poison 0 library 53
+0:38     #1 "Serum Powder" exile
+0:38     #2 "Swamp" exile
+0:38     #3 "Swamp" exile
+0:38     #4 "Swamp" exile
+0:38     #5 "Swamp" exile
+0:38     #6 "Griselbrand" exile
+0:38     #7 "Griselbrand" exile
+0:38     #8 "Gemstone Caverns" battlefield "PlayerB" counters "luck" 1
+0:38     #9 "Lightning Bolt" exile
+0:38     #10 hand "PlayerB"
+0:38     #11 hand "PlayerB"
+0:38     #12 hand "PlayerB"
+0:38     #13 hand "PlayerB"
+0:38     #14 hand "PlayerB"
+0:38     #15 "Leyline of the Void" battlefield "PlayerA"
+0:38     #16 "Chancellor of the Annex" hand "PlayerA"
+0:38     #17 "Swamp" hand "PlayerA"
+0:38     #18 "Thoughtseize" hand "PlayerA"
+0:38     #19 "Griselbrand" hand "PlayerA"
+0:38     #20 "Polluted Delta" hand "PlayerA"
+0:38     #21 "Watery Grave" hand "PlayerA"
+0:38     #22 effect of #16 "Chancellor of the Annex" "When each opponent casts their first spell of the game, counter that spell unless that player pays {1}." controller "PlayerA"
+0:38   untap
+0:38   upkeep
+0:38   precombat-main
+0:41     #17 "Swamp" play from hand
+0:43     new ability #23 mana of #17 "Swamp" "({T}: Add {B}.)" controller "PlayerA"
+0:43     #17 "Swamp" tap by cost:#23
+0:43     "PlayerA" add {B} by #23
+0:44     #18 "Thoughtseize" cast from hand
+0:44     #18 "Thoughtseize" target "PlayerB"
+0:44     "PlayerA" pay {B} by cost:#18
+0:44     "PlayerA" priority
+0:44       stack
+0:44         #18 "Thoughtseize" controller "PlayerA" target "PlayerB"
+0:44     "PlayerA" pass
+0:44     "PlayerB" priority
+0:44       stack
+0:44         #18 "Thoughtseize" controller "PlayerA" target "PlayerB"
+0:47     "PlayerB" pass
+0:47     #18 "Thoughtseize" resolve
+0:47     #10 identify "Ragavan, Nimble Pilferer"
+0:47     #10 "Ragavan, Nimble Pilferer" reveal by #18
+0:47     #11 identify "Mountain"
+0:47     #11 "Mountain" reveal by #18
+0:47     #12 identify "Expedition Map"
+0:47     #12 "Expedition Map" reveal by #18
+0:47     #13 identify "Spirebluff Canal"
+0:47     #13 "Spirebluff Canal" reveal by #18
+0:47     #14 identify "Unholy Heat"
+0:47     #14 "Unholy Heat" reveal by #18
+0:53     #18 "Thoughtseize" choose object #10 "Ragavan, Nimble Pilferer"
+0:53     #10 "Ragavan, Nimble Pilferer" move hand -> exile as discard by #18 replacement #15
+0:53     "PlayerA" life 20 -> 18 by #18
+0:53     #18 "Thoughtseize" move stack -> graveyard by rule:resolve
+0:55   beginning-of-combat
+0:55   declare-attackers
+0:55   end-of-combat
+0:56   postcombat-main
+0:56   end
+0:57   cleanup
+0:58 turn 2 "PlayerB"
+0:58   keyframe
+0:58     player "PlayerA" life 18 poison 0 library 46
+0:58     player "PlayerB" life 20 poison 0 library 53
+0:58     #1 "Serum Powder" exile
+0:58     #2 "Swamp" exile
+0:58     #3 "Swamp" exile
+0:58     #4 "Swamp" exile
+0:58     #5 "Swamp" exile
+0:58     #6 "Griselbrand" exile
+0:58     #7 "Griselbrand" exile
+0:58     #8 "Gemstone Caverns" battlefield "PlayerB" counters "luck" 1
+0:58     #9 "Lightning Bolt" exile
+0:58     #10 "Ragavan, Nimble Pilferer" exile
+0:58     #11 "Mountain" hand "PlayerB"
+0:58     #12 "Expedition Map" hand "PlayerB"
+0:58     #13 "Spirebluff Canal" hand "PlayerB"
+0:58     #14 "Unholy Heat" hand "PlayerB"
+0:58     #15 "Leyline of the Void" battlefield "PlayerA"
+0:58     #16 "Chancellor of the Annex" hand "PlayerA"
+0:58     #17 "Swamp" battlefield "PlayerA" tapped
+0:58     #18 "Thoughtseize" graveyard "PlayerA"
+0:58     #19 "Griselbrand" hand "PlayerA"
+0:58     #20 "Polluted Delta" hand "PlayerA"
+0:58     #21 "Watery Grave" hand "PlayerA"
+0:58     #22 effect of #16 "Chancellor of the Annex" "When each opponent casts their first spell of the game, counter that spell unless that player pays {1}." controller "PlayerA"
+0:58   untap
+0:58   upkeep
+1:00   draw
+1:00     new hidden #24 owner "PlayerB" in library
+1:00     #24 move library -> hand as draw by rule:draw
+1:00   precombat-main
+1:04     #11 "Mountain" play from hand
+1:06     new ability #25 mana of #11 "Mountain" "({T}: Add {R}.)" controller "PlayerB"
+1:06     #11 "Mountain" tap by cost:#25
+1:06     "PlayerB" add {R} by #25
+1:07     #12 "Expedition Map" cast from hand
+1:07     "PlayerB" pay {R} by cost:#12
+1:07     new ability #26 triggered of #16 "Chancellor of the Annex" "When each opponent casts their first spell of the game, counter that spell unless that player pays {1}." controller "PlayerA" in stack from #22
+1:07     #22 cease by rule:delayed-trigger
+1:07     "PlayerB" priority
+1:07       stack
+1:07         #26 triggered of #16 "Chancellor of the Annex" "When each opponent casts their first spell of the game, counter that spell unless that player pays {1}." controller "PlayerA"
+1:07         #12 "Expedition Map" controller "PlayerB"
+1:09     "PlayerB" pass
+1:09     "PlayerA" priority
+1:09       stack
+1:09         #26 triggered of #16 "Chancellor of the Annex" "When each opponent casts their first spell of the game, counter that spell unless that player pays {1}." controller "PlayerA"
+1:09         #12 "Expedition Map" controller "PlayerB"
+1:10     "PlayerA" pass
+1:10     #26 resolve
+1:13     #26 choose option "pay {1}" by "PlayerB"
+1:13     new ability #27 mana of #8 "Gemstone Caverns" "{T}: Add {C}. If Gemstone Caverns has a luck counter on it, instead add one mana of any color." controller "PlayerB"
+1:13     #8 "Gemstone Caverns" tap by cost:#27
+1:13     "PlayerB" add {U} by #27
+1:13     "PlayerB" pay {U} by cost:#26
+1:13     #26 cease by rule:resolve
+1:13     "PlayerB" priority
+1:13       stack
+1:13         #12 "Expedition Map" controller "PlayerB"
+1:14     "PlayerB" pass
+1:14     "PlayerA" priority
+1:14       stack
+1:14         #12 "Expedition Map" controller "PlayerB"
+1:16     "PlayerA" pass
+1:16     #12 "Expedition Map" resolve
+1:16     #12 "Expedition Map" move stack -> battlefield by rule:resolve
+1:16     incomplete "example ends here"
+*
