@@ -68,6 +68,7 @@ test('the step and priority follow the lines, and combat is cleared at end of co
 
     assert.equal(at((text) => text.includes('"Sowing Mycospawn"') && text.includes('"cast"')).step, 'precombat-main');
     assert.equal(at((text) => text.includes('"priority","player":"PlayerB"')).priority, 'PlayerB');
+    assert.equal(at((text) => text.includes('"resolve"') && text.includes('"n":28')).priority, 'PlayerA', 'the active player gets priority after a resolution');
 
     const lasting = buildTimeline(fixture('lasting-effects.mtgr')[0]);
     const attackIndex = lasting.moments.find((moment) => moment.line.statement.type === 'attack')!.index;

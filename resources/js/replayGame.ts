@@ -118,7 +118,7 @@ export function deriveTurns(moments: ReplayMoment[]): ReplayTurn[] {
     return turns;
 }
 
-const EMPTY_DERIVED: ReplayDerived = { step: null, priority: null, attacking: new Map(), blocking: new Map(), damage: new Map(), clocks: {} };
+const EMPTY_DERIVED: ReplayDerived = { step: null, priority: null, active: null, attacking: new Map(), blocking: new Map(), damage: new Map(), clocks: {} };
 
 /**
  * What the lines settle to that the parser's state leaves out, one entry per
@@ -147,7 +147,12 @@ function applyDerived(d: ReplayDerived, line: StatementLine): ReplayDerived {
 
     switch (s.type) {
         case 'turn':
-            return { ...d, step: null, priority: null, attacking: new Map(), blocking: new Map(), damage: new Map() };
+            return { ...d, step: null, priority: null, active: s.player, attacking: new Map(), blocking: new Map(), damage: new Map() };
+        case 'resolve':
+        case 'fizzle':
+        case 'countered':
+            // The active player receives priority after a resolution (CR 117.3b); a file may leave that line out when the stack is then empty.
+            return { ...d, priority: d.active };
         case 'step':
             if (s.step === 'end-of-combat' || s.step === 'cleanup') {
                 return { ...d, step: s.step, attacking: new Map(), blocking: new Map(), damage: s.step === 'cleanup' ? new Map() : d.damage };

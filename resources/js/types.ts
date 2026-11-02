@@ -132,6 +132,8 @@ export type ReplayLogItem = {
 export type ReplayDerived = {
     step: Step | null;
     priority: Player | null;
+    /** The turn's player, from the `turn` line. */
+    active: Player | null;
     /** Attackers by key and what they attack. */
     attacking: ReadonlyMap<string, Target>;
     /** Blockers by key and the attacker's key. */
