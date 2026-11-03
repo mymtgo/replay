@@ -7,7 +7,6 @@ import {
     toStoredPosition,
     windowStorageKey,
     type WindowPoint,
-    WINDOW_EDGE_PX,
     type WindowSize,
 } from './replayWindows';
 import type { ReplayZone } from './types';
@@ -20,11 +19,6 @@ export const COMPACT_ZONE_WINDOW_WIDTH_PX = 272;
 const ASSUMED_HEIGHT_PX = 300;
 const COMPACT_ASSUMED_HEIGHT_PX = 240;
 const MIN_SIZE: WindowSize = { width: 220, height: 150 };
-/** Wide viewers keep a column on the left for the HUDs, so a window opened without an anchor sits beside it, clear of the stack and effects on the right. */
-const SIDE_COLUMN_PX = 256;
-const WIDE_VIEWER_PX = 1280;
-/** The transport bar a window opened at the bottom keeps clear of. */
-const TRANSPORT_PX = 84;
 const CASCADE_PX = 24;
 const ANCHOR_GAP_PX = 6;
 
@@ -176,16 +170,6 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
         return { left, top, anchorBottom: side === 'you' ? top + size.height : null };
     }
 
-    /** Without a button to open from (a hand that opens by itself): the left edge, yours at the bottom and theirs at the top. */
-    function edgePoint(side: ZoneWindowSide, size: WindowSize, viewer: WindowSize): WindowPoint & { anchorBottom: number | null } {
-        const left = viewer.width >= WIDE_VIEWER_PX ? SIDE_COLUMN_PX : WINDOW_EDGE_PX;
-        const cascade = windows.value.length * CASCADE_PX;
-
-        return side === 'you'
-            ? { left: left + cascade, top: viewer.height - TRANSPORT_PX - size.height, anchorBottom: viewer.height - TRANSPORT_PX }
-            : { left: left + cascade, top: 52 + cascade, anchorBottom: null };
-    }
-
     function toggle(player: string, zone: ReplayZone, side: ZoneWindowSide, anchor: HTMLElement) {
         const existing = windows.value.find((item) => item.player === player && item.zone === zone);
 
@@ -199,7 +183,7 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
     }
 
     /** Opens a window unless it is open already; a remembered position wins over the anchor. */
-    function open(player: string, zone: ReplayZone, side: ZoneWindowSide, anchor: HTMLElement | null) {
+    function open(player: string, zone: ReplayZone, side: ZoneWindowSide, anchor: HTMLElement) {
         if (isOpen(player, zone)) {
             return;
         }
@@ -213,7 +197,7 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
         const stored = readStored(side, zone, compact.value);
         const storedSize = stored?.width && stored.height ? { width: stored.width, height: stored.height } : null;
         const placed = storedSize ?? defaultSize(viewer);
-        const anchored = stored ? null : anchor ? anchoredPoint(anchor, side, placed) : edgePoint(side, placed, viewer);
+        const anchored = stored ? null : anchoredPoint(anchor, side, placed);
         const point = clampWindow(anchored ?? fromStoredPosition(stored!, viewer), placed, viewer);
         const size = storedSize ? clampSize(storedSize, point, MIN_SIZE, viewer) : null;
 
@@ -284,5 +268,5 @@ export function useZoneWindows(root: Readonly<Ref<HTMLElement | null>>, compact:
         );
     }
 
-    return { windows: readonly(windows), isOpen, toggle, open, close, closeTop, closeAll, focus, settle, startDrag, startResize };
+    return { windows: readonly(windows), isOpen, toggle, close, closeTop, closeAll, focus, settle, startDrag, startResize };
 }

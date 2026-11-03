@@ -95,21 +95,6 @@ export function useReplayBoard(
     const hand = computed(() => (local.value ? inZone('Hand', local.value.id) : []));
     /** Their hand cards whose faces are known: identified or revealed while there. */
     const opponentHand = computed(() => (opponent.value ? inZone('Hand', opponent.value.id).filter((card) => card.name !== null) : []));
-    /**
-     * Their known hand cards that are still known and in hand at the next
-     * moment. A card named only as it leaves (an `identify` line before its
-     * `play` or `cast`) is not one: nothing showed it while it was held.
-     */
-    const heldKnown = computed(() => {
-        const next = timeline.value.moments[current.value + 1];
-        const after = next ? timeline.value.steps[next.index]?.state : null;
-
-        if (!after) {
-            return opponentHand.value;
-        }
-
-        return opponentHand.value.filter((card) => after.objects[card.key]?.zone?.zone === 'hand' && after.objects[card.key]?.name != null);
-    });
 
     const sides = computed<ReplaySideView[]>(() =>
         [opponent.value, local.value]
@@ -135,5 +120,5 @@ export function useReplayBoard(
             })),
     );
 
-    return { moment, state, derived, players, local, opponent, cards, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, reveal, chosenKeys, hand, opponentHand, heldKnown, sides, playerName, inZone };
+    return { moment, state, derived, players, local, opponent, cards, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, reveal, chosenKeys, hand, opponentHand, sides, playerName, inZone };
 }

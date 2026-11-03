@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Game, Player } from '@mtgreplay/mtgr';
-import { computed, nextTick, onMounted, provide, shallowRef, toRef, useTemplateRef, watch, type Component } from 'vue';
+import { computed, provide, shallowRef, toRef, useTemplateRef, watch, type Component } from 'vue';
 import ReplayCardPreview from './ReplayCardPreview.vue';
 import ReplayCompactBoard from './ReplayCompactBoard.vue';
 import ReplayCompactTransport from './ReplayCompactTransport.vue';
@@ -104,7 +104,7 @@ const sideboardSizes = computed(
     () => Object.fromEntries(info.value.players.map((player) => [player, [...(sideboards.value[player]?.values() ?? [])].reduce((sum, count) => sum + count, 0)])) as Record<Player, number>,
 );
 
-const { moment, local, opponent, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, reveal, chosenKeys, hand, opponentHand, heldKnown, sides, playerName, inZone } = useReplayBoard(
+const { moment, local, opponent, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, reveal, chosenKeys, hand, opponentHand, sides, playerName, inZone } = useReplayBoard(
     game,
     info,
     timeline,
@@ -190,64 +190,6 @@ watch(layout, (value) => {
 
     if (value === 'regular') {
         sheet.value = null;
-        nextTick(openHands);
-    }
-});
-
-/**
- * Hands open by themselves, as windows like any zone: yours when the game
- * opens, theirs when one of its cards is revealed or becomes known while
- * held, for the first time this game. A hand the viewer closes stays closed
- * until a card it has not shown before is revealed. Phones keep their hands
- * sheet instead.
- */
-function openHand(own: boolean) {
-    const player = own ? local.value : opponent.value;
-
-    if (player && layout.value === 'regular') {
-        zoneWindows.open(player.id, 'Hand', own ? 'you' : 'opponent', null);
-    }
-}
-
-/** Their hand cards shown or known so far this game, so stepping on past them does not reopen the hand. */
-let shownKeys = new Set<string>();
-/** Whether an effect was showing their hand a moment ago: a Thoughtseize names its cards one moment at a time, and only the first opens the hand. */
-let wasRevealing = false;
-
-function shownNow() {
-    return [...reveal.value.keys, ...heldKnown.value.map((card) => card.key)];
-}
-
-function openHands() {
-    const keys = shownNow();
-
-    openHand(true);
-    keys.forEach((key) => shownKeys.add(key));
-    wasRevealing = reveal.value.keys.size > 0;
-
-    if (keys.length) {
-        openHand(false);
-    }
-}
-
-onMounted(() => nextTick(openHands));
-watch(
-    () => props.gameIndex,
-    () => {
-        shownKeys = new Set();
-        wasRevealing = false;
-        nextTick(() => openHand(true));
-    },
-);
-watch(shownNow, (keys) => {
-    const fresh = keys.filter((key) => !shownKeys.has(key));
-    const continuing = wasRevealing;
-
-    fresh.forEach((key) => shownKeys.add(key));
-    wasRevealing = reveal.value.keys.size > 0;
-
-    if (fresh.length && !continuing) {
-        openHand(false);
     }
 });
 
