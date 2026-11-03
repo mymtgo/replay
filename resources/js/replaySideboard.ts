@@ -20,6 +20,7 @@ export function namedCard(name: string, key: string, owner: Player, images: Card
         owner,
         controller: owner,
         tapped: false,
+        types: null,
         power: null,
         toughness: null,
         counters: {},

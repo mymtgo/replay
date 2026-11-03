@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import ReplayCardPile from './ReplayCardPile.vue';
 import ReplayCardTile from './ReplayCardTile.vue';
 import { emptyRowWeight, rowWeight } from './replayBoardFit';
-import type { RowItem, SideRows } from './replayRows';
+import { joinGroups, type RowItem, type SideRows } from './replayRows';
 import type { ReplayCardView } from './types';
 
 const props = defineProps<{
@@ -21,7 +21,7 @@ const props = defineProps<{
     singleRow?: boolean;
 }>();
 
-type DrawnRow = { key: string; items: RowItem[]; weight: number; lift: number; /** Index of the first back-row item in a shared row, which gets a little room before it. */ spacerAt: number };
+type DrawnRow = { key: string; items: RowItem[]; weight: number; lift: number; /** Indexes of the items that start a group after the first, which get a little room before them. */ spacers: number[] };
 
 /**
  * Two fixed rows: creatures face the centre line, and lands and other
@@ -30,14 +30,18 @@ type DrawnRow = { key: string; items: RowItem[]; weight: number; lift: number; /
  * arrives. A phone's empty row only keeps part of a card.
  */
 const drawn = computed<DrawnRow[]>(() => {
-    const { front, back } = props.rows;
-    const row = (key: string, items: RowItem[], spacerAt = -1): DrawnRow => ({ key, items, weight: rowWeight(items, emptyRowWeight(props.scroll)), lift: items.length ? rowWeight(items, 0) - 1 : 0, spacerAt });
+    const { front, back, lands } = props.rows;
+    const row = (key: string, groups: RowItem[][]): DrawnRow => {
+        const { items, spacers } = joinGroups(groups);
+
+        return { key, items, weight: rowWeight(items, emptyRowWeight(props.scroll)), lift: items.length ? rowWeight(items, 0) - 1 : 0, spacers };
+    };
 
     if (props.singleRow) {
-        return [row('all', [...front, ...back], front.length && back.length ? front.length : -1)];
+        return [row('all', [front, back, lands])];
     }
 
-    return props.opponent ? [row('back', back), row('front', front)] : [row('front', front), row('back', back)];
+    return props.opponent ? [row('back', [back, lands]), row('front', [front])] : [row('front', [front]), row('back', [back, lands])];
 });
 
 /** Height around a row's cards: the padding the layout gives it. */
@@ -68,10 +72,10 @@ const rowPad = computed(() => (props.scroll ? (props.singleRow ? '1.25rem' : '2r
             "
         >
             <template v-for="(item, i) in row.items" :key="item.key">
-                <ReplayCardPile v-if="item.pile" :class="i === row.spacerAt ? 'ml-2.5' : ''" :pile="item.pile" :opponent="opponent" :tucked="tucked" />
+                <ReplayCardPile v-if="item.pile" :class="row.spacers.includes(i) ? 'ml-2.5' : ''" :pile="item.pile" :opponent="opponent" :tucked="tucked" />
                 <ReplayCardTile
                     v-else
-                    :class="i === row.spacerAt ? 'ml-2.5' : ''"
+                    :class="row.spacers.includes(i) ? 'ml-2.5' : ''"
                     :card="item.group.card"
                     :represents="item.group.members"
                     :count="item.group.count"

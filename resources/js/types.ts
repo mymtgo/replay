@@ -1,4 +1,4 @@
-import type { Choice, Id, ObjectKind, Player, StatementLine, Step, Target } from '@mtgreplay/mtgr';
+import type { CardTypes, Choice, Id, ObjectKind, Player, StatementLine, Step, Target } from '@mtgreplay/mtgr';
 
 /**
  * The view model the components render. Everything here is derived from the
@@ -30,6 +30,8 @@ export type ReplayCardView = {
     owner: Player;
     controller: Player;
     tapped: boolean;
+    /** A permanent's card types as the file records them; null when the file does not (files from before types were recorded). */
+    types: CardTypes | null;
     power: number | null;
     toughness: number | null;
     counters: Record<string, number>;

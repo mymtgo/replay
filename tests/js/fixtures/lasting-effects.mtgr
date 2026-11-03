@@ -38,15 +38,15 @@
 9:40   keyframe
 9:40     player "PlayerA" life 17 poison 0 library 45
 9:40     player "PlayerB" life 15 poison 0 library 45
-9:40     #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar" battlefield "PlayerA" face "Tamiyo, Seasoned Scholar" counters "loyalty" 2
-9:40     #2 "Island" battlefield "PlayerA"
-9:40     #3 "Forest" battlefield "PlayerA"
-9:40     #4 "Breeding Pool" battlefield "PlayerA"
+9:40     #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar" battlefield "PlayerA" face "Tamiyo, Seasoned Scholar" types planeswalker counters "loyalty" 2
+9:40     #2 "Island" battlefield "PlayerA" types land
+9:40     #3 "Forest" battlefield "PlayerA" types land
+9:40     #4 "Breeding Pool" battlefield "PlayerA" types land
 9:40     #5 "Consider" hand "PlayerA"
 9:40     #6 "Spell Pierce" hand "PlayerA"
-9:40     #7 "Mountain" battlefield "PlayerB"
-9:40     #8 "Mountain" battlefield "PlayerB"
-9:40     #9 "Sacred Foundry" battlefield "PlayerB"
+9:40     #7 "Mountain" battlefield "PlayerB" types land
+9:40     #8 "Mountain" battlefield "PlayerB" types land
+9:40     #9 "Sacred Foundry" battlefield "PlayerB" types land
 9:40     #10 hand "PlayerB"
 9:40     #11 hand "PlayerB"
 9:40     #12 hand "PlayerB"
@@ -56,7 +56,7 @@
 9:41     new card #13 "Island" owner "PlayerA" in library
 9:41     #13 "Island" move library -> hand as draw by rule:draw
 9:41   precombat-main
-9:44     #13 "Island" play from hand
+9:44     #13 "Island" play from hand types land
 9:47     new ability #14 loyalty of #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar" "+2: Until your next turn, whenever a creature attacks you or a planeswalker you control, it gets -1/-0 until end of turn." controller "PlayerA" in stack
 9:47     #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar" counters "loyalty" 2 -> 4 by cost:#14
 9:47     "PlayerA" priority
@@ -80,19 +80,19 @@
 9:55   keyframe
 9:55     player "PlayerA" life 17 poison 0 library 44
 9:55     player "PlayerB" life 15 poison 0 library 45
-9:55     #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar" battlefield "PlayerA" face "Tamiyo, Seasoned Scholar" counters "loyalty" 4
-9:55     #2 "Island" battlefield "PlayerA"
-9:55     #3 "Forest" battlefield "PlayerA"
-9:55     #4 "Breeding Pool" battlefield "PlayerA"
+9:55     #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar" battlefield "PlayerA" face "Tamiyo, Seasoned Scholar" types planeswalker counters "loyalty" 4
+9:55     #2 "Island" battlefield "PlayerA" types land
+9:55     #3 "Forest" battlefield "PlayerA" types land
+9:55     #4 "Breeding Pool" battlefield "PlayerA" types land
 9:55     #5 "Consider" hand "PlayerA"
 9:55     #6 "Spell Pierce" hand "PlayerA"
-9:55     #7 "Mountain" battlefield "PlayerB"
-9:55     #8 "Mountain" battlefield "PlayerB"
-9:55     #9 "Sacred Foundry" battlefield "PlayerB"
+9:55     #7 "Mountain" battlefield "PlayerB" types land
+9:55     #8 "Mountain" battlefield "PlayerB" types land
+9:55     #9 "Sacred Foundry" battlefield "PlayerB" types land
 9:55     #10 hand "PlayerB"
 9:55     #11 hand "PlayerB"
 9:55     #12 hand "PlayerB"
-9:55     #13 "Island" battlefield "PlayerA"
+9:55     #13 "Island" battlefield "PlayerA" types land
 9:55     #15 effect of #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar" "Until your next turn, whenever a creature attacks you or a planeswalker you control, it gets -1/-0 until end of turn." controller "PlayerA"
 9:55   untap
 9:55   upkeep
@@ -120,7 +120,7 @@
 10:01     "PlayerA" pass
 10:01     #10 "Ragavan, Nimble Pilferer" resolve
 10:01     new effect #19 of #10 "Ragavan, Nimble Pilferer" "Return the permanent this spell becomes to its owner's hand at the beginning of the next end step." controller "PlayerB" by #10
-10:01     #10 "Ragavan, Nimble Pilferer" move stack -> battlefield pt 2/1 by rule:resolve
+10:01     #10 "Ragavan, Nimble Pilferer" move stack -> battlefield types creature pt 2/1 by rule:resolve
 10:03   beginning-of-combat
 10:04   declare-attackers
 10:04     #10 "Ragavan, Nimble Pilferer" attack "PlayerA"
@@ -151,7 +151,7 @@
 10:08         #21 triggered of #10 "Ragavan, Nimble Pilferer" "Whenever Ragavan deals combat damage to a player, create a Treasure token and exile the top card of that player's library. Until end of turn, you may cast that card." controller "PlayerB"
 10:10     "PlayerA" pass
 10:10     #21 resolve
-10:10     new token #22 "Treasure" owner "PlayerB" in battlefield by #21
+10:10     new token #22 "Treasure" owner "PlayerB" in battlefield types artifact by #21
 10:10     new card #23 "Counterspell" owner "PlayerA" in library top 1
 10:10     #23 "Counterspell" move library -> exile by #21
 10:10     #21 cease by rule:resolve
@@ -176,22 +176,22 @@
 10:18   keyframe
 10:18     player "PlayerA" life 16 poison 0 library 43
 10:18     player "PlayerB" life 15 poison 0 library 44
-10:18     #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar" battlefield "PlayerA" face "Tamiyo, Seasoned Scholar" counters "loyalty" 4
-10:18     #2 "Island" battlefield "PlayerA"
-10:18     #3 "Forest" battlefield "PlayerA"
-10:18     #4 "Breeding Pool" battlefield "PlayerA"
+10:18     #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar" battlefield "PlayerA" face "Tamiyo, Seasoned Scholar" types planeswalker counters "loyalty" 4
+10:18     #2 "Island" battlefield "PlayerA" types land
+10:18     #3 "Forest" battlefield "PlayerA" types land
+10:18     #4 "Breeding Pool" battlefield "PlayerA" types land
 10:18     #5 "Consider" hand "PlayerA"
 10:18     #6 "Spell Pierce" hand "PlayerA"
-10:18     #7 "Mountain" battlefield "PlayerB" tapped
-10:18     #8 "Mountain" battlefield "PlayerB" tapped
-10:18     #9 "Sacred Foundry" battlefield "PlayerB"
+10:18     #7 "Mountain" battlefield "PlayerB" types land tapped
+10:18     #8 "Mountain" battlefield "PlayerB" types land tapped
+10:18     #9 "Sacred Foundry" battlefield "PlayerB" types land
 10:18     #10 "Ragavan, Nimble Pilferer" hand "PlayerB"
 10:18     #11 hand "PlayerB"
 10:18     #12 hand "PlayerB"
-10:18     #13 "Island" battlefield "PlayerA"
+10:18     #13 "Island" battlefield "PlayerA" types land
 10:18     #15 effect of #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar" "Until your next turn, whenever a creature attacks you or a planeswalker you control, it gets -1/-0 until end of turn." controller "PlayerA"
 10:18     #16 hand "PlayerB"
-10:18     #22 "Treasure" battlefield "PlayerB"
+10:18     #22 "Treasure" battlefield "PlayerB" types artifact
 10:18     #23 "Counterspell" exile
 10:18   untap
 10:18     #15 cease by rule:duration

@@ -44,6 +44,7 @@ export function cardView(object: ObjectState, state: GameState, derived: ReplayD
         kind: object.kind,
         name: object.name,
         face: object.face,
+        types: object.types,
         image: imageFor(object, state, images),
         text: object.text,
         sourceName: source?.name ?? null,

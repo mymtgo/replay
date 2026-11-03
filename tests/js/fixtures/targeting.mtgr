@@ -78,7 +78,7 @@
 0:26   precombat-main
 0:31     #1 "Watery Grave" choose option "pay 2 life"
 0:31     "PlayerA" life 20 -> 18 by #1
-0:31     #1 "Watery Grave" play from hand
+0:31     #1 "Watery Grave" play from hand types land
 0:34     new ability #15 mana of #1 "Watery Grave" "({T}: Add {U} or {B}.)" controller "PlayerA"
 0:34     #1 "Watery Grave" tap by cost:#15
 0:34     "PlayerA" add {B} by #15

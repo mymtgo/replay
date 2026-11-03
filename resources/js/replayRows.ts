@@ -1,4 +1,4 @@
-import { frontRowGroups, isFrontRow, landPiles, type CardGroup, type LandPile } from './replayCards';
+import { boardGroup, frontRowGroups, landPiles, type CardGroup, type LandPile } from './replayCards';
 import { tuckHeadroom } from './replayLinks';
 import type { ReplayCardView } from './types';
 
@@ -16,8 +16,29 @@ const TAPPED_WIDTH = 88 / 63;
  */
 export type RowItem = { key: string; units: number; gaps: number; lift: number } & ({ group: CardGroup; pile?: never } | { pile: LandPile; group?: never });
 
-/** Creatures face the centre line; lands and every other permanent sit behind them. */
-export type SideRows = { front: RowItem[]; back: RowItem[] };
+/**
+ * Creatures, planeswalkers and battles face the centre line. Behind them is
+ * one row: other permanents (artifacts, enchantments), then the lands, with
+ * room between the two groups.
+ */
+export type SideRows = { front: RowItem[]; back: RowItem[]; lands: RowItem[] };
+
+/** Groups that share one row, laid end to end: the items, and the index of each group after the first that has a spacer before it. */
+export function joinGroups(groups: RowItem[][]): { items: RowItem[]; spacers: number[] } {
+    const filled = groups.filter((group) => group.length);
+    const spacers: number[] = [];
+    let at = 0;
+
+    filled.forEach((group, i) => {
+        if (i > 0) {
+            spacers.push(at);
+        }
+
+        at += group.length;
+    });
+
+    return { items: filled.flat(), spacers };
+}
 
 const cardUnits = (tapped: boolean): number => (tapped ? TAPPED_WIDTH : 1);
 
@@ -34,7 +55,7 @@ function pileLift(pile: LandPile, tucked: ReadonlyMap<string, ReplayCardView[]>)
 }
 
 export function sideRows(battlefield: ReplayCardView[], pairs: Map<string, number>, tucked: ReadonlyMap<string, ReplayCardView[]>): SideRows {
-    const front = frontRowGroups(battlefield.filter(isFrontRow), pairs, tucked).map((group): RowItem => ({
+    const front = frontRowGroups(battlefield.filter((card) => boardGroup(card) === 'front'), pairs, tucked).map((group): RowItem => ({
         key: `${group.card.key}-${group.count}`,
         group,
         units: cardUnits(group.card.tapped),
@@ -42,13 +63,14 @@ export function sideRows(battlefield: ReplayCardView[], pairs: Map<string, numbe
         lift: tuckHeadroom(tucked.get(group.card.key)?.length ?? 0, group.card.tapped),
     }));
 
-    const back = landPiles(battlefield.filter((card) => !isFrontRow(card)), tucked).map((pile): RowItem => ({
-        key: `pile-${pile.key}`,
-        pile,
-        units: pileUnits(pile),
-        gaps: pile.parts.length - 1,
-        lift: pileLift(pile, tucked),
-    }));
+    const piles = (group: 'back' | 'lands') =>
+        landPiles(battlefield.filter((card) => boardGroup(card) === group), tucked).map((pile): RowItem => ({
+            key: `pile-${pile.key}`,
+            pile,
+            units: pileUnits(pile),
+            gaps: pile.parts.length - 1,
+            lift: pileLift(pile, tucked),
+        }));
 
-    return { front, back };
+    return { front, back: piles('back'), lands: piles('lands') };
 }

@@ -73,11 +73,11 @@
 0:17   #21 "Watery Grave" move library -> hand as draw by #1
 0:24   "PlayerA" keep
 0:29   "PlayerB" keep
-0:31   #15 "Leyline of the Void" move hand -> battlefield by #15
+0:31   #15 "Leyline of the Void" move hand -> battlefield types enchantment by #15
 0:32   #16 "Chancellor of the Annex" reveal by #16
 0:32   new effect #22 of #16 "Chancellor of the Annex" "When each opponent casts their first spell of the game, counter that spell unless that player pays {1}." controller "PlayerA" by #16
 0:36   #8 identify "Gemstone Caverns"
-0:36   #8 "Gemstone Caverns" move hand -> battlefield by #8
+0:36   #8 "Gemstone Caverns" move hand -> battlefield types land by #8
 0:36   #8 "Gemstone Caverns" counters "luck" 0 -> 1 by #8
 0:36   #9 identify "Lightning Bolt"
 0:36   #9 "Lightning Bolt" move hand -> exile by #8
@@ -92,14 +92,14 @@
 0:38     #5 "Swamp" exile
 0:38     #6 "Griselbrand" exile
 0:38     #7 "Griselbrand" exile
-0:38     #8 "Gemstone Caverns" battlefield "PlayerB" counters "luck" 1
+0:38     #8 "Gemstone Caverns" battlefield "PlayerB" types land counters "luck" 1
 0:38     #9 "Lightning Bolt" exile
 0:38     #10 hand "PlayerB"
 0:38     #11 hand "PlayerB"
 0:38     #12 hand "PlayerB"
 0:38     #13 hand "PlayerB"
 0:38     #14 hand "PlayerB"
-0:38     #15 "Leyline of the Void" battlefield "PlayerA"
+0:38     #15 "Leyline of the Void" battlefield "PlayerA" types enchantment
 0:38     #16 "Chancellor of the Annex" hand "PlayerA"
 0:38     #17 "Swamp" hand "PlayerA"
 0:38     #18 "Thoughtseize" hand "PlayerA"
@@ -110,7 +110,7 @@
 0:38   untap
 0:38   upkeep
 0:38   precombat-main
-0:41     #17 "Swamp" play from hand
+0:41     #17 "Swamp" play from hand types land
 0:43     new ability #23 mana of #17 "Swamp" "({T}: Add {B}.)" controller "PlayerA"
 0:43     #17 "Swamp" tap by cost:#23
 0:43     "PlayerA" add {B} by #23
@@ -157,16 +157,16 @@
 0:58     #5 "Swamp" exile
 0:58     #6 "Griselbrand" exile
 0:58     #7 "Griselbrand" exile
-0:58     #8 "Gemstone Caverns" battlefield "PlayerB" counters "luck" 1
+0:58     #8 "Gemstone Caverns" battlefield "PlayerB" types land counters "luck" 1
 0:58     #9 "Lightning Bolt" exile
 0:58     #10 "Ragavan, Nimble Pilferer" exile
 0:58     #11 "Mountain" hand "PlayerB"
 0:58     #12 "Expedition Map" hand "PlayerB"
 0:58     #13 "Spirebluff Canal" hand "PlayerB"
 0:58     #14 "Unholy Heat" hand "PlayerB"
-0:58     #15 "Leyline of the Void" battlefield "PlayerA"
+0:58     #15 "Leyline of the Void" battlefield "PlayerA" types enchantment
 0:58     #16 "Chancellor of the Annex" hand "PlayerA"
-0:58     #17 "Swamp" battlefield "PlayerA" tapped
+0:58     #17 "Swamp" battlefield "PlayerA" types land tapped
 0:58     #18 "Thoughtseize" graveyard "PlayerA"
 0:58     #19 "Griselbrand" hand "PlayerA"
 0:58     #20 "Polluted Delta" hand "PlayerA"
@@ -178,7 +178,7 @@
 1:00     new hidden #24 owner "PlayerB" in library
 1:00     #24 move library -> hand as draw by rule:draw
 1:00   precombat-main
-1:04     #11 "Mountain" play from hand
+1:04     #11 "Mountain" play from hand types land
 1:06     new ability #25 mana of #11 "Mountain" "({T}: Add {R}.)" controller "PlayerB"
 1:06     #11 "Mountain" tap by cost:#25
 1:06     "PlayerB" add {R} by #25
@@ -212,6 +212,6 @@
 1:14         #12 "Expedition Map" controller "PlayerB"
 1:16     "PlayerA" pass
 1:16     #12 "Expedition Map" resolve
-1:16     #12 "Expedition Map" move stack -> battlefield by rule:resolve
+1:16     #12 "Expedition Map" move stack -> battlefield types artifact by rule:resolve
 1:16     incomplete "example ends here"
 *

@@ -1,4 +1,4 @@
-import type { RowItem, SideRows } from './replayRows';
+import { joinGroups, type RowItem, type SideRows } from './replayRows';
 
 /** An untapped card's width over its height. */
 export const CARD_ASPECT = 63 / 88;
@@ -6,7 +6,7 @@ export const CARD_ASPECT = 63 / 88;
 /** A phone's empty card row keeps only half a card's height, so it does not take a row's worth of room. The wide viewer keeps empty rows a full card tall, so a creature arriving never pushes the lands. */
 export const emptyRowWeight = (compact: boolean): number => (compact ? 0.5 : 1);
 
-/** Extra room, in pixels, between the creatures and the rest when they share one row. */
+/** Extra room, in pixels, between groups that share one row: the creatures and the rest, the other permanents and the lands. */
 export const GROUP_SPACER = 10;
 
 /**
@@ -46,7 +46,9 @@ export type BoardFit = {
 export function rowWeight(items: readonly RowItem[], emptyWeight: number): number {
     return items.length ? 1 + Math.max(...items.map((item) => item.lift)) : emptyWeight;
 }
-function rowWidth(items: readonly RowItem[], height: number, gap: number, spacer = 0): number {
+function rowWidth(groups: RowItem[][], height: number, gap: number): number {
+    const { items, spacers } = joinGroups(groups);
+    const spacer = spacers.length * GROUP_SPACER;
     const units = items.reduce((sum, item) => sum + item.units, 0);
     const gaps = items.reduce((sum, item) => sum + item.gaps, Math.max(0, items.length - 1));
 
@@ -56,17 +58,15 @@ function rowWidth(items: readonly RowItem[], height: number, gap: number, spacer
 type Plan = { weights: number[]; fits: boolean };
 
 function plan(side: FitSide, height: number, input: FitInput): Plan {
-    const { front, back } = side.rows;
+    const { front, back, lands } = side.rows;
 
     if (input.mode === 'single') {
-        const both = [...front, ...back];
-
-        return { weights: [rowWeight(both, input.emptyWeight)], fits: rowWidth(both, height, input.gap, front.length && back.length ? GROUP_SPACER : 0) <= side.width };
+        return { weights: [rowWeight([...front, ...back, ...lands], input.emptyWeight)], fits: rowWidth([front, back, lands], height, input.gap) <= side.width };
     }
 
     return {
-        weights: [rowWeight(front, input.emptyWeight), rowWeight(back, input.emptyWeight)],
-        fits: rowWidth(front, height, input.gap) <= side.width && rowWidth(back, height, input.gap) <= side.width,
+        weights: [rowWeight(front, input.emptyWeight), rowWeight([...back, ...lands], input.emptyWeight)],
+        fits: rowWidth([front], height, input.gap) <= side.width && rowWidth([back, lands], height, input.gap) <= side.width,
     };
 }
 

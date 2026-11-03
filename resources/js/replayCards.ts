@@ -1,16 +1,31 @@
 import type { ReplayCardView } from './types';
 
 /**
- * Whether a permanent belongs on the front row. The file carries no type
- * line, so a creature is a permanent with power and toughness; everything
- * else sits back with the lands.
+ * Where a permanent sits on its side of the board. Creatures, and the
+ * planeswalkers and battles they attack, face the centre line; lands sit at
+ * the back; other permanents (artifacts, enchantments) sit at the back too,
+ * apart from the lands. A file without card types only says which permanents
+ * have power and toughness, so those face the centre and the rest sit with
+ * the lands.
  */
-export function isFrontRow(card: ReplayCardView): boolean {
-    return card.power !== null;
+export type BoardGroup = 'front' | 'back' | 'lands';
+
+const FRONT_TYPES = new Set(['creature', 'planeswalker', 'battle']);
+
+export function boardGroup(card: ReplayCardView): BoardGroup {
+    if (!Array.isArray(card.types)) {
+        return card.power !== null ? 'front' : 'lands';
+    }
+
+    if (card.types.some((type) => FRONT_TYPES.has(type))) {
+        return 'front';
+    }
+
+    return card.types.includes('land') ? 'lands' : 'back';
 }
 
 export function isCreature(card: ReplayCardView): boolean {
-    return isFrontRow(card);
+    return Array.isArray(card.types) ? card.types.includes('creature') : card.power !== null;
 }
 
 /** `members` are the keys of every card the tile stands for, the one shown first. */

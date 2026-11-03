@@ -11,7 +11,8 @@ import { cardViews, liveObjects, objectZone } from '../../resources/js/replaySta
 const item = (key: string, units = 1, gaps = 0): RowItem => ({ key, units, gaps, lift: 0, group: { card: null as never, count: 1, members: [key] } });
 const rows = (front: number, back: number): SideRows => ({
     front: Array.from({ length: front }, (_, i) => item(`f${i}`)),
-    back: Array.from({ length: back }, (_, i) => item(`b${i}`)),
+    back: [],
+    lands: Array.from({ length: back }, (_, i) => item(`b${i}`)),
 });
 
 /** The 2000x893 regular viewer as measured: two 366px battlefields, rows 1472px wide. */
@@ -30,8 +31,8 @@ function board(sides: SideRows[], over: Partial<FitInput> = {}, width = 1472): F
 
 /** Whether the rows the fit chose stack inside the room each side has. */
 function stackHeight(input: FitInput, fit: ReturnType<typeof fitBoard>, side: number): number {
-    const { front, back } = input.sides[side].rows;
-    const weights = [front.length ? 1 : input.emptyWeight, back.length ? 1 : input.emptyWeight];
+    const { front, back, lands } = input.sides[side].rows;
+    const weights = [front.length ? 1 : input.emptyWeight, back.length + lands.length ? 1 : input.emptyWeight];
     return weights.reduce((sum, w) => sum + w * fit.height + input.rowPad, input.fieldPad);
 }
 

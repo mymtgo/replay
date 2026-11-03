@@ -103,7 +103,7 @@
 0:39   untap
 0:39   upkeep
 0:39   precombat-main
-0:41     #7 "Ugin's Labyrinth" play from hand
+0:41     #7 "Ugin's Labyrinth" play from hand types land
 0:41     new ability #22 triggered of #7 "Ugin's Labyrinth" "When this land enters, you may exile a colorless card with mana value 7 or greater from your hand." controller "PlayerA" in stack
 0:41     "PlayerA" priority
 0:41       stack
@@ -131,7 +131,7 @@
 0:46         #1 "Talisman of Impulse" controller "PlayerA"
 0:46     "PlayerB" pass
 0:46     #1 "Talisman of Impulse" resolve
-0:46     #1 "Talisman of Impulse" move stack -> battlefield by rule:resolve
+0:46     #1 "Talisman of Impulse" move stack -> battlefield types artifact by rule:resolve
 0:46     "PlayerA" priority
 0:48   beginning-of-combat
 0:48   declare-attackers
@@ -143,13 +143,13 @@
 0:50   keyframe
 0:50     player "PlayerA" life 20 poison 0 library 54
 0:50     player "PlayerB" life 20 poison 0 library 54
-0:50     #1 "Talisman of Impulse" battlefield "PlayerA"
+0:50     #1 "Talisman of Impulse" battlefield "PlayerA" types artifact
 0:50     #2 "Sowing Mycospawn" hand "PlayerA"
 0:50     #3 "Utopia Sprawl" hand "PlayerA"
 0:50     #4 "Bojuka Bog" hand "PlayerA"
 0:50     #5 "Emrakul, the Exigent Doom" exile with #7
 0:50     #6 "Ghost Quarter" hand "PlayerA"
-0:50     #7 "Ugin's Labyrinth" battlefield "PlayerA" tapped
+0:50     #7 "Ugin's Labyrinth" battlefield "PlayerA" types land tapped
 0:50     #15 library "PlayerB" bottom 1
 0:50     #16 hand "PlayerB"
 0:50     #17 hand "PlayerB"
@@ -164,7 +164,7 @@
 0:52     #24 move library -> hand as draw by rule:draw
 0:52   precombat-main
 0:53     #16 identify "Island" src mtgo:98185
-0:53     #16 "Island" play from hand
+0:53     #16 "Island" play from hand types land
 0:56   beginning-of-combat
 0:56   declare-attackers
 0:56   end-of-combat
@@ -175,15 +175,15 @@
 1:00   keyframe
 1:00     player "PlayerA" life 20 poison 0 library 54
 1:00     player "PlayerB" life 20 poison 0 library 53
-1:00     #1 "Talisman of Impulse" battlefield "PlayerA"
+1:00     #1 "Talisman of Impulse" battlefield "PlayerA" types artifact
 1:00     #2 "Sowing Mycospawn" hand "PlayerA"
 1:00     #3 "Utopia Sprawl" hand "PlayerA"
 1:00     #4 "Bojuka Bog" hand "PlayerA"
 1:00     #5 "Emrakul, the Exigent Doom" exile with #7
 1:00     #6 "Ghost Quarter" hand "PlayerA"
-1:00     #7 "Ugin's Labyrinth" battlefield "PlayerA" tapped
+1:00     #7 "Ugin's Labyrinth" battlefield "PlayerA" types land tapped
 1:00     #15 library "PlayerB" bottom 1
-1:00     #16 "Island" battlefield "PlayerB"
+1:00     #16 "Island" battlefield "PlayerB" types land
 1:00     #17 hand "PlayerB"
 1:00     #18 hand "PlayerB"
 1:00     #19 hand "PlayerB"
@@ -197,7 +197,7 @@
 1:00     new card #25 "Ugin's Labyrinth" owner "PlayerA" in library src mtgo:126485
 1:00     #25 "Ugin's Labyrinth" move library -> hand as draw by rule:draw
 1:00   precombat-main
-1:11     #6 "Ghost Quarter" play from hand
+1:11     #6 "Ghost Quarter" play from hand types land
 1:21   beginning-of-combat
 1:21   declare-attackers
 1:21   end-of-combat
@@ -208,15 +208,15 @@
 1:24   keyframe
 1:24     player "PlayerA" life 20 poison 0 library 53
 1:24     player "PlayerB" life 20 poison 0 library 53
-1:24     #1 "Talisman of Impulse" battlefield "PlayerA"
+1:24     #1 "Talisman of Impulse" battlefield "PlayerA" types artifact
 1:24     #2 "Sowing Mycospawn" hand "PlayerA"
 1:24     #3 "Utopia Sprawl" hand "PlayerA"
 1:24     #4 "Bojuka Bog" hand "PlayerA"
 1:24     #5 "Emrakul, the Exigent Doom" exile with #7
-1:24     #6 "Ghost Quarter" battlefield "PlayerA"
-1:24     #7 "Ugin's Labyrinth" battlefield "PlayerA"
+1:24     #6 "Ghost Quarter" battlefield "PlayerA" types land
+1:24     #7 "Ugin's Labyrinth" battlefield "PlayerA" types land
 1:24     #15 library "PlayerB" bottom 1
-1:24     #16 "Island" battlefield "PlayerB"
+1:24     #16 "Island" battlefield "PlayerB" types land
 1:24     #17 hand "PlayerB"
 1:24     #18 hand "PlayerB"
 1:24     #19 hand "PlayerB"
@@ -231,7 +231,7 @@
 1:24     #26 move library -> hand as draw by rule:draw
 1:24   precombat-main
 1:25     #17 identify "Urza's Tower" src mtgo:19607
-1:25     #17 "Urza's Tower" play from hand
+1:25     #17 "Urza's Tower" play from hand types land
 1:27   beginning-of-combat
 1:27   declare-attackers
 1:27   end-of-combat
@@ -242,16 +242,16 @@
 1:33   keyframe
 1:33     player "PlayerA" life 20 poison 0 library 53
 1:33     player "PlayerB" life 20 poison 0 library 52
-1:33     #1 "Talisman of Impulse" battlefield "PlayerA"
+1:33     #1 "Talisman of Impulse" battlefield "PlayerA" types artifact
 1:33     #2 "Sowing Mycospawn" hand "PlayerA"
 1:33     #3 "Utopia Sprawl" hand "PlayerA"
 1:33     #4 "Bojuka Bog" hand "PlayerA"
 1:33     #5 "Emrakul, the Exigent Doom" exile with #7
-1:33     #6 "Ghost Quarter" battlefield "PlayerA"
-1:33     #7 "Ugin's Labyrinth" battlefield "PlayerA"
+1:33     #6 "Ghost Quarter" battlefield "PlayerA" types land
+1:33     #7 "Ugin's Labyrinth" battlefield "PlayerA" types land
 1:33     #15 library "PlayerB" bottom 1
-1:33     #16 "Island" battlefield "PlayerB"
-1:33     #17 "Urza's Tower" battlefield "PlayerB"
+1:33     #16 "Island" battlefield "PlayerB" types land
+1:33     #17 "Urza's Tower" battlefield "PlayerB" types land
 1:33     #18 hand "PlayerB"
 1:33     #19 hand "PlayerB"
 1:33     #20 hand "PlayerB"
@@ -265,7 +265,7 @@
 1:33     new card #27 "Sire of Seven Deaths" owner "PlayerA" in library src mtgo:133570
 1:33     #27 "Sire of Seven Deaths" move library -> hand as draw by rule:draw
 1:33   precombat-main
-1:35     #25 "Ugin's Labyrinth" play from hand
+1:35     #25 "Ugin's Labyrinth" play from hand types land
 1:35     new ability #28 triggered of #25 "Ugin's Labyrinth" "When this land enters, you may exile a colorless card with mana value 7 or greater from your hand." controller "PlayerA" in stack
 1:35     "PlayerA" priority
 1:35       stack
@@ -338,7 +338,7 @@
 2:12     new card #36 "Stomping Ground" owner "PlayerA" in library src mtgo:143375
 2:12     #36 "Stomping Ground" choose option "pay 2 life"
 2:12     "PlayerA" life 19 -> 17 by #36
-2:12     #36 "Stomping Ground" move library -> battlefield by #33
+2:12     #36 "Stomping Ground" move library -> battlefield types land by #33
 2:13     "PlayerA" shuffle by #33
 2:13     #33 cease by rule:resolve
 2:13     "PlayerA" priority
@@ -350,7 +350,7 @@
 2:15         #2 "Sowing Mycospawn" controller "PlayerA" cost "kicker"
 2:16     "PlayerB" pass
 2:16     #2 "Sowing Mycospawn" resolve
-2:16     #2 "Sowing Mycospawn" move stack -> battlefield pt 3/3 by rule:resolve
+2:16     #2 "Sowing Mycospawn" move stack -> battlefield types creature pt 3/3 by rule:resolve
 2:16     "PlayerA" priority
 2:18     "PlayerA" pass
 2:18     "PlayerB" priority
