@@ -11,13 +11,26 @@ export const PREGAME_SHARE = 5;
 /** A wait longer than this counts as this long when the scrubber is laid out. */
 export const MAX_GAP_SECONDS = 5;
 
-/** Where each moment sits in a run, 0 to 100, with every wait capped at `MAX_GAP_SECONDS`. A run whose moments share one time is spaced evenly. */
-function spreadByTime(times: number[]): number[] {
-    let at = 0;
-    const scale = times.map((time, index) => (index === 0 ? 0 : (at += Math.min(MAX_GAP_SECONDS, Math.max(0, time - times[index - 1])))));
-    const end = scale.at(-1) ?? 0;
+/** Every moment's own room on the scrubber, in seconds of wait, so moments in the same second can each be reached. */
+export const MOMENT_SECONDS = 1;
 
-    return end > 0 ? scale.map((time) => (time / end) * 100) : times.map((_, index) => (times.length > 1 ? (index / (times.length - 1)) * 100 : 0));
+/**
+ * Where each moment of a run starts, 0 to 100, with the run's end as a last
+ * entry at 100. A moment's room is `MOMENT_SECONDS` plus the wait until the
+ * next one, capped at `MAX_GAP_SECONDS`, so a burst of lines in one second
+ * spreads out and one long think does not swallow the track.
+ */
+function spreadByTime(times: number[]): number[] {
+    const starts: number[] = [];
+    let at = 0;
+
+    times.forEach((time, index) => {
+        starts.push(at);
+        const next = times[index + 1];
+        at += MOMENT_SECONDS + (next === undefined ? 0 : Math.min(MAX_GAP_SECONDS, Math.max(0, next - time)));
+    });
+
+    return at > 0 ? [...starts.map((start) => (start / at) * 100), 100] : [100];
 }
 
 /** The first moment after the pregame; 0 when the game has none or nothing else. */
@@ -26,24 +39,24 @@ export function pregameEnd(turns: ReplayTurn[]): number {
 }
 
 /**
- * Where each moment sits on the scrubber, as a percentage of the game's
- * length, with one entry past the last moment to mark the end.
+ * Where each moment starts on the scrubber, as a percentage of the game's
+ * length, with one entry past the last moment to mark the end. A moment
+ * shows from its start until the next one's.
  *
  * The pregame (the moments before `pregameEnd`) takes a fixed `PREGAME_SHARE`
  * split evenly between its moments, because nothing there is long on the
- * board however long the players took. The rest is laid out by game time,
- * except that a wait counts for at most `MAX_GAP_SECONDS`, so one long think
- * does not stretch the track while a quick exchange stays proportionate.
+ * board however long the players took. The rest is laid out by game time
+ * (see `spreadByTime`).
  */
 export function timelinePositions(times: number[], pregameEnd = 0): number[] {
     if (pregameEnd <= 0 || pregameEnd >= times.length) {
-        return [...spreadByTime(times), 100];
+        return spreadByTime(times);
     }
 
     const pregame = times.slice(0, pregameEnd).map((_, index) => (index / pregameEnd) * PREGAME_SHARE);
     const rest = spreadByTime(times.slice(pregameEnd)).map((position) => PREGAME_SHARE + (position / 100) * (100 - PREGAME_SHARE));
 
-    return [...pregame, ...rest, 100];
+    return [...pregame, ...rest];
 }
 
 /** Moments recorded in the same second still show for a while, so a burst of lines can be followed. */

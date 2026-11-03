@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { parse } from '@mtgreplay/mtgr';
 import { buildTimeline, gameInfo } from '../../resources/js/replayGame.ts';
-import { cardViews, effectViews, playerView, stackItems } from '../../resources/js/replayState.ts';
+import { cardViews, clockLeft, effectViews, playerView, stackItems } from '../../resources/js/replayState.ts';
 import { sideboardCards, sideboardChanges, sideboardNames } from '../../resources/js/replaySideboard.ts';
 
 const fixture = (name: string) => parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8')).file.games;
@@ -141,4 +141,20 @@ test('an attacker names what it attacks, and the player or permanent it attacks 
     assert.deepEqual(atTamiyo.cards.get('#10')?.attacking, { kind: 'object', key: '#1', label: 'Tamiyo, Seasoned Scholar' });
     assert.equal(atTamiyo.cards.get('#1')?.attackers, 1);
     assert.equal(atTamiyo.player.attackers, 0);
+});
+
+test("a chess clock runs only while its player holds priority, and stops where it got to when priority moves on", () => {
+    const game = fixture('match.mtgr')[0];
+    const t = buildTimeline(game);
+    const clocksAfter = (type: string, player?: string) => {
+        const index = game.body.findIndex((line) => line.kind === 'statement' && line.statement.type === type && (!player || (line.statement as { player?: string }).player === player));
+        const derived = t.derived[index];
+
+        return { a: clockLeft(derived, 'PlayerA'), b: clockLeft(derived, 'PlayerB'), priority: derived.priority };
+    };
+
+    // 38:20 PlayerA takes priority with 9:23 recorded; at 38:23 they pass, three seconds later.
+    assert.deepEqual(clocksAfter('pass', 'PlayerA'), { a: 9 * 60 + 20, b: 2 * 60 + 45, priority: 'PlayerA' });
+    // The Bolt resolves and priority goes back to PlayerB: PlayerA's clock stays at 9:20.
+    assert.deepEqual(clocksAfter('resolve'), { a: 9 * 60 + 20, b: 2 * 60 + 45, priority: 'PlayerB' });
 });

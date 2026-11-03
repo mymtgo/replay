@@ -84,24 +84,28 @@ test('turn headers sit first in their turn, count the active player\'s own turns
     assert.equal(turn5.timestamp, '1:33');
 });
 
-test('the scrubber spreads moments by game time and finds the moment at a position', () => {
+test('the scrubber gives each moment a second of room plus its wait, and finds the moment at a position', () => {
     const positions = timelinePositions([0, 2, 4, 6]);
 
-    near(positions, [0, 100 / 3, 200 / 3, 100, 100]);
-    assert.equal(frameAtPosition(positions, 34), 1);
+    near(positions, [0, 30, 60, 90, 100]);
+    assert.equal(frameAtPosition(positions, 31), 1);
+    assert.equal(frameAtPosition(positions, 95), 3);
     assert.equal(frameAtPosition(positions, 100), 3);
-    assert.deepEqual(timelinePositions([5, 5, 5]), [0, 50, 100, 100]);
+});
+
+test('moments in the same second each get their own stretch of the scrubber', () => {
+    near(timelinePositions([5, 5, 5]), [0, 100 / 3, 200 / 3, 100]);
 });
 
 test('a long wait counts for at most five seconds on the scrubber', () => {
-    near(timelinePositions([0, 60, 62]), [0, (5 / 7) * 100, 100, 100]);
+    near(timelinePositions([0, 60, 62]), [0, 60, 90, 100]);
 });
 
 test('the pregame takes a fixed share of the scrubber, split evenly, however long it ran', () => {
     const positions = timelinePositions([0, 100, 200, 300, 301], 3);
 
     near(positions.slice(0, 4), [0, PREGAME_SHARE / 3, (PREGAME_SHARE * 2) / 3, PREGAME_SHARE]);
-    assert.equal(positions[4], 100);
+    assert.equal(positions[5], 100);
 });
 
 test('playback holds a moment for the real wait, between 0.4 and 2 seconds at 1x', () => {

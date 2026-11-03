@@ -161,8 +161,10 @@ export type ReplayDerived = {
     blocking: ReadonlyMap<string, string>;
     /** Damage marked on objects this turn, by key. */
     damage: ReadonlyMap<string, number>;
-    /** Latest chess clocks, in seconds. */
-    clocks: Readonly<Record<Player, number>>;
+    /** Latest recorded chess clocks: seconds left, and the game time they were recorded at. */
+    clocks: Readonly<Record<Player, { left: number; at: number }>>;
+    /** Game time of the line, in seconds. */
+    time: number;
 };
 
 /** `width` is one face; a double-faced card's preview is two faces wide. */

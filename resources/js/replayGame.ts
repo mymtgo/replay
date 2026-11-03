@@ -218,7 +218,7 @@ export function deriveTurns(moments: ReplayMoment[]): ReplayTurn[] {
     return turns;
 }
 
-const EMPTY_DERIVED: ReplayDerived = { step: null, priority: null, active: null, attacking: new Map(), blocking: new Map(), damage: new Map(), clocks: {} };
+const EMPTY_DERIVED: ReplayDerived = { step: null, priority: null, active: null, attacking: new Map(), blocking: new Map(), damage: new Map(), clocks: {}, time: 0 };
 
 /**
  * What the lines settle to that the parser's state leaves out, one entry per
@@ -232,7 +232,7 @@ export function deriveLines(game: Game): ReplayDerived[] {
 
     for (const line of game.body) {
         if (line.kind === 'statement' && !line.variation) {
-            current = applyDerived(current, line);
+            current = applyDerived(line.time === null || line.time === current.time ? current : { ...current, time: line.time }, line);
         }
 
         derived.push(current);
@@ -241,18 +241,44 @@ export function deriveLines(game: Game): ReplayDerived[] {
     return derived;
 }
 
+/**
+ * A chess clock runs for the player holding priority. When priority passes
+ * to `next`, the old holder's clock stops where it got to, and the new
+ * holder's starts from now.
+ */
+function passClock(d: ReplayDerived, next: Player | null): ReplayDerived['clocks'] {
+    if (next === d.priority) {
+        return d.clocks;
+    }
+
+    const clocks = { ...d.clocks };
+    const held = d.priority !== null ? clocks[d.priority] : undefined;
+
+    if (d.priority !== null && held) {
+        clocks[d.priority] = { left: Math.max(0, held.left - (d.time - held.at)), at: d.time };
+    }
+
+    const waiting = next !== null ? clocks[next] : undefined;
+
+    if (next !== null && waiting) {
+        clocks[next] = { left: waiting.left, at: d.time };
+    }
+
+    return clocks;
+}
+
 function applyDerived(d: ReplayDerived, line: StatementLine): ReplayDerived {
     const s = line.statement;
     const key = (id: { n: number; hypothetical: boolean }) => (id.hypothetical ? `#h${id.n}` : `#${id.n}`);
 
     switch (s.type) {
         case 'turn':
-            return { ...d, step: null, priority: null, active: s.player, attacking: new Map(), blocking: new Map(), damage: new Map() };
+            return { ...d, step: null, priority: null, active: s.player, attacking: new Map(), blocking: new Map(), damage: new Map(), clocks: passClock(d, null) };
         case 'resolve':
         case 'fizzle':
         case 'countered':
             // The active player receives priority after a resolution (CR 117.3b); a file may leave that line out when the stack is then empty.
-            return { ...d, priority: d.active };
+            return { ...d, priority: d.active, clocks: passClock(d, d.active) };
         case 'step':
             if (s.step === 'end-of-combat' || s.step === 'cleanup') {
                 return { ...d, step: s.step, attacking: new Map(), blocking: new Map(), damage: s.step === 'cleanup' ? new Map() : d.damage };
@@ -260,12 +286,14 @@ function applyDerived(d: ReplayDerived, line: StatementLine): ReplayDerived {
 
             return { ...d, step: s.step };
         case 'priority': {
-            const clocks = s.clock ? Object.fromEntries(s.clock.map((entry) => [entry.player, entry.time])) : d.clocks;
+            const clocks = s.clock
+                ? Object.fromEntries(s.clock.map((entry) => [entry.player, { left: entry.time, at: d.time }]))
+                : passClock(d, s.player);
 
             return { ...d, priority: s.player, clocks };
         }
         case 'keyframe-player':
-            return s.clock === null ? d : { ...d, clocks: { ...d.clocks, [s.player]: s.clock } };
+            return s.clock === null ? d : { ...d, clocks: { ...d.clocks, [s.player]: { left: s.clock, at: d.time } } };
         case 'attack':
             return { ...d, attacking: new Map(d.attacking).set(key(s.object.id), s.target) };
         case 'block':

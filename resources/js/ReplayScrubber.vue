@@ -59,6 +59,20 @@ const segments = computed(() =>
     }),
 );
 
+/** One tick per moment start, skipping those too close to the last to tell apart at this width. */
+const ticks = computed(() => {
+    const minGap = width.value > 0 ? (3 / width.value) * 100 : 1;
+    const out: number[] = [];
+
+    props.positions.slice(0, -1).forEach((at) => {
+        if (out.length === 0 || at - out[out.length - 1] >= minGap) {
+            out.push(at);
+        }
+    });
+
+    return out;
+});
+
 function frameAt(event: PointerEvent, rect: DOMRect): number {
     return frameAtPosition(props.positions, ((event.clientX - rect.left) / rect.width) * 100);
 }
@@ -137,6 +151,11 @@ function jump(turn: ReplayTurn) {
                 T{{ segment.turn.playerTurn }}
             </button>
         </div>
+        <!-- A tick where each moment starts, so a stretch with nothing in it reads as a wait, not as a scrubber that does nothing. -->
+        <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 bottom-1 h-1.5">
+            <span v-for="at in ticks" :key="at" class="absolute top-0 h-full w-px bg-white/30" :style="{ left: `${at}%` }" />
+        </div>
+
         <div
             class="pointer-events-none absolute -inset-y-1 -ml-[1.5px] w-0.75 rounded-sm bg-foreground shadow-[0_0_0_2px_var(--card)] transition-[left] ease-linear"
             :style="{ left: `${playhead}%`, ...glide }"

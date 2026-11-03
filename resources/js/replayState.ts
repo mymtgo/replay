@@ -80,10 +80,21 @@ export function cardViews(state: GameState, derived: ReplayDerived, images: Card
 
 const POOL_ORDER = ['W', 'U', 'B', 'R', 'G', 'C'];
 
+/** Seconds left on a player's clock at this line: its last recorded value, less the time since while they hold priority. Null when none is recorded. */
+export function clockLeft(d: ReplayDerived, player: Player): number | null {
+    const clock = d.clocks[player];
+
+    if (!clock) {
+        return null;
+    }
+
+    return d.priority === player ? Math.max(0, clock.left - (d.time - clock.at)) : clock.left;
+}
+
 export function playerView(name: Player, state: GameState, derived: ReplayDerived, info: ReplayGameInfo): ReplayPlayerView {
     const player = state.players[name];
     const handCount = liveObjects(state).filter((object) => object.zone?.zone === 'hand' && object.owner === name).length;
-    const clock = derived.clocks[name];
+    const clock = clockLeft(derived, name);
 
     return {
         id: name,
@@ -96,7 +107,7 @@ export function playerView(name: Player, state: GameState, derived: ReplayDerive
         attackers: attackersOf(derived, (target) => target.kind === 'player' && target.player === name),
         librarySize: player?.librarySize ?? 0,
         pool: Object.fromEntries(POOL_ORDER.map((type) => [type, player?.pool[type as keyof typeof player.pool] ?? 0]).filter(([, count]) => count)),
-        clock: clock === undefined ? null : clock * 1000,
+        clock: clock === null ? null : clock * 1000,
         archetype: info.archetypes[name] ?? null,
     };
 }

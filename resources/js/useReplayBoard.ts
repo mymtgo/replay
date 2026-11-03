@@ -23,7 +23,7 @@ export type ReplaySideView = {
     sideboard: boolean;
 };
 
-const EMPTY_DERIVED: ReplayDerived = { step: null, priority: null, active: null, attacking: new Map(), blocking: new Map(), damage: new Map(), clocks: {} };
+const EMPTY_DERIVED: ReplayDerived = { step: null, priority: null, active: null, attacking: new Map(), blocking: new Map(), damage: new Map(), clocks: {}, time: 0 };
 
 /** Everything the board shows for the moment under the cursor. */
 export function useReplayBoard(
