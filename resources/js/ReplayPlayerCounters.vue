@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { CircleDot, Radiation, Skull, Star, Ticket, Zap } from 'lucide-vue-next';
+import { CircleDot, Radiation, Star } from 'lucide-vue-next';
 import { computed, type Component } from 'vue';
 import { playerCounters } from './replayPlayerCounters';
 import type { ReplayPlayerView } from './types';
+import EnergyIcon from './ui/EnergyIcon.vue';
+import PoisonIcon from './ui/PoisonIcon.vue';
+import TicketIcon from './ui/TicketIcon.vue';
 
 const props = defineProps<{
     player: ReplayPlayerView;
@@ -12,11 +15,11 @@ const props = defineProps<{
 
 /** Icon and colour per counter kind; a kind not listed gets the generic mark and its name in the tooltip. */
 const STYLES: Record<string, { icon: Component; colour: string }> = {
-    poison: { icon: Skull, colour: 'text-[#4fb883]' },
-    energy: { icon: Zap, colour: 'text-[#f5c542]' },
+    poison: { icon: PoisonIcon, colour: 'text-[#4fb883]' },
+    energy: { icon: EnergyIcon, colour: 'text-[#f5c542]' },
     experience: { icon: Star, colour: 'text-[#c9a7ff]' },
     rad: { icon: Radiation, colour: 'text-[#9be15d]' },
-    ticket: { icon: Ticket, colour: 'text-[#ff9f5a]' },
+    ticket: { icon: TicketIcon, colour: 'text-[#ff9f5a]' },
 };
 const OTHER = { icon: CircleDot, colour: 'text-muted-foreground' };
 
