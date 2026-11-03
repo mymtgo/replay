@@ -40,7 +40,9 @@ export type ReplayCardView = {
     /** Key of the permanent this is exiled with. */
     exiledWith: string | null;
     /** Who or what this creature attacks this combat. */
-    attacking: string | null;
+    attacking: ReplayAttackTarget | null;
+    /** How many creatures attack this permanent (a planeswalker or battle) this combat. */
+    attackers: number;
     /** Key of the attacker this creature blocks this combat. */
     blocking: string | null;
     /** Damage marked on it this turn. */
@@ -59,6 +61,8 @@ export type ReplayPlayerView = {
     poison: number;
     counters: Record<string, number>;
     handCount: number;
+    /** How many creatures attack this player this combat. */
+    attackers: number;
     librarySize: number;
     /** Mana in the pool by type, in WUBRGC order. */
     pool: Record<string, number>;
@@ -106,6 +110,9 @@ export type ReplayMoment = {
     /** Whether the log lists it: priority, passes and step lines move the board but say nothing. */
     logged: boolean;
 };
+
+/** What an attacking creature attacks: a player, or a planeswalker or battle by key. `label` names it. */
+export type ReplayAttackTarget = { kind: 'player'; player: Player; label: string } | { kind: 'object'; key: string; label: string };
 
 /** How the game ended for the local player. */
 export type ReplayResult = 'win' | 'loss';

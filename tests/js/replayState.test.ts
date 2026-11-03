@@ -117,3 +117,28 @@ test('the sideboard comes from the deck block and its changes from the previous 
         ],
     );
 });
+
+test('an attacker names what it attacks, and the player or permanent it attacks counts its attackers', () => {
+    const text = readFileSync(new URL('./fixtures/lasting-effects.mtgr', import.meta.url), 'utf8');
+    const attackLine = '#10 "Ragavan, Nimble Pilferer" attack "PlayerA"';
+    const atAttack = (source: string) => {
+        const game = parse(source).file.games[0];
+        const line = game.body.find((body) => body.kind === 'statement' && body.statement.type === 'attack')!;
+        const t = buildTimeline(game);
+        const moment = t.moments.find((item) => item.members.some((member) => member.line === line))!;
+        const state = t.steps[moment.index].state;
+        const derived = t.derived[moment.index];
+
+        return { cards: cardViews(state, derived, images), player: playerView('PlayerA', state, derived, gameInfo(game)) };
+    };
+
+    const atPlayer = atAttack(text);
+    assert.deepEqual(atPlayer.cards.get('#10')?.attacking, { kind: 'player', player: 'PlayerA', label: 'PlayerA' });
+    assert.equal(atPlayer.player.attackers, 1);
+    assert.equal(atPlayer.cards.get('#1')?.attackers, 0);
+
+    const atTamiyo = atAttack(text.replace(attackLine, '#10 "Ragavan, Nimble Pilferer" attack #1 "Tamiyo, Inquisitive Student // Tamiyo, Seasoned Scholar"'));
+    assert.deepEqual(atTamiyo.cards.get('#10')?.attacking, { kind: 'object', key: '#1', label: 'Tamiyo, Seasoned Scholar' });
+    assert.equal(atTamiyo.cards.get('#1')?.attackers, 1);
+    assert.equal(atTamiyo.player.attackers, 0);
+});

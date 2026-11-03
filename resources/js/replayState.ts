@@ -1,4 +1,4 @@
-import { getObject, idKey, type GameState, type ObjectState, type Player } from '@mtgreplay/mtgr';
+import { getObject, idKey, type GameState, type ObjectState, type Player, type Target } from '@mtgreplay/mtgr';
 import type { ReplayGameInfo } from './replayGame';
 import { choiceText, targetText } from './replayWords';
 import type { CardImageResolver, ReplayCardView, ReplayDerived, ReplayEffectView, ReplayPlayerView, ReplayStackItem, ReplayZone } from './types';
@@ -32,6 +32,11 @@ function imageFor(object: ObjectState, state: GameState, images: CardImageResolv
     return images(name, object.face ?? undefined);
 }
 
+/** How many creatures attack what `matches` picks out this combat. */
+function attackersOf(derived: ReplayDerived, matches: (target: Target) => boolean): number {
+    return [...derived.attacking.values()].filter(matches).length;
+}
+
 export function cardView(object: ObjectState, state: GameState, derived: ReplayDerived, images: CardImageResolver): ReplayCardView {
     const key = idKey(object.id);
     const source = object.source ? state.objects[idKey(object.source)] : null;
@@ -56,7 +61,12 @@ export function cardView(object: ObjectState, state: GameState, derived: ReplayD
         counters: object.counters,
         attachedTo: object.attachedTo ? idKey(object.attachedTo) : null,
         exiledWith: object.exiledWith ? idKey(object.exiledWith) : null,
-        attacking: attacking ? targetText(state, attacking) : null,
+        attacking: attacking
+            ? attacking.kind === 'player'
+                ? { kind: 'player', player: attacking.player, label: attacking.player }
+                : { kind: 'object', key: idKey(attacking.object.id), label: state.objects[idKey(attacking.object.id)]?.face ?? targetText(state, attacking) }
+            : null,
+        attackers: attackersOf(derived, (target) => target.kind === 'object' && idKey(target.object.id) === key),
         blocking: derived.blocking.get(key) ?? null,
         damage: derived.damage.get(key) ?? 0,
         choices: object.choices,
@@ -83,6 +93,7 @@ export function playerView(name: Player, state: GameState, derived: ReplayDerive
         poison: player?.poison ?? 0,
         counters: player?.counters ?? {},
         handCount,
+        attackers: attackersOf(derived, (target) => target.kind === 'player' && target.player === name),
         librarySize: player?.librarySize ?? 0,
         pool: Object.fromEntries(POOL_ORDER.map((type) => [type, player?.pool[type as keyof typeof player.pool] ?? 0]).filter(([, count]) => count)),
         clock: clock === undefined ? null : clock * 1000,

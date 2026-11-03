@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Layers, Timer, Trophy } from 'lucide-vue-next';
+import { Crosshair, Layers, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useReplayContext } from './replayContext';
 import ReplayLifeHistory from './ReplayLifeHistory.vue';
@@ -111,6 +111,15 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard, true));
             <div title="Cards in library" class="flex flex-none items-center gap-1 text-muted-foreground">
                 <Layers :size="14" />
                 <span class="min-w-[2ch] text-foreground tabular-nums">{{ player.librarySize }}</span>
+            </div>
+
+            <div
+                v-if="player.attackers"
+                :title="`Attacked by ${player.attackers} ${player.attackers === 1 ? 'creature' : 'creatures'}`"
+                class="flex h-5 flex-none items-center gap-1 rounded-full bg-[#e5484d] px-1.75 text-[11px] font-bold text-white"
+            >
+                <Crosshair :size="12" :stroke-width="2.5" />
+                <span class="tabular-nums">{{ player.attackers }}</span>
             </div>
 
             <div v-if="winner" title="Won this game" class="flex flex-none items-center gap-1 text-[12.5px] font-semibold text-yellow-400">

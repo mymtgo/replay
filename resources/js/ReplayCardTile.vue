@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Shield, Swords } from 'lucide-vue-next';
+import { ChevronRight, Crosshair, Shield, Swords, User } from 'lucide-vue-next';
 import { computed } from 'vue';
 import ReplayCardImage from './ReplayCardImage.vue';
 import ReplayDie from './ReplayDie.vue';
@@ -32,6 +32,8 @@ const { showPreview, hidePreview, pinPreview, highlightedTargets } = useReplayCo
 
 const tapped = computed(() => props.card.tapped);
 const attacking = computed(() => props.card.attacking !== null);
+/** A planeswalker or battle being attacked. */
+const attacked = computed(() => props.card.attackers > 0);
 const blocking = computed(() => props.card.blocking !== null);
 const ptCounters = computed(() => ptCounterLabel(props.card));
 const dice = computed(() => counterDice(props.card));
@@ -50,7 +52,7 @@ const targeted = computed(() => marked(props.card.key) || (props.represents ?? [
 
 const lift = computed(() => (attacking.value ? (props.opponent ? 14 : -14) : 0));
 
-const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5a524' : 'transparent'));
+const ring = computed(() => (attacking.value || attacked.value ? '#e5484d' : blocking.value ? '#f5a524' : 'transparent'));
 </script>
 
 <template>
@@ -117,12 +119,23 @@ const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5
             </div>
 
             <div
-                v-if="attacking"
-                title="Attacking"
+                v-if="card.attacking"
+                :title="`Attacking ${card.attacking.label}`"
                 class="absolute top-0.75 right-0.75 flex h-4.5 items-center gap-0.5 rounded-full bg-[#e5484d] px-1.25 text-[10px] font-bold text-white"
             >
                 <Swords :size="11" :stroke-width="2.5" />
                 <span v-if="pair">{{ pair }}</span>
+                <ChevronRight :size="9" :stroke-width="3" class="-mx-0.5 opacity-80" />
+                <User v-if="card.attacking.kind === 'player'" :size="11" :stroke-width="2.5" />
+                <Crosshair v-else :size="11" :stroke-width="2.5" />
+            </div>
+            <div
+                v-else-if="attacked"
+                :title="`Attacked by ${card.attackers} ${card.attackers === 1 ? 'creature' : 'creatures'}`"
+                class="absolute top-0.75 right-0.75 flex h-4.5 items-center gap-0.5 rounded-full bg-[#e5484d] px-1.25 text-[10px] font-bold text-white"
+            >
+                <Crosshair :size="11" :stroke-width="2.5" />
+                <span>{{ card.attackers }}</span>
             </div>
             <div
                 v-else-if="blocking"

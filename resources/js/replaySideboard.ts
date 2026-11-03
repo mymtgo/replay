@@ -27,6 +27,7 @@ export function namedCard(name: string, key: string, owner: Player, images: Card
         attachedTo: null,
         exiledWith: null,
         attacking: null,
+        attackers: 0,
         blocking: null,
         damage: 0,
         choices: [],

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Hand, Layers, Timer, Trophy } from 'lucide-vue-next';
+import { Crosshair, Hand, Layers, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useReplayContext } from './replayContext';
 import ReplayLifeHistory from './ReplayLifeHistory.vue';
@@ -76,6 +76,13 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
 
         <div class="flex flex-none items-center gap-2" :class="stacked ? 'flex-wrap gap-y-1' : ''">
             <ReplayLifeHistory :player="player" :opponent="opponent" compact />
+            <span
+                v-if="player.attackers"
+                :title="`Attacked by ${player.attackers} ${player.attackers === 1 ? 'creature' : 'creatures'}`"
+                class="flex h-4.5 items-center gap-0.5 rounded-full bg-[#e5484d] px-1.25 text-[10.5px] font-bold text-white"
+            >
+                <Crosshair :size="11" :stroke-width="2.5" /><span class="tabular-nums">{{ player.attackers }}</span>
+            </span>
             <ReplayPlayerCounters :player="player" :size="12" />
             <span
                 v-if="clock"

@@ -125,7 +125,7 @@ export function useCardPreview(
         }
 
         if (current.attacking !== null) {
-            chips.push(`Attacking ${current.attacking}`);
+            chips.push(`Attacking ${current.attacking.label}`);
         }
 
         const blocked = current.blocking !== null ? cardsByKey.value.get(current.blocking) : undefined;
