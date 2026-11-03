@@ -24,9 +24,19 @@ const { games } = parse(text).file;
 
 `card-image` returns the image URL for a card name (and for a face of a double-faced card), or null when the host has none.
 
+## Snapshot replays
+
+Replays recorded before `.mtgr` are snapshot-v2 JSON: frames of board state per game, built by `BuildReplaySnapshot` and shared by mymtgo.com. They keep playing in `SnapshotReplayViewer`, the viewer as it was before `.mtgr`, kept unchanged under `resources/js/snapshot/`. A host picks the viewer by what it has stored: a `.mtgr` file goes to `ReplayViewer`, a snapshot game to `SnapshotReplayViewer`.
+
+```vue
+<SnapshotReplayViewer :frames="game.frames" :log="game.log" :won="game.won" :game-id="id" :match-games="games" />
+```
+
+Snapshot frames have no events, causes or targets, so they are not converted to `.mtgr`. New features go into `ReplayViewer` only; the snapshot viewer is retired once nothing serves snapshots.
+
 ## Development harness
 
-`dev/` is a Vite app that mounts the viewer the way a host does. It loads the example files from the parser's `standards/examples` folder, shows `validate()` problems, and lets you pick a game.
+`dev/` is a Vite app that mounts the viewer the way a host does. It loads the example files from the parser's `standards/examples` folder, shows `validate()` problems, and lets you pick a game. A `.json` file opens in the snapshot viewer; `snapshot-sample.json` is a small synthetic one.
 
 ```sh
 cd dev
@@ -39,5 +49,5 @@ npm run dev
 The tests run on real `.mtgr` files under `tests/js/fixtures/` and resolve the parser through the harness's install, so run `npm install` in `dev/` first.
 
 ```sh
-node --test --import ./tests/js/setup.mjs 'tests/js/*.test.ts'
+node --test --import ./tests/js/setup.mjs 'tests/js/*.test.ts' 'tests/js/snapshot/*.test.ts'
 ```

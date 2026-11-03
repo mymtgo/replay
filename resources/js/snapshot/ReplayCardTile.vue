@@ -1,0 +1,115 @@
+<script setup lang="ts">
+import { Shield, Swords } from 'lucide-vue-next';
+import { computed } from 'vue';
+import ReplayCardImage from './ReplayCardImage.vue';
+import ReplayDie from './ReplayDie.vue';
+import { counterDice, isCreature, ptCounterLabel } from './replayCards';
+import { useReplayContext } from './replayContext';
+import type { ReplayCard } from './types';
+
+const props = defineProps<{
+    card: ReplayCard;
+    /** How many identical cards this tile stands for; shows a ×N badge above 1. */
+    count?: number;
+    /** Opponent cards lift down toward the centre line when attacking, yours lift up. */
+    opponent: boolean;
+    /** Shared number linking a blocker to the attacker it blocks. */
+    pair?: number | null;
+    /** The last card in a row never shrinks, so crowded rows overlap instead of wrapping. */
+    last: boolean;
+}>();
+
+const { showPreview, hidePreview, pinPreview } = useReplayContext();
+
+const tapped = computed(() => !!props.card.Tapped);
+const attacking = computed(() => props.card.Attacking != null);
+const blocking = computed(() => props.card.Blocking != null);
+const ptCounters = computed(() => ptCounterLabel(props.card));
+const dice = computed(() => counterDice(props.card));
+const showPt = computed(() => isCreature(props.card) && props.card.Power != null);
+
+const lift = computed(() => (attacking.value ? (props.opponent ? 14 : -14) : 0));
+
+const ring = computed(() => (attacking.value ? '#e5484d' : blocking.value ? '#f5a524' : 'transparent'));
+</script>
+
+<template>
+    <!--
+        Sized from the shared card height rather than aspect-ratio, which Safari
+        gets wrong in a flex row. Tapped cards lie sideways, as wide as they are tall.
+    -->
+    <div
+        class="relative h-(--replay-card-h) min-w-[18px] hover:z-20!"
+        :style="{
+            width: tapped ? 'var(--replay-card-h)' : 'calc(var(--replay-card-h) * 63 / 88)',
+            flex: `0 ${last ? 0 : 1} auto`,
+            zIndex: attacking ? 3 : 1,
+        }"
+    >
+        <div
+            class="absolute top-0 left-0 h-(--replay-card-h) w-[calc(var(--replay-card-h)*63/88)] rounded-[5px] bg-muted transition-[transform,box-shadow] duration-200 ease-out"
+            :style="{
+                boxShadow: `0 0 0 2px ${ring}, 0 2px 6px rgba(0,0,0,.35)`,
+                transform: `translate(${tapped ? 19.8 : 0}%, ${lift}px) rotate(${tapped ? 90 : 0}deg)`,
+            }"
+            @mouseenter="showPreview($event, card)"
+            @mouseleave="hidePreview"
+            @click="pinPreview($event, card)"
+        >
+            <ReplayCardImage :name="card.name" :type="card.type" :image="card.image" show-type />
+
+            <div
+                v-if="(count ?? 1) > 1"
+                class="absolute bottom-[7%] left-1/2 -translate-x-1/2 rounded-full bg-[rgba(12,12,12,.88)] px-1.75 py-px text-[11px] font-bold text-white"
+            >
+                ×{{ count }}
+            </div>
+
+            <div v-if="ptCounters || dice.length" class="absolute top-[16%] right-0.75 left-0.75 flex flex-col items-start gap-0.5">
+                <span
+                    v-if="ptCounters"
+                    class="rounded bg-[#f3eedf] px-1.25 py-px font-mono text-[10px] font-bold whitespace-nowrap text-[#1a1a1a] shadow-[0_1px_2px_rgba(0,0,0,.4)]"
+                >
+                    {{ ptCounters }}
+                </span>
+                <span v-for="counter in dice" :key="counter.kind" :title="counter.label" class="flex w-full flex-wrap gap-[3%]">
+                    <!-- A d6 is about a quarter of a card's width on a real table. -->
+                    <span v-for="(face, i) in counter.faces" :key="i" class="w-[26%]">
+                        <ReplayDie :face="face" />
+                    </span>
+                </span>
+            </div>
+
+            <div
+                v-if="attacking"
+                title="Attacking"
+                class="absolute top-0.75 right-0.75 flex h-4.5 items-center gap-0.5 rounded-full bg-[#e5484d] px-1.25 text-[10px] font-bold text-white"
+            >
+                <Swords :size="11" :stroke-width="2.5" />
+                <span v-if="pair">{{ pair }}</span>
+            </div>
+            <div
+                v-else-if="blocking"
+                title="Blocking"
+                class="absolute top-0.75 right-0.75 flex h-4.5 items-center gap-0.5 rounded-full bg-[#f5a524] px-1.25 text-[10px] font-bold text-[#1a1a1a]"
+            >
+                <Shield :size="11" :stroke-width="2.5" />
+                <span v-if="pair">{{ pair }}</span>
+            </div>
+
+            <div
+                v-if="(card.Damage ?? 0) > 0"
+                class="absolute bottom-0.75 left-0.75 rounded bg-[#e5484d] px-1.25 py-px text-[10px] font-bold text-white"
+            >
+                {{ card.Damage }} dmg
+            </div>
+
+            <div
+                v-if="showPt"
+                class="absolute right-0.75 bottom-0.75 rounded bg-[rgba(12,12,12,.88)] px-1.25 py-px font-mono text-[11px] font-bold text-white"
+            >
+                {{ card.Power }}/{{ card.Toughness }}
+            </div>
+        </div>
+    </div>
+</template>

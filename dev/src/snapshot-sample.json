@@ -1,0 +1,551 @@
+{
+ "version": 2,
+ "meta": {
+  "format": "modern",
+  "played_at": "2026-09-24T20:00:00Z",
+  "games_in_match": 1,
+  "local_archetype": null,
+  "opponent_archetype": null
+ },
+ "games": [
+  {
+   "game_number": 1,
+   "won": null,
+   "frames": [
+    {
+     "timestamp": "2026-09-24T20:00:00.000Z",
+     "content": {
+      "Players": [
+       {
+        "Id": 1,
+        "Name": "You",
+        "IsLocal": true,
+        "Life": 20,
+        "HandCount": 7,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       },
+       {
+        "Id": 2,
+        "Name": "Opponent",
+        "Life": 20,
+        "HandCount": 7,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       }
+      ],
+      "Cards": [
+       {
+        "Id": 10,
+        "CatalogID": 1,
+        "Zone": "Hand",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Mountain",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Mountain&format=image&version=normal"
+       },
+       {
+        "Id": 11,
+        "CatalogID": 2,
+        "Zone": "Hand",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Ragavan, Nimble Pilferer",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Ragavan%2C%20Nimble%20Pilferer&format=image&version=normal"
+       },
+       {
+        "Id": 12,
+        "CatalogID": 3,
+        "Zone": "Hand",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Lightning Bolt",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Lightning%20Bolt&format=image&version=normal"
+       }
+      ]
+     }
+    },
+    {
+     "timestamp": "2026-09-24T20:00:15.000Z",
+     "content": {
+      "Turn": 1,
+      "Phase": "PreCombatMain",
+      "ActivePlayer": 1,
+      "Priority": 1,
+      "Players": [
+       {
+        "Id": 1,
+        "Name": "You",
+        "IsLocal": true,
+        "Life": 20,
+        "HandCount": 6,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       },
+       {
+        "Id": 2,
+        "Name": "Opponent",
+        "Life": 20,
+        "HandCount": 7,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       }
+      ],
+      "Cards": [
+       {
+        "Id": 10,
+        "CatalogID": 1,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Mountain",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Mountain&format=image&version=normal"
+       },
+       {
+        "Id": 11,
+        "CatalogID": 2,
+        "Zone": "Hand",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Ragavan, Nimble Pilferer",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Ragavan%2C%20Nimble%20Pilferer&format=image&version=normal"
+       },
+       {
+        "Id": 12,
+        "CatalogID": 3,
+        "Zone": "Hand",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Lightning Bolt",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Lightning%20Bolt&format=image&version=normal"
+       }
+      ]
+     }
+    },
+    {
+     "timestamp": "2026-09-24T20:00:30.000Z",
+     "content": {
+      "Turn": 1,
+      "Phase": "PreCombatMain",
+      "ActivePlayer": 1,
+      "Priority": 1,
+      "Players": [
+       {
+        "Id": 1,
+        "Name": "You",
+        "IsLocal": true,
+        "Life": 20,
+        "HandCount": 5,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       },
+       {
+        "Id": 2,
+        "Name": "Opponent",
+        "Life": 20,
+        "HandCount": 7,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       }
+      ],
+      "Cards": [
+       {
+        "Id": 10,
+        "CatalogID": 1,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Mountain",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Mountain&format=image&version=normal",
+        "Tapped": true
+       },
+       {
+        "Id": 11,
+        "CatalogID": 2,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Ragavan, Nimble Pilferer",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Ragavan%2C%20Nimble%20Pilferer&format=image&version=normal",
+        "Power": 2,
+        "Toughness": 1
+       },
+       {
+        "Id": 12,
+        "CatalogID": 3,
+        "Zone": "Hand",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Lightning Bolt",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Lightning%20Bolt&format=image&version=normal"
+       }
+      ]
+     }
+    },
+    {
+     "timestamp": "2026-09-24T20:00:45.000Z",
+     "content": {
+      "Turn": 2,
+      "Phase": "PreCombatMain",
+      "ActivePlayer": 2,
+      "Priority": 2,
+      "Players": [
+       {
+        "Id": 1,
+        "Name": "You",
+        "IsLocal": true,
+        "Life": 20,
+        "HandCount": 5,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       },
+       {
+        "Id": 2,
+        "Name": "Opponent",
+        "Life": 20,
+        "HandCount": 6,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       }
+      ],
+      "Cards": [
+       {
+        "Id": 10,
+        "CatalogID": 1,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Mountain",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Mountain&format=image&version=normal"
+       },
+       {
+        "Id": 11,
+        "CatalogID": 2,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Ragavan, Nimble Pilferer",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Ragavan%2C%20Nimble%20Pilferer&format=image&version=normal",
+        "Power": 2,
+        "Toughness": 1
+       },
+       {
+        "Id": 12,
+        "CatalogID": 3,
+        "Zone": "Hand",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Lightning Bolt",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Lightning%20Bolt&format=image&version=normal"
+       },
+       {
+        "Id": 20,
+        "CatalogID": 4,
+        "Zone": "Battlefield",
+        "Owner": 2,
+        "Controller": 2,
+        "name": "Forest",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Forest&format=image&version=normal"
+       }
+      ]
+     }
+    },
+    {
+     "timestamp": "2026-09-24T20:01:00.000Z",
+     "content": {
+      "Turn": 2,
+      "Phase": "PreCombatMain",
+      "ActivePlayer": 2,
+      "Priority": 2,
+      "Players": [
+       {
+        "Id": 1,
+        "Name": "You",
+        "IsLocal": true,
+        "Life": 20,
+        "HandCount": 5,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       },
+       {
+        "Id": 2,
+        "Name": "Opponent",
+        "Life": 20,
+        "HandCount": 5,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       }
+      ],
+      "Cards": [
+       {
+        "Id": 10,
+        "CatalogID": 1,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Mountain",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Mountain&format=image&version=normal"
+       },
+       {
+        "Id": 11,
+        "CatalogID": 2,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Ragavan, Nimble Pilferer",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Ragavan%2C%20Nimble%20Pilferer&format=image&version=normal",
+        "Power": 2,
+        "Toughness": 1
+       },
+       {
+        "Id": 12,
+        "CatalogID": 3,
+        "Zone": "Hand",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Lightning Bolt",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Lightning%20Bolt&format=image&version=normal"
+       },
+       {
+        "Id": 20,
+        "CatalogID": 4,
+        "Zone": "Battlefield",
+        "Owner": 2,
+        "Controller": 2,
+        "name": "Forest",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Forest&format=image&version=normal",
+        "Tapped": true
+       },
+       {
+        "Id": 21,
+        "CatalogID": 5,
+        "Zone": "Battlefield",
+        "Owner": 2,
+        "Controller": 2,
+        "name": "Tarmogoyf",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Tarmogoyf&format=image&version=normal",
+        "Power": 0,
+        "Toughness": 1
+       }
+      ]
+     }
+    },
+    {
+     "timestamp": "2026-09-24T20:01:15.000Z",
+     "content": {
+      "Turn": 3,
+      "Phase": "DeclareAttackers",
+      "ActivePlayer": 1,
+      "Priority": 1,
+      "Players": [
+       {
+        "Id": 1,
+        "Name": "You",
+        "IsLocal": true,
+        "Life": 20,
+        "HandCount": 5,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       },
+       {
+        "Id": 2,
+        "Name": "Opponent",
+        "Life": 20,
+        "HandCount": 5,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       }
+      ],
+      "Cards": [
+       {
+        "Id": 10,
+        "CatalogID": 1,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Mountain",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Mountain&format=image&version=normal"
+       },
+       {
+        "Id": 11,
+        "CatalogID": 2,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Ragavan, Nimble Pilferer",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Ragavan%2C%20Nimble%20Pilferer&format=image&version=normal",
+        "Power": 2,
+        "Toughness": 1,
+        "Tapped": true,
+        "Attacking": 2
+       },
+       {
+        "Id": 12,
+        "CatalogID": 3,
+        "Zone": "Hand",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Lightning Bolt",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Lightning%20Bolt&format=image&version=normal"
+       },
+       {
+        "Id": 20,
+        "CatalogID": 4,
+        "Zone": "Battlefield",
+        "Owner": 2,
+        "Controller": 2,
+        "name": "Forest",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Forest&format=image&version=normal"
+       },
+       {
+        "Id": 21,
+        "CatalogID": 5,
+        "Zone": "Battlefield",
+        "Owner": 2,
+        "Controller": 2,
+        "name": "Tarmogoyf",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Tarmogoyf&format=image&version=normal",
+        "Power": 0,
+        "Toughness": 1
+       }
+      ]
+     }
+    },
+    {
+     "timestamp": "2026-09-24T20:01:30.000Z",
+     "content": {
+      "Turn": 3,
+      "Phase": "PostCombatMain",
+      "ActivePlayer": 1,
+      "Priority": 1,
+      "Players": [
+       {
+        "Id": 1,
+        "Name": "You",
+        "IsLocal": true,
+        "Life": 20,
+        "HandCount": 5,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       },
+       {
+        "Id": 2,
+        "Name": "Opponent",
+        "Life": 18,
+        "HandCount": 5,
+        "LibraryCount": 53,
+        "TimeLeft": 1500
+       }
+      ],
+      "Cards": [
+       {
+        "Id": 10,
+        "CatalogID": 1,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Mountain",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Mountain&format=image&version=normal"
+       },
+       {
+        "Id": 11,
+        "CatalogID": 2,
+        "Zone": "Battlefield",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Ragavan, Nimble Pilferer",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Ragavan%2C%20Nimble%20Pilferer&format=image&version=normal",
+        "Power": 2,
+        "Toughness": 1,
+        "Tapped": true
+       },
+       {
+        "Id": 12,
+        "CatalogID": 3,
+        "Zone": "Hand",
+        "Owner": 1,
+        "Controller": 1,
+        "name": "Lightning Bolt",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Lightning%20Bolt&format=image&version=normal"
+       },
+       {
+        "Id": 20,
+        "CatalogID": 4,
+        "Zone": "Battlefield",
+        "Owner": 2,
+        "Controller": 2,
+        "name": "Forest",
+        "type": "Basic Land",
+        "image": "https://api.scryfall.com/cards/named?exact=Forest&format=image&version=normal"
+       },
+       {
+        "Id": 21,
+        "CatalogID": 5,
+        "Zone": "Battlefield",
+        "Owner": 2,
+        "Controller": 2,
+        "name": "Tarmogoyf",
+        "type": "Card",
+        "image": "https://api.scryfall.com/cards/named?exact=Tarmogoyf&format=image&version=normal",
+        "Power": 0,
+        "Toughness": 1
+       }
+      ]
+     }
+    }
+   ],
+   "log": [
+    {
+     "timestamp": "2026-09-24T20:00:15.000Z",
+     "message": "You play Mountain."
+    },
+    {
+     "timestamp": "2026-09-24T20:00:30.000Z",
+     "message": "You cast Ragavan, Nimble Pilferer."
+    },
+    {
+     "timestamp": "2026-09-24T20:00:45.000Z",
+     "message": "Opponent plays Forest."
+    },
+    {
+     "timestamp": "2026-09-24T20:01:00.000Z",
+     "message": "Opponent casts Tarmogoyf."
+    },
+    {
+     "timestamp": "2026-09-24T20:01:15.000Z",
+     "message": "You attack with Ragavan, Nimble Pilferer."
+    },
+    {
+     "timestamp": "2026-09-24T20:01:30.000Z",
+     "message": "Opponent takes 2 damage."
+    }
+   ]
+  }
+ ]
+}

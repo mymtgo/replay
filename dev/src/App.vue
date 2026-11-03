@@ -2,25 +2,50 @@
 import { parse, validate, tagValue, type Game, type Problem } from '@mtgreplay/mtgr';
 import { computed, shallowRef } from 'vue';
 import ReplayViewer from '@replay/ReplayViewer.vue';
+import SnapshotReplayViewer from '@replay/snapshot/ReplayViewer.vue';
+import type { ReplayFrame, ReplayLogEntry } from '@replay/snapshot/types';
+import snapshotSample from './snapshot-sample.json';
 
-const EXAMPLES = ['mycospawn-turn-5.mtgr', 'match.mtgr', 'targeting.mtgr', 'lasting-effects.mtgr', 'opening-hand.mtgr'];
+/** A stored snapshot-v2 match, the JSON MyMTGO shared before `.mtgr`. */
+type Snapshot = { games: Array<{ game_number: number; won: boolean | null; frames: ReplayFrame[]; log: ReplayLogEntry[] }> };
+const SNAPSHOT_SAMPLE = 'snapshot-sample.json';
+
+const EXAMPLES = ['mycospawn-turn-5.mtgr', 'match.mtgr', 'targeting.mtgr', 'lasting-effects.mtgr', 'opening-hand.mtgr', 'snapshot-sample.json'];
 
 const fileName = shallowRef<string | null>(null);
 const games = shallowRef<Game[]>([]);
 const problems = shallowRef<Problem[]>([]);
 const gameIndex = shallowRef(0);
 const dragging = shallowRef(false);
+const snapshot = shallowRef<Snapshot | null>(null);
+
+const snapshotGame = computed(() => snapshot.value?.games[gameIndex.value] ?? null);
+const snapshotGames = computed(() => snapshot.value?.games.map((item, index) => ({ id: index, number: item.game_number, won: item.won })) ?? []);
 
 const game = computed(() => games.value[gameIndex.value] ?? null);
 
 function load(name: string, text: string) {
     fileName.value = name;
+    gameIndex.value = 0;
+
+    if (name.endsWith('.json')) {
+        snapshot.value = JSON.parse(text) as Snapshot;
+        problems.value = [];
+        games.value = [];
+
+        return;
+    }
+
+    snapshot.value = null;
     problems.value = validate(text);
     games.value = parse(text).file.games;
-    gameIndex.value = 0;
 }
 
 async function loadExample(name: string) {
+    if (name === SNAPSHOT_SAMPLE) {
+        return load(name, JSON.stringify(snapshotSample));
+    }
+
     load(name, await fetch(`/${name}`).then((response) => response.text()));
 }
 
@@ -57,7 +82,7 @@ function gameLabel(item: Game, index: number): string {
             <span class="font-semibold">.mtgr viewer</span>
             <label class="cursor-pointer rounded-md border border-border px-2 py-1 hover:bg-accent">
                 Open file
-                <input type="file" accept=".mtgr,text/plain" class="hidden" @change="onPick" />
+                <input type="file" accept=".mtgr,.json,text/plain" class="hidden" @change="onPick" />
             </label>
             <span class="text-muted-foreground">or drop one here, or try</span>
             <button
@@ -95,8 +120,18 @@ function gameLabel(item: Game, index: number): string {
         </div>
 
         <main class="relative min-h-0 flex-1">
-            <div v-if="dragging" class="pointer-events-none absolute inset-0 z-100 grid place-items-center bg-primary/20 text-lg font-semibold">Drop the .mtgr file</div>
-            <ReplayViewer v-if="game" :key="`${fileName}:${gameIndex}`" :games="games" :game-index="gameIndex" :card-image="cardImage" @select-game="gameIndex = $event" />
+            <div v-if="dragging" class="pointer-events-none absolute inset-0 z-100 grid place-items-center bg-primary/20 text-lg font-semibold">Drop the .mtgr or snapshot file</div>
+            <SnapshotReplayViewer
+                v-if="snapshotGame"
+                :key="`${fileName}:${gameIndex}`"
+                :frames="snapshotGame.frames"
+                :log="snapshotGame.log"
+                :won="snapshotGame.won"
+                :game-id="gameIndex"
+                :match-games="snapshotGames"
+                @select-game="gameIndex = $event"
+            />
+            <ReplayViewer v-else-if="game" :key="`${fileName}:${gameIndex}`" :games="games" :game-index="gameIndex" :card-image="cardImage" @select-game="gameIndex = $event" />
             <div v-else class="grid size-full place-items-center text-muted-foreground">Load a .mtgr file to start.</div>
         </main>
     </div>
