@@ -8,7 +8,6 @@ import { replayContextKey } from './replayContext';
 import ReplayEffects from './ReplayEffects.vue';
 import ReplayEmptyState from './ReplayEmptyState.vue';
 import { buildTimeline, gameInfo, matchGames, timeLabel } from './replayGame';
-import ReplayGameEnd from './ReplayGameEnd.vue';
 import ReplayGamePicker from './ReplayGamePicker.vue';
 import ReplayHandSheet from './ReplayHandSheet.vue';
 import { buildLogItems } from './replayLog';
@@ -31,7 +30,7 @@ import ReplayPregame from './ReplayPregame.vue';
 import ReplayTransport from './ReplayTransport.vue';
 import { REPLAY_ZONES } from './replayZones';
 import ReplayZoneWindow from './ReplayZoneWindow.vue';
-import type { CardImageResolver, ReplayCardView, ReplayZone } from './types';
+import type { CardImageResolver, ReplayCardView, ReplayResult, ReplayZone } from './types';
 import { useCardPreview } from './useCardPreview';
 import { useReplayBoard } from './useReplayBoard';
 import { useReplayBoardFit } from './useReplayBoardFit';
@@ -258,18 +257,9 @@ const atEnd = computed(() => total.value > 0 && current.value === total.value - 
 
 /** Seat of the game's winner, held back until the final moment so the replay does not spoil the result. */
 const winnerId = computed(() => (atEnd.value ? info.value.winner : null));
+/** The local player's result, held back the same way: the board's borders and the centre line show it. */
+const result = computed<ReplayResult | null>(() => (atEnd.value && info.value.won !== null ? (info.value.won ? 'win' : 'loss') : null));
 const games = computed(() => matchGames(props.games));
-const matchGame = computed(() => games.value[props.gameIndex] ?? null);
-const nextGame = computed(() => games.value[props.gameIndex + 1] ?? null);
-
-const endDismissed = shallowRef(false);
-const showGameEnd = computed(() => atEnd.value && !playing.value && !endDismissed.value);
-
-watch(atEnd, (value) => {
-    if (!value) {
-        endDismissed.value = false;
-    }
-});
 
 const localId = computed(() => local.value?.id ?? null);
 
@@ -380,6 +370,7 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                     :active-is-local="activeIsLocal"
                     :step-label="currentStepLabel"
                     :missing-text="missingText"
+                    :result="result"
                     :stack-count="stack.length"
                     @open-zone="(player, zone, event) => toggleZoneWindow(player, zone, event, player !== localId)"
                     @open-stack="openSheet('stack')"
@@ -391,7 +382,7 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                     over the board, so opening one never moves or resizes a card.
                 -->
                 <template v-else>
-                    <div class="relative flex min-w-0 flex-1 flex-col">
+                    <div class="relative flex min-w-0 flex-1 flex-col" :class="result ? `replay-result-${result}` : ''">
                         <ReplaySide
                             v-for="side in sides"
                             :key="side.player.id"
@@ -412,7 +403,7 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                             <ReplayShareCard v-else-if="!side.opponent && shareUrl" :moment="shareMoment" :copied="shareLink.copied.value" @share="shareLink.share(false)" />
                         </ReplaySide>
 
-                        <ReplayPhaseRail :turn="turn" :active-name="activeName" :active-is-local="activeIsLocal" :step="step" :missing-text="missingText">
+                        <ReplayPhaseRail :turn="turn" :active-name="activeName" :active-is-local="activeIsLocal" :step="step" :missing-text="missingText" :result="result">
                             <ReplayStack v-if="stack.length" :items="stack" collapsible :collapsed="stackCollapsed" @toggle="stackCollapsed = !stackCollapsed" />
                         </ReplayPhaseRail>
                     </div>
@@ -543,8 +534,6 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                     </div>
                 </ReplaySheet>
             </Transition>
-
-            <ReplayGameEnd v-if="showGameEnd" :game="matchGame" :next="nextGame" :won="info.won" @restart="playback.toggle" @dismiss="endDismissed = true" />
 
             <ReplayScrubTooltip v-if="tooltip" :tooltip="tooltip" />
 

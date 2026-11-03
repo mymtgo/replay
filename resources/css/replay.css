@@ -28,6 +28,9 @@
         --ring: oklch(0.60 0.12 230);
         /* The opponent's colour wherever a player is told apart: their dot, avatar, area and turns on the timeline. You are --primary. */
         --replay-opponent: oklch(0.56 0.13 330);
+        /* The result's colours: both areas take one when the replay reaches the end. */
+        --replay-win: #facc15;
+        --replay-loss: #e5484d;
     }
 
     .replay-texture-bg {
@@ -93,6 +96,14 @@
     .replay-area-local {
         --area: var(--primary);
         --area-dir: to top;
+    }
+
+    .replay-result-win .replay-area {
+        --area: var(--replay-win);
+    }
+
+    .replay-result-loss .replay-area {
+        --area: var(--replay-loss);
     }
 
     .replay-glow {

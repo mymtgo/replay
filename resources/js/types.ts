@@ -105,6 +105,9 @@ export type ReplayMoment = {
     logged: boolean;
 };
 
+/** How the game ended for the local player. */
+export type ReplayResult = 'win' | 'loss';
+
 export type ReplayTurn = {
     /** The file's turn number, which counts every player's turns together. Null for the pregame. */
     number: number | null;

@@ -4,7 +4,7 @@ import ReplayBattlefield from './ReplayBattlefield.vue';
 import ReplayCompactHud from './ReplayCompactHud.vue';
 import ReplayCompactPhase from './ReplayCompactPhase.vue';
 import type { ReplayLayout } from './replayLayout';
-import type { ReplayTurn, ReplayZone } from './types';
+import type { ReplayResult, ReplayTurn, ReplayZone } from './types';
 import type { ReplaySideView } from './useReplayBoard';
 
 const props = defineProps<{
@@ -18,6 +18,7 @@ const props = defineProps<{
     activeIsLocal: boolean;
     stepLabel: string | null;
     missingText: string;
+    result: ReplayResult | null;
     stackCount: number;
 }>();
 
@@ -84,6 +85,7 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
                 :active-is-local="activeIsLocal"
                 :step-label="stepLabel"
                 :missing-text="missingText"
+                :result="result"
                 :stack-count="stackCount"
                 @open-stack="emit('openStack')"
             />

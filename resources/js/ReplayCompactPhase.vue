@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Layers } from 'lucide-vue-next';
-import type { ReplayTurn } from './types';
+import ReplayResultPill from './ReplayResultPill.vue';
+import type { ReplayResult, ReplayTurn } from './types';
 
 defineProps<{
     turn: ReplayTurn | null;
@@ -11,6 +12,8 @@ defineProps<{
     /** Shown instead when the turn itself is unknown or unrecorded. */
     missingText: string;
     stackCount: number;
+    /** Set on the final moment when the file records who won. */
+    result: ReplayResult | null;
 }>();
 
 const emit = defineEmits<{
@@ -50,5 +53,7 @@ const emit = defineEmits<{
             <Layers :size="13" class="replay-glow" />
             <span class="tabular-nums">{{ stackCount }}</span>
         </button>
+
+        <ReplayResultPill v-if="result" :result="result" class="absolute top-1/2 right-2 z-10 -translate-y-1/2" />
     </div>
 </template>

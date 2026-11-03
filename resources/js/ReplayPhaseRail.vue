@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef, watch } from 'vue';
 import type { Step } from '@mtgreplay/mtgr';
-import type { ReplayTurn } from './types';
+import ReplayResultPill from './ReplayResultPill.vue';
+import type { ReplayResult, ReplayTurn } from './types';
 import { REPLAY_PHASES, REPLAY_STEP_ORDER, stepKey, stepLabel, type ReplayStepKey } from './replayPhases';
 
 const props = defineProps<{
@@ -11,6 +12,8 @@ const props = defineProps<{
     step: Step | null;
     /** Shown instead of the steps when there is no step: before the first turn. */
     missingText: string;
+    /** Set on the final moment when the file records who won. */
+    result: ReplayResult | null;
 }>();
 
 const current = computed(() => stepKey(props.step));
@@ -42,7 +45,8 @@ watch(
 
 <template>
     <!-- The divider between the two areas: a band across the whole board, the phase bar centred in it. -->
-    <div class="relative order-1 flex h-12 flex-none items-center justify-center border-y border-black/70 bg-black/45 px-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+    <div class="relative order-1 flex h-12 flex-none items-center justify-center gap-3 border-y border-black/70 bg-black/45 px-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        <ReplayResultPill v-if="result" :result="result" />
         <div class="replay-inset relative flex h-9 min-w-0 items-center gap-4 rounded-md px-3">
             <div v-if="turn?.number != null" class="flex flex-none items-center gap-2 whitespace-nowrap">
                 <span class="size-2 rounded-full" :class="activeIsLocal ? 'bg-primary' : 'bg-(--replay-opponent)'" />
@@ -80,6 +84,7 @@ watch(
             </template>
             <span v-else class="truncate text-xs text-muted-foreground">{{ missingText }}</span>
         </div>
+        <ReplayResultPill v-if="result" :result="result" />
 
         <!-- Floats over the right edge of both areas, centred on the divider, so it never takes room from a row. -->
         <div v-if="$slots.default" class="absolute top-1/2 right-3 z-40 flex max-h-[26rem] w-80 -translate-y-1/2 justify-end @7xl:w-88">
