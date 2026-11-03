@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Heart, Layers, Skull, Timer, Trophy } from 'lucide-vue-next';
+import { Heart, Layers, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { poolSymbols } from './replayCards';
 import { useReplayContext } from './replayContext';
+import ReplayPlayerCounters from './ReplayPlayerCounters.vue';
 import ReplayTargetMark from './ReplayTargetMark.vue';
 import ReplayToggleButton from './ReplayToggleButton.vue';
 import { playerMark, zoneMark } from './replayTargets';
@@ -106,10 +107,7 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard, true));
                 <span class="min-w-[2ch] text-[17px] font-bold tabular-nums" :class="player.life <= 5 ? 'text-[#e5484d]' : ''">{{ player.life }}</span>
             </div>
 
-            <div v-if="player.poison" title="Poison counters" class="flex flex-none items-center gap-1 text-[#4fb883]">
-                <Skull :size="14" />
-                <span class="min-w-[2ch] font-bold tabular-nums">{{ player.poison }}</span>
-            </div>
+            <ReplayPlayerCounters :player="player" :size="14" />
 
             <div v-if="clock" title="Chess clock" class="flex flex-none items-center gap-1" :class="clockClass">
                 <Timer :size="14" />

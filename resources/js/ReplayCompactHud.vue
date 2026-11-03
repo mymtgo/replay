@@ -2,6 +2,7 @@
 import { Hand, Heart, Layers, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useReplayContext } from './replayContext';
+import ReplayPlayerCounters from './ReplayPlayerCounters.vue';
 import ReplayTargetMark from './ReplayTargetMark.vue';
 import { playerMark, zoneMark } from './replayTargets';
 import { hudZones } from './replayZones';
@@ -77,6 +78,7 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
                 <Heart :size="13" class="text-[#e5484d]" />
                 <span class="text-[15px] font-bold tabular-nums" :class="player.life <= 5 ? 'text-[#e5484d]' : ''">{{ player.life }}</span>
             </span>
+            <ReplayPlayerCounters :player="player" :size="12" />
             <span
                 v-if="clock"
                 title="Chess clock"
