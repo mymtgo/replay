@@ -86,6 +86,8 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
                 :step-label="stepLabel"
                 :missing-text="missingText"
                 :result="result"
+                :opponent-player="opponentSide?.player ?? null"
+                :local-player="localSide?.player ?? null"
                 :stack-count="stackCount"
                 @open-stack="emit('openStack')"
             />

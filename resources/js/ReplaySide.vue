@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ReplayBattlefield from './ReplayBattlefield.vue';
+import ReplayManaPool from './ReplayManaPool.vue';
 import ReplayPlayerHud from './ReplayPlayerHud.vue';
 import type { SideRows } from './replayRows';
 import type { ReplayCardView, ReplayPlayerView, ReplayZone } from './types';
@@ -60,6 +61,11 @@ const emit = defineEmits<{
             :tucked="tucked"
             :scroll="false"
         />
+
+        <!-- Against the centre line, on this player's side of it, over the board. -->
+        <div class="pointer-events-none absolute left-1/2 z-30 -translate-x-1/2" :class="opponent ? 'bottom-2' : 'top-2'">
+            <ReplayManaPool :player="player" />
+        </div>
 
         <div class="order-3 hidden min-h-0 @7xl:col-start-3 @7xl:row-start-1 @7xl:flex @7xl:flex-col @7xl:py-2" :class="opponent ? 'justify-start' : 'justify-end'">
             <slot />

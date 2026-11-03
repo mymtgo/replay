@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { Heart, Layers, Timer, Trophy } from 'lucide-vue-next';
+import { Layers, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
-import { poolSymbols } from './replayCards';
 import { useReplayContext } from './replayContext';
+import ReplayLifeHistory from './ReplayLifeHistory.vue';
 import ReplayPlayerCounters from './ReplayPlayerCounters.vue';
 import ReplayTargetMark from './ReplayTargetMark.vue';
 import ReplayToggleButton from './ReplayToggleButton.vue';
 import { playerMark, zoneMark } from './replayTargets';
 import { hudZones } from './replayZones';
 import type { ReplayPlayerView, ReplayZone } from './types';
-import ManaSymbol from './ui/ManaSymbol.vue';
 import ReplayPanel from './ui/ReplayPanel.vue';
 
 const LOW_CLOCK_MS = 5 * 60 * 1000;
@@ -33,8 +32,6 @@ const emit = defineEmits<{
 }>();
 
 const { highlightedTargets } = useReplayContext();
-
-const pool = computed(() => poolSymbols(props.player.pool));
 
 const clock = computed(() => {
     if (props.player.clock === null) {
@@ -102,10 +99,7 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard, true));
         </div>
 
         <div class="contents @7xl:flex @7xl:flex-wrap @7xl:items-center @7xl:gap-x-3.5 @7xl:gap-y-2">
-            <div title="Life" class="flex flex-none items-center gap-1.25">
-                <Heart :size="15" class="text-[#e5484d]" />
-                <span class="min-w-[2ch] text-[17px] font-bold tabular-nums" :class="player.life <= 5 ? 'text-[#e5484d]' : ''">{{ player.life }}</span>
-            </div>
+            <ReplayLifeHistory :player="player" :opponent="opponent" />
 
             <ReplayPlayerCounters :player="player" :size="14" />
 
@@ -122,10 +116,6 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard, true));
             <div v-if="winner" title="Won this game" class="flex flex-none items-center gap-1 text-[12.5px] font-semibold text-yellow-400">
                 <Trophy :size="14" />
                 <span>Winner</span>
-            </div>
-
-            <div v-if="pool.length" title="Mana pool" class="flex flex-none items-center gap-0.75">
-                <ManaSymbol v-for="(symbol, i) in pool" :key="`${symbol}-${i}`" :symbol="symbol" class="size-4.25" />
             </div>
         </div>
 

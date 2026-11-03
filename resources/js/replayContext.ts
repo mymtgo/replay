@@ -1,5 +1,6 @@
 import { inject, type Component, type InjectionKey } from 'vue';
 import type { Ref } from 'vue';
+import type { ReplayLifeChange } from './replayLife';
 import type { TargetMarks } from './replayTargets';
 import type { CardImageResolver, ReplayCardView } from './types';
 
@@ -29,6 +30,8 @@ export type ReplayContext = {
     linkComponent: Component | string;
     /** Switches game in place by index. */
     selectGame: (index: number) => void;
+    /** A player's life changes up to the current moment, oldest first. */
+    lifeHistory: (player: string) => ReplayLifeChange[];
 };
 
 export const replayContextKey: InjectionKey<ReplayContext> = Symbol('replay');

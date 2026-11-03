@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Layers } from 'lucide-vue-next';
+import ReplayManaPool from './ReplayManaPool.vue';
 import ReplayResultPill from './ReplayResultPill.vue';
-import type { ReplayResult, ReplayTurn } from './types';
+import type { ReplayPlayerView, ReplayResult, ReplayTurn } from './types';
 
 defineProps<{
     turn: ReplayTurn | null;
@@ -14,6 +15,9 @@ defineProps<{
     stackCount: number;
     /** Set on the final moment when the file records who won. */
     result: ReplayResult | null;
+    /** Each side's floating mana sits against the line on that side. */
+    opponentPlayer: ReplayPlayerView | null;
+    localPlayer: ReplayPlayerView | null;
 }>();
 
 const emit = defineEmits<{
@@ -53,6 +57,9 @@ const emit = defineEmits<{
             <Layers :size="13" class="replay-glow" />
             <span class="tabular-nums">{{ stackCount }}</span>
         </button>
+
+        <ReplayManaPool v-if="opponentPlayer" :player="opponentPlayer" compact class="absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2" />
+        <ReplayManaPool v-if="localPlayer" :player="localPlayer" compact class="absolute top-full left-1/2 z-10 mt-1 -translate-x-1/2" />
 
         <ReplayResultPill v-if="result" :result="result" class="absolute top-1/2 right-2 z-10 -translate-y-1/2" />
     </div>

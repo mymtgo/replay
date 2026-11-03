@@ -23,6 +23,7 @@ import { sideboardCaptions, sideboardCards, sideboardChanges, sideboardNames } f
 import ReplaySideboardChanges from './ReplaySideboardChanges.vue';
 import ReplaySide from './ReplaySide.vue';
 import ReplayStack from './ReplayStack.vue';
+import { lifeChanges } from './replayLife';
 import { pregameEnd, stepDuration, timelinePositions } from './replayTimeline';
 import { arrivedBy } from './replayArrival';
 import { pregameView } from './replayPregame';
@@ -85,6 +86,7 @@ const turns = computed(() => timeline.value.turns);
 const times = computed(() => timeline.value.times);
 const states = computed(() => timeline.value.steps.map((step) => step.state));
 const logItems = computed(() => buildLogItems(timeline.value.moments, states.value, turns.value));
+const lifeLog = computed(() => lifeChanges(timeline.value.moments, states.value, turns.value));
 
 const playback = useReplayPlayback(times, turns);
 const { current, playing, speed } = playback;
@@ -157,6 +159,7 @@ provide(replayContextKey, {
     focusStack: targets.focus,
     blurStack: targets.blur,
     togglePinStack: targets.togglePin,
+    lifeHistory: (player) => lifeLog.value.filter((change) => change.player === player && change.step <= current.value),
     images: props.cardImage,
     gameHref: props.gameHref ?? null,
     linkComponent: props.linkComponent,

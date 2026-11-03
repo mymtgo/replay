@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Hand, Heart, Layers, Timer, Trophy } from 'lucide-vue-next';
+import { Hand, Layers, Timer, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useReplayContext } from './replayContext';
+import ReplayLifeHistory from './ReplayLifeHistory.vue';
 import ReplayPlayerCounters from './ReplayPlayerCounters.vue';
 import ReplayTargetMark from './ReplayTargetMark.vue';
 import { playerMark, zoneMark } from './replayTargets';
@@ -74,10 +75,7 @@ const zones = computed(() => hudZones(props.opponent, props.sideboard));
         </div>
 
         <div class="flex flex-none items-center gap-2" :class="stacked ? 'flex-wrap gap-y-1' : ''">
-            <span title="Life" class="flex items-center gap-1">
-                <Heart :size="13" class="text-[#e5484d]" />
-                <span class="text-[15px] font-bold tabular-nums" :class="player.life <= 5 ? 'text-[#e5484d]' : ''">{{ player.life }}</span>
-            </span>
+            <ReplayLifeHistory :player="player" :opponent="opponent" compact />
             <ReplayPlayerCounters :player="player" :size="12" />
             <span
                 v-if="clock"
