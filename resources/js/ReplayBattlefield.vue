@@ -65,10 +65,10 @@ const rowPad = computed(() => (props.scroll ? (props.singleRow ? '1.25rem' : '2r
             :class="
                 scroll
                     ? [
-                          'justify-center-safe overflow-x-auto overflow-y-hidden px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+                          'justify-start [&>:first-child]:ms-auto [&>:last-child]:me-auto overflow-x-auto overflow-y-hidden px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
                           singleRow ? 'py-2.5' : 'py-4',
                       ]
-                    : 'justify-center-safe px-2 py-1.75'
+                    : 'justify-start [&>:first-child]:ms-auto [&>:last-child]:me-auto px-2 py-1.75'
             "
         >
             <template v-for="(item, i) in row.items" :key="item.key">
