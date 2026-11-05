@@ -117,7 +117,7 @@ const KIND_LABELS: Record<string, string> = { ability: 'Ability', copy: 'Copy', 
                                 :class="i === 0 ? 'w-28' : 'w-16'"
                                 @click.stop="pinPreview($event, item.card)"
                             >
-                                <ReplayCardImage :name="item.title" :image="item.card.image" />
+                                <ReplayCardImage :name="item.title" :unknown="item.card.nameUnknown" :image="item.card.image" />
                             </div>
                             <div class="flex min-w-0 flex-1 flex-col gap-1">
                                 <span class="flex flex-wrap items-baseline gap-x-1.5">
@@ -147,7 +147,7 @@ const KIND_LABELS: Record<string, string> = { ability: 'Ability', copy: 'Copy', 
                                 >
                                     <Quote :size="11" class="flex-none" />
                                     <span v-if="pick.card?.image" class="relative aspect-[63/88] w-5 flex-none overflow-hidden rounded-[2px]">
-                                        <ReplayCardImage :name="pick.name" :image="pick.card.image" />
+                                        <ReplayCardImage :name="pick.name" :unknown="pick.card.nameUnknown" :image="pick.card.image" />
                                     </span>
                                     <span>Chose <span class="text-foreground/90">{{ pick.name }}</span></span>
                                 </span>

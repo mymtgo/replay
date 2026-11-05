@@ -1,0 +1,167 @@
+[Mtgr "0.3.0"]
+[Event "Conformance"]
+[Site "Arena"]
+[Date "2026.11.05"]
+[Round "-"]
+[Player1 "PlayerA"]
+[Player2 "PlayerB"]
+[Result "1-0"]
+[Format "Standard"]
+[Match "conformance-unknown-names"]
+[Game "1"]
+[Perspective "PlayerA"]
+[Omits "mana costs"]
+[Termination "concession"]
+
+0:00 deck "PlayerA"
+0:00   main 4 "Lightning Strike"
+0:00   main 20 "Mountain"
+0:00   main 4 ? src arena:106282
+0:00   main 2 ? src arena:99871
+0:00   side 2 "Abrade"
+0:00   side 1 ? src arena:106511
+0:00 pregame
+0:00   keyframe
+0:00     player "PlayerA" life 20 poison 0 library 60
+0:00     player "PlayerB" life 20 poison 0 library 60
+0:02   "PlayerA" choose first "PlayerA"
+0:03   new card #1 "Mountain" owner "PlayerA" in library
+0:03   #1 "Mountain" move library -> hand as draw by rule:opening-hand
+0:03   new card #2 "Mountain" owner "PlayerA" in library
+0:03   #2 "Mountain" move library -> hand as draw by rule:opening-hand
+0:03   new card #3 ? owner "PlayerA" in library src arena:106282
+0:03   #3 move library -> hand as draw by rule:opening-hand
+0:03   new card #4 "Lightning Strike" owner "PlayerA" in library
+0:03   #4 "Lightning Strike" move library -> hand as draw by rule:opening-hand
+0:03   new card #5 "Mountain" owner "PlayerA" in library
+0:03   #5 "Mountain" move library -> hand as draw by rule:opening-hand
+0:03   new card #6 ? owner "PlayerA" in library src arena:99871
+0:03   #6 move library -> hand as draw by rule:opening-hand
+0:03   new card #7 "Mountain" owner "PlayerA" in library
+0:03   #7 "Mountain" move library -> hand as draw by rule:opening-hand
+0:03   new hidden #8 owner "PlayerB" in library
+0:03   #8 move library -> hand as draw by rule:opening-hand
+0:03   new hidden #9 owner "PlayerB" in library
+0:03   #9 move library -> hand as draw by rule:opening-hand
+0:03   new hidden #10 owner "PlayerB" in library
+0:03   #10 move library -> hand as draw by rule:opening-hand
+0:03   new hidden #11 owner "PlayerB" in library
+0:03   #11 move library -> hand as draw by rule:opening-hand
+0:03   new hidden #12 owner "PlayerB" in library
+0:03   #12 move library -> hand as draw by rule:opening-hand
+0:03   new hidden #13 owner "PlayerB" in library
+0:03   #13 move library -> hand as draw by rule:opening-hand
+0:03   new hidden #14 owner "PlayerB" in library
+0:03   #14 move library -> hand as draw by rule:opening-hand
+0:10   "PlayerA" keep
+0:12   "PlayerB" keep
+0:12 turn 1 "PlayerA"
+0:12   keyframe
+0:12     player "PlayerA" life 20 poison 0 library 53
+0:12     player "PlayerB" life 20 poison 0 library 53
+0:12     #1 "Mountain" hand "PlayerA"
+0:12     #2 "Mountain" hand "PlayerA"
+0:12     #3 hand "PlayerA"
+0:12     #4 "Lightning Strike" hand "PlayerA"
+0:12     #5 "Mountain" hand "PlayerA"
+0:12     #6 hand "PlayerA"
+0:12     #7 "Mountain" hand "PlayerA"
+0:12     #8 hand "PlayerB"
+0:12     #9 hand "PlayerB"
+0:12     #10 hand "PlayerB"
+0:12     #11 hand "PlayerB"
+0:12     #12 hand "PlayerB"
+0:12     #13 hand "PlayerB"
+0:12     #14 hand "PlayerB"
+0:12   untap
+0:12   upkeep
+0:12   precombat-main
+0:15     #1 "Mountain" play from hand types land
+0:18   beginning-of-combat
+0:18   declare-attackers
+0:18   end-of-combat
+0:18   postcombat-main
+0:18   end
+0:18   cleanup
+0:20 turn 2 "PlayerB"
+0:20   keyframe
+0:20     player "PlayerA" life 20 poison 0 library 53
+0:20     player "PlayerB" life 20 poison 0 library 53
+0:20     #1 "Mountain" battlefield "PlayerA" types land
+0:20     #2 "Mountain" hand "PlayerA"
+0:20     #3 hand "PlayerA"
+0:20     #4 "Lightning Strike" hand "PlayerA"
+0:20     #5 "Mountain" hand "PlayerA"
+0:20     #6 hand "PlayerA"
+0:20     #7 "Mountain" hand "PlayerA"
+0:20     #8 hand "PlayerB"
+0:20     #9 hand "PlayerB"
+0:20     #10 hand "PlayerB"
+0:20     #11 hand "PlayerB"
+0:20     #12 hand "PlayerB"
+0:20     #13 hand "PlayerB"
+0:20     #14 hand "PlayerB"
+0:20   untap
+0:20   upkeep
+0:21   draw
+0:21     new hidden #15 owner "PlayerB" in library
+0:21     #15 move library -> hand as draw by rule:draw
+0:21   precombat-main
+0:30     #8 identify ? src arena:106777
+0:30     #8 cast from hand
+0:30     "PlayerB" priority
+0:30       stack
+0:30         #8 controller "PlayerB"
+0:30     "PlayerB" pass
+0:30     "PlayerA" priority
+0:30       stack
+0:30         #8 controller "PlayerB"
+0:32     "PlayerA" pass
+0:32     #8 resolve
+0:32     #8 move stack -> battlefield types creature pt 2/2 by rule:resolve
+0:32     new ability #16 triggered of #8 ? controller "PlayerB" in stack
+0:32     "PlayerB" priority
+0:32       stack
+0:32         #16 triggered of #8 ? controller "PlayerB"
+0:32     "PlayerB" pass
+0:32     "PlayerA" priority
+0:32       stack
+0:32         #16 triggered of #8 ? controller "PlayerB"
+0:33     "PlayerA" pass
+0:33     #16 resolve
+0:33     new token #17 ? owner "PlayerB" in battlefield types creature pt 1/1 src arena:106778 by #16
+0:33     #16 cease by rule:resolve
+0:36   beginning-of-combat
+0:36   declare-attackers
+0:36   end-of-combat
+0:36   postcombat-main
+0:36   end
+0:36   cleanup
+0:38 turn 3 "PlayerA"
+0:38   keyframe
+0:38     player "PlayerA" life 20 poison 0 library 53
+0:38     player "PlayerB" life 20 poison 0 library 52
+0:38     #1 "Mountain" battlefield "PlayerA" types land
+0:38     #2 "Mountain" hand "PlayerA"
+0:38     #3 hand "PlayerA"
+0:38     #4 "Lightning Strike" hand "PlayerA"
+0:38     #5 "Mountain" hand "PlayerA"
+0:38     #6 hand "PlayerA"
+0:38     #7 "Mountain" hand "PlayerA"
+0:38     #8 battlefield "PlayerB" types creature pt 2/2
+0:38     #9 hand "PlayerB"
+0:38     #10 hand "PlayerB"
+0:38     #11 hand "PlayerB"
+0:38     #12 hand "PlayerB"
+0:38     #13 hand "PlayerB"
+0:38     #14 hand "PlayerB"
+0:38     #15 hand "PlayerB"
+0:38     #17 battlefield "PlayerB" types creature pt 1/1
+0:38   untap
+0:38   upkeep
+0:39   draw
+0:39     new card #18 ? owner "PlayerA" in library src arena:106282
+0:39     #18 move library -> hand as draw by rule:draw
+0:39   precombat-main
+0:45     "PlayerB" concede
+1-0

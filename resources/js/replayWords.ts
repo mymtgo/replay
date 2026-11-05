@@ -1,4 +1,4 @@
-import { getObject, idKey, type Cause, type Choice, type GameState, type Id, type ObjRef, type Target, type Zone } from '@mtgreplay/mtgr';
+import { getObject, idKey, type Cause, type Choice, type GameState, type Id, type ObjRef, type ObjectState, type Target, type Zone } from '@mtgreplay/mtgr';
 import type { ReplayCauseView } from './types';
 
 /**
@@ -7,13 +7,33 @@ import type { ReplayCauseView } from './types';
  * "a face-down card" everywhere.
  */
 
+/**
+ * How a card whose name the file records as `?` reads (decision 0048): "Unknown
+ * card" and its source id, `#106504` from `arena:106504`, so two unknown cards
+ * stay apart and a reader can look the id up.
+ */
+export function unknownCardName(sources: readonly string[]): string {
+    const id = sources[0]?.split(':').slice(1).join(':');
+
+    return id ? `Unknown card #${id}` : 'Unknown card';
+}
+
+/** The name an object shows: its name, its unknown-card label, or null while it is face down or has none. */
+export function displayName(object: ObjectState | undefined | null): string | null {
+    if (!object) {
+        return null;
+    }
+
+    return object.nameUnknown ? unknownCardName(object.src) : object.name;
+}
+
 /** An object's name as the state knows it, falling back to the name written on the line. */
 export function objectName(state: GameState, ref: ObjRef): string {
-    return getObject(state, ref.id)?.name ?? abilityName(state, ref.id) ?? ref.name ?? faceDown(ref.id);
+    return displayName(getObject(state, ref.id)) ?? abilityName(state, ref.id) ?? ref.name ?? faceDown(ref.id);
 }
 
 export function nameOf(state: GameState, id: Id): string {
-    return getObject(state, id)?.name ?? abilityName(state, id) ?? faceDown(id);
+    return displayName(getObject(state, id)) ?? abilityName(state, id) ?? faceDown(id);
 }
 
 /** An ability has no name of its own, so it reads as its source's: "Sowing Mycospawn's triggered ability". */
@@ -24,7 +44,7 @@ function abilityName(state: GameState, id: Id): string | null {
         return null;
     }
 
-    const source = getObject(state, object.source)?.name ?? 'a card';
+    const source = displayName(getObject(state, object.source)) ?? 'a card';
 
     return `${source}'s ${object.abilityKind} ability`;
 }

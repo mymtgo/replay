@@ -1,6 +1,6 @@
 import { getObject, idKey, type GameState, type ObjectState, type Player, type Target } from '@mtgreplay/mtgr';
 import type { ReplayGameInfo } from './replayGame';
-import { choiceText, targetText } from './replayWords';
+import { choiceText, displayName, targetText } from './replayWords';
 import type { CardImageResolver, ReplayCardView, ReplayDerived, ReplayEffectView, ReplayPlayerView, ReplayStackItem, ReplayZone } from './types';
 
 /** The parser's zone an HUD zone window lists. */
@@ -26,7 +26,13 @@ export function objectZone(object: ObjectState): string | null {
  * its own front face, since a copy or a back face is not the printing they name.
  */
 function imageFor(object: ObjectState, state: GameState, images: CardImageResolver, sources: ReadonlyMap<string, readonly string[]>): string | null {
-    const card = object.name ? object : object.source ? state.objects[idKey(object.source)] : null;
+    const card = object.name || object.nameUnknown ? object : object.source ? state.objects[idKey(object.source)] : null;
+
+    // A `?` card has no name to look up: the host may know it by its source ids.
+    if (card?.nameUnknown) {
+        return card.src.length > 0 ? images(null, undefined, card.src) : null;
+    }
+
     const name = card?.name ?? null;
 
     if (!card || !name) {
@@ -60,12 +66,13 @@ export function cardView(
         key,
         id: object.id,
         kind: object.kind,
-        name: object.name,
+        name: displayName(object),
+        nameUnknown: object.nameUnknown,
         face: object.face,
         types: object.types,
         image: imageFor(object, state, images, sources),
         text: object.text,
-        sourceName: source?.name ?? null,
+        sourceName: displayName(source),
         owner: object.owner,
         controller: object.controller,
         tapped: object.tapped,
@@ -148,7 +155,7 @@ export function stackItems(state: GameState, cards: Map<string, ReplayCardView>)
                 return [];
             }
 
-            const name = getObject(state, choice.object.id)?.name ?? choice.object.name;
+            const name = displayName(getObject(state, choice.object.id)) ?? choice.object.name;
 
             return name ? [{ name, card: cards.get(idKey(choice.object.id)) ?? null }] : [];
         });
@@ -177,7 +184,7 @@ export function effectViews(state: GameState): ReplayEffectView[] {
         .map((object) => ({
             key: idKey(object.id),
             kind: object.kind as 'effect' | 'emblem',
-            sourceName: object.source ? (state.objects[idKey(object.source)]?.name ?? null) : null,
+            sourceName: object.source ? displayName(state.objects[idKey(object.source)]) : null,
             text: object.text,
             controller: object.controller,
         }));

@@ -24,6 +24,8 @@ const { games } = parse(text).file;
 
 `card-image` returns the image URL for a card name (and for a face of a double-faced card), or null when the host has none. When the file gives the card's source ids (`mtgo:19683`, `arena:75000`) and the card shows its own front face, they come as a third argument, so the host can show the printing that was played. mymtgo.com answers `GET /api/card-images/{mtgo|arena}/{id}` with a redirect to the card's image, for use as the URL directly.
 
+A card whose name the file records as `?` (spec decision 0048: the writer knew the card but not its name) comes with `name` null and only its source ids, so the host can still find its image. Without one it shows the card back, labelled "Unknown card" and its source id (`Unknown card #106504`); the same label names it in the log, the stack, the zone windows and the preview.
+
 ## Records from MTG Arena
 
 The MyMTGO desktop app writes Arena games as `.mtgr` on read and plays them in this viewer. Arena does not report everything, and the file says so with `[Omits "costs"]` and `[Partial "library effects"]`. What the viewer shows for those gaps:
@@ -32,6 +34,7 @@ The MyMTGO desktop app writes Arena games as `.mtgr` on read and plays them in t
 - `incomplete` (a summarized Arena game state, or another hole in the source) shows the "recording is incomplete" banner until the next keyframe.
 - An opponent's card that is never revealed stays a face-down card with no name (the log says the player "has a face-down card").
 - `new card` and `identify` carry `src arena:<grpId>`, which reaches `card-image` as its third argument.
+- A card the desktop app's card data does not list yet (a new set Scryfall has no Arena ids for) is written `?` with its `src arena:<grpId>` and shows as an unknown card. The record is built on read, so it gets its name once the card data has it.
 
 The desktop app vendors `resources/js/` (without `snapshot/`), `resources/css/replay.css` and `resources/images/card-back.jpg` at a pinned commit of this branch and never patches the copy, except for peer version fixes. Viewer fixes the app needs land here first and are then re-vendored.
 

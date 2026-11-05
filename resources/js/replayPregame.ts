@@ -1,7 +1,7 @@
 import { getObject, type Game, type GameState, type Player, type StatementLine } from '@mtgreplay/mtgr';
 import { describeLine } from './replayLog';
 import { liveObjects } from './replayState';
-import { causeView } from './replayWords';
+import { causeView, displayName } from './replayWords';
 import type { ReplayMoment } from './types';
 
 export type PregameRoll = { player: Player; result: number; sides: number | null; /** The die face to draw: a d6 result; null for any other roll, which is shown as a number. */ face: number | null };
@@ -19,6 +19,8 @@ export type PregamePlayer = {
     mulligans: number;
     /** Cards put on the bottom after the latest mulligan: their names, null for a card nobody has seen. */
     bottomed: (string | null)[];
+    /** For each bottomed card the file names `?`, its source ids (null for the others), so a host can resolve it. */
+    bottomedSources: (readonly string[] | null)[];
     /** Hand size when they kept; null until they do. */
     keptWith: number | null;
     /** Their roll in the latest round, once made. */
@@ -94,7 +96,7 @@ export function pregameView(game: Game, states: readonly GameState[], moment: Re
     const rounds: PregameRound[] = [];
     let rolls: PregameRoll[] = [];
     let first: PregameView['first'] = null;
-    const players = new Map<Player, PregamePlayer>(seats.map((name) => [name, { name, mulligans: 0, bottomed: [], keptWith: null, roll: null }]));
+    const players = new Map<Player, PregamePlayer>(seats.map((name) => [name, { name, mulligans: 0, bottomed: [], bottomedSources: [], keptWith: null, roll: null }]));
 
     for (let index = 0; index <= upTo && index < game.body.length; index++) {
         const line = game.body[index];
@@ -125,6 +127,7 @@ export function pregameView(game: Game, states: readonly GameState[], moment: Re
             if (player) {
                 player.mulligans++;
                 player.bottomed = [];
+                player.bottomedSources = [];
                 player.keptWith = null;
             }
         } else if (s.type === 'keep') {
@@ -137,7 +140,8 @@ export function pregameView(game: Game, states: readonly GameState[], moment: Re
             const object = state ? getObject(state, s.object.id) : undefined;
             const player = object ? players.get(object.owner) : undefined;
 
-            player?.bottomed.push(object?.name ?? null);
+            player?.bottomed.push(displayName(object));
+            player?.bottomedSources.push(object?.nameUnknown ? object.src : null);
         }
     }
 

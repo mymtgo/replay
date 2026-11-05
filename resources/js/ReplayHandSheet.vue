@@ -39,7 +39,7 @@ const sections = computed(() => [
                     @mouseleave="hidePreview"
                     @click="pinPreview($event, card)"
                 >
-                    <ReplayCardImage :name="card.name" :image="card.image" />
+                    <ReplayCardImage :name="card.name" :unknown="card.nameUnknown" :image="card.image" />
                 </div>
                 <div
                     v-for="n in section.hidden"

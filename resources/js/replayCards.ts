@@ -210,7 +210,7 @@ export function poolSymbols(pool: Record<string, number>): string[] {
 export function previewFaces(card: ReplayCardView, images: (name: string, face?: string) => string | null): (string | null)[] {
     const faces = card.name?.split(' // ') ?? [];
 
-    if (faces.length < 2 || !card.name) {
+    if (faces.length < 2 || !card.name || card.nameUnknown) {
         return [card.image];
     }
 

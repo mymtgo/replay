@@ -1,6 +1,6 @@
 import { type GameState, type MoveAction, type Player, type Statement, type StatementLine, type Zone } from '@mtgreplay/mtgr';
 import { timeLabel } from './replayGame';
-import { causeView, choiceText, manaText, objectName, targetText, zoneLabel } from './replayWords';
+import { causeView, choiceText, manaText, objectName, targetText, unknownCardName, zoneLabel } from './replayWords';
 import type { ReplayLogItem, ReplayMoment, ReplayTurn } from './types';
 
 /** How the log words a line. `state` is the state after the line, which is where a drawn card's name lives. */
@@ -61,9 +61,9 @@ const DESCRIBE: Describers = {
     day: () => 'It becomes day',
     night: () => 'It becomes night',
     extension: (s) => `${s.name} ${s.args.map((arg) => (typeof arg === 'object' ? arg.keyword : String(arg))).join(' ')}`,
-    'new-card': (s) => `${s.name} starts in ${zoneLabel(s.zone)}`,
+    'new-card': (s) => `${s.name ?? unknownCardName(s.src)} starts in ${zoneLabel(s.zone)}`,
     'new-hidden': (s) => `${s.owner} has a face-down card in ${zoneLabel(s.zone)}`,
-    'new-token': (s) => `${s.owner} creates a ${s.name} token`,
+    'new-token': (s) => (s.name === null ? `${s.owner} creates a token: ${unknownCardName(s.src)}` : `${s.owner} creates a ${s.name} token`),
     'new-copy': (s, state) => `${s.owner} creates a copy of ${objectName(state, s.of)}`,
     'new-ability-copy': (s) => `${s.controller} copies an ability`,
     'new-ability': (s, state) => `${objectName(state, s.of)}: ${s.text ?? `${s.kind} ability`}`,
@@ -102,7 +102,7 @@ const DESCRIBE: Describers = {
     block: (s, state) => `${objectName(state, s.object)} blocks ${objectName(state, s.attacker)}`,
     reveal: (s, state) => `${objectName(state, s.object)} is revealed`,
     look: (s, state) => `${s.player} looks at ${objectName(state, s.object)}`,
-    identify: (s) => `A face-down card (#${s.object.id.n}) is ${s.name}`,
+    identify: (s) => `A face-down card (#${s.object.id.n}) is ${s.name ?? unknownCardName(s.src)}`,
     untracked: (s, state) => `${objectName(state, s.object)} is no longer tracked`,
     transform: (s, state) => `${objectName(state, s.object)} transforms`,
     'become-copy': (s, state) => `${objectName(state, s.object)} becomes a copy of ${objectName(state, s.of)}`,

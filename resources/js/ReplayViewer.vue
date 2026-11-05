@@ -19,7 +19,7 @@ import ReplayScrubTooltip from './ReplayScrubTooltip.vue';
 import { startStep } from './replayShare';
 import ReplayShareCard from './ReplayShareCard.vue';
 import ReplaySheet from './ReplaySheet.vue';
-import { sideboardCaptions, sideboardCards, sideboardChanges, sideboardNames } from './replaySideboard';
+import { sideboardCaptions, sideboardCards, sideboardChanges, sideboardNames, sideboardSources } from './replaySideboard';
 import ReplaySideboardChanges from './ReplaySideboardChanges.vue';
 import ReplaySide from './ReplaySide.vue';
 import ReplayStack from './ReplayStack.vue';
@@ -270,7 +270,7 @@ const localId = computed(() => local.value?.id ?? null);
 const sideboardList = computed(() => {
     const names = localId.value ? sideboards.value[localId.value] : null;
 
-    return names && localId.value ? sideboardCards(names, localId.value, props.cardImage) : [];
+    return names && localId.value ? sideboardCards(names, localId.value, props.cardImage, sideboardSources(game.value, localId.value)) : [];
 });
 /** What was sided in and out since the previous game of the file, when both list a deck. */
 const previousGame = computed(() => props.games[props.gameIndex - 1] ?? null);
@@ -278,7 +278,14 @@ const sideboardDiff = computed(() => {
     const now = localId.value ? sideboards.value[localId.value] : null;
     const before = previousGame.value && localId.value ? sideboardNames(previousGame.value, localId.value) : null;
 
-    return now && before && localId.value ? sideboardChanges(before, now, localId.value, props.cardImage) : null;
+    if (!now || !before || !localId.value) {
+        return null;
+    }
+
+    // A `?` entry's source ids, from either game's deck block.
+    const sources = new Map([...sideboardSources(previousGame.value!, localId.value), ...sideboardSources(game.value, localId.value)]);
+
+    return sideboardChanges(before, now, localId.value, props.cardImage, sources);
 });
 const sideboardNotes = computed(() => (sideboardDiff.value ? sideboardCaptions(sideboardList.value, sideboardDiff.value) : null));
 const previousGameNumber = computed(() => (previousGame.value ? gameInfo(previousGame.value).number : null));

@@ -78,7 +78,7 @@ const ring = computed(() => (attacking.value || attacked.value ? '#e5484d' : blo
             @mouseleave="hidePreview"
             @click="pinPreview($event, tuckedCard)"
         >
-            <ReplayCardImage :name="tuckedCard.name" :image="tuckedCard.image" />
+            <ReplayCardImage :name="tuckedCard.name" :unknown="tuckedCard.nameUnknown" :image="tuckedCard.image" />
             <ReplayTargetMark v-if="marked(tuckedCard.key)" variant="corner" />
         </div>
 
@@ -92,7 +92,7 @@ const ring = computed(() => (attacking.value || attacked.value ? '#e5484d' : blo
             @mouseleave="hidePreview"
             @click="pinPreview($event, card)"
         >
-            <ReplayCardImage :name="card.name" :image="card.image" />
+            <ReplayCardImage :name="card.name" :unknown="card.nameUnknown" :image="card.image" />
 
             <ReplayTargetMark v-if="targeted" variant="card" />
 

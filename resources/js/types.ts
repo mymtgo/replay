@@ -11,8 +11,10 @@ import type { CardTypes, Choice, Id, ObjectKind, Player, StatementLine, Step, Ta
  * double-faced card. Null when it has none. `sources` are the card's source
  * ids from the file (`mtgo:19683`, `arena:75000`), given when the card shows
  * its own front face, so a host can show the printing that was played.
+ * `name` is null for a card whose name the file records as `?` (decision
+ * 0048): the host resolves it by `sources` alone, if it can.
  */
-export type CardImageResolver = (name: string, face?: string, sources?: readonly string[]) => string | null;
+export type CardImageResolver = (name: string | null, face?: string, sources?: readonly string[]) => string | null;
 
 /** The zones a player's HUD can open as windows. */
 export type ReplayZone = 'Hand' | 'Graveyard' | 'Exile' | 'Sideboard';
@@ -23,8 +25,14 @@ export type ReplayCardView = {
     key: string;
     id: Id;
     kind: ObjectKind;
-    /** Null for a card nobody has seen the face of. */
+    /**
+     * Null for a card nobody has seen the face of. A card whose name the file
+     * records as `?` shows its label here, "Unknown card #106504" (see
+     * `nameUnknown`).
+     */
     name: string | null;
+    /** The file records the card's name as `?`: it is public, but its name is not known. It shows the card back unless the host resolves an image. */
+    nameUnknown: boolean;
     /** The face showing when it is not the front, after a transform or a cast of the back face. */
     face: string | null;
     image: string | null;

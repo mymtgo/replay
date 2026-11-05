@@ -41,7 +41,7 @@ const name = computed(() => props.card.name ?? props.card.sourceName);
                     :key="i"
                     class="relative aspect-[63/88] min-w-0 flex-1 rounded-[4.5%/3.3%] shadow-[0_14px_40px_rgba(0,0,0,.55)]"
                 >
-                    <ReplayCardImage :name="name" :subtitle="card.text" :image="image" />
+                    <ReplayCardImage :name="name" :unknown="card.nameUnknown" :subtitle="card.text" :image="image" />
                 </div>
             </div>
             <div v-if="card.text && card.kind === 'ability'" class="rounded-[5px] border border-border bg-card px-2 py-1 text-[11.5px] leading-snug">{{ card.text }}</div>

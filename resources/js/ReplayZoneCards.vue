@@ -38,7 +38,7 @@ const { showPreview, hidePreview, pinPreview, highlightedTargets } = useReplayCo
         >
             <span class="w-4 flex-none text-right text-[11px] text-muted-foreground tabular-nums">{{ i + 1 }}</span>
             <div class="relative aspect-[63/88] w-7 flex-none overflow-hidden rounded-[3px] shadow-[0_1px_3px_rgba(0,0,0,.5)]">
-                <ReplayCardImage :name="card.name ?? ''" :image="card.image" />
+                <ReplayCardImage :name="card.name ?? ''" :unknown="card.nameUnknown" :image="card.image" />
             </div>
             <div class="flex min-w-0 flex-1 flex-col leading-tight">
                 <span class="flex items-center gap-1 font-medium">

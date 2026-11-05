@@ -43,7 +43,7 @@ const shown = computed(() => props.cards.some((card) => props.revealed.has(card.
                 @mouseleave="hidePreview"
                 @click="pinPreview($event, card)"
             >
-                <ReplayCardImage :name="card.name" :image="card.image" />
+                <ReplayCardImage :name="card.name" :unknown="card.nameUnknown" :image="card.image" />
                 <ReplayTargetMark v-if="highlightedTargets.has(card.key)" variant="corner" />
                 <span v-if="chosen.has(card.key)" class="absolute top-1 right-1 rounded-full bg-[#f5a524] px-1.5 py-px text-[10px] font-bold text-[#1a1a1a] shadow-[0_1px_3px_rgba(0,0,0,.5)]">Chosen</span>
             </div>

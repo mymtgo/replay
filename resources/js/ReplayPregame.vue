@@ -35,7 +35,11 @@ const TONES = { win: 'bg-primary/20 text-foreground', warn: 'bg-warning/20 text-
                         </span>
                         <div class="flex gap-1">
                             <div v-for="(name, i) in player.bottomed" :key="i" class="relative aspect-63/88 w-11 rounded shadow-[0_1px_4px_rgba(0,0,0,.5)]" :title="name ?? undefined">
-                                <ReplayCardImage :name="name" :image="name ? images(name) : null" />
+                                <ReplayCardImage
+                                    :name="name"
+                                    :unknown="player.bottomedSources[i] !== null"
+                                    :image="player.bottomedSources[i] ? images(null, undefined, player.bottomedSources[i]!) : name ? images(name) : null"
+                                />
                             </div>
                         </div>
                     </div>

@@ -1,4 +1,5 @@
 import { idKey, type GameState } from '@mtgreplay/mtgr';
+import { displayName } from './replayWords';
 import type { ReplayMoment } from './types';
 
 /** The hand cards being shown right now, by key, and the source that is showing them. */
@@ -40,7 +41,7 @@ export function deriveReveals(moments: ReplayMoment[], states: GameState[]): Rev
             revealed.forEach((key) => {
                 if (state.objects[key]?.zone?.zone === 'hand') {
                     keys.add(key);
-                    by ??= state.objects[cause]?.name ?? null;
+                    by ??= displayName(state.objects[cause]);
                 }
             });
 
