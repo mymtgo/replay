@@ -24,6 +24,17 @@ const { games } = parse(text).file;
 
 `card-image` returns the image URL for a card name (and for a face of a double-faced card), or null when the host has none. When the file gives the card's source ids (`mtgo:19683`, `arena:75000`) and the card shows its own front face, they come as a third argument, so the host can show the printing that was played. mymtgo.com answers `GET /api/card-images/{mtgo|arena}/{id}` with a redirect to the card's image, for use as the URL directly.
 
+## Records from MTG Arena
+
+The MyMTGO desktop app writes Arena games as `.mtgr` on read and plays them in this viewer. Arena does not report everything, and the file says so with `[Omits "costs"]` and `[Partial "library effects"]`. What the viewer shows for those gaps:
+
+- An effect or ability with `?` text (the parser's `text: null`) shows "No text recorded" in the effects list, and "lasting effect" or its kind in the log.
+- `incomplete` (a summarized Arena game state, or another hole in the source) shows the "recording is incomplete" banner until the next keyframe.
+- An opponent's card that is never revealed stays a hidden object with no name, and `bottom ?` cards have no place in the library.
+- `new card` and `identify` carry `src arena:<grpId>`, which reaches `card-image` as its third argument.
+
+The desktop app vendors `resources/js/` (without `snapshot/`), `resources/css/replay.css` and `resources/images/card-back.jpg` at a pinned commit of this branch and never patches the copy, except for peer version fixes. Viewer fixes the app needs land here first and are then re-vendored.
+
 ## Snapshot replays
 
 Replays recorded before `.mtgr` are snapshot-v2 JSON: frames of board state per game, built by `BuildReplaySnapshot` and shared by mymtgo.com. They keep playing in `SnapshotReplayViewer`, the viewer as it was before `.mtgr`, kept unchanged under `resources/js/snapshot/`. A host picks the viewer by what it has stored: a `.mtgr` file goes to `ReplayViewer`, a snapshot game to `SnapshotReplayViewer`.
