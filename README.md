@@ -30,7 +30,7 @@ The MyMTGO desktop app writes Arena games as `.mtgr` on read and plays them in t
 
 - An effect or ability with `?` text (the parser's `text: null`) shows "No text recorded" in the effects list, and "lasting effect" or its kind in the log.
 - `incomplete` (a summarized Arena game state, or another hole in the source) shows the "recording is incomplete" banner until the next keyframe.
-- An opponent's card that is never revealed stays a hidden object with no name, and `bottom ?` cards have no place in the library.
+- An opponent's card that is never revealed stays a face-down card with no name (the log says the player "has a face-down card").
 - `new card` and `identify` carry `src arena:<grpId>`, which reaches `card-image` as its third argument.
 
 The desktop app vendors `resources/js/` (without `snapshot/`), `resources/css/replay.css` and `resources/images/card-back.jpg` at a pinned commit of this branch and never patches the copy, except for peer version fixes. Viewer fixes the app needs land here first and are then re-vendored.
