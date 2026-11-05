@@ -65,15 +65,15 @@ function onPick(event: Event) {
 }
 
 /**
- * Scryfall's image for a card: by its MTGO or Arena id when the file gives one, so
- * the printing played shows, else by name; a back face by its own name, which
- * Scryfall finds on the double-faced card.
+ * A card's image: by its MTGO or Arena id through mymtgo.com when the file gives
+ * one, so the printing played shows, else Scryfall's by name; a back face by its
+ * own name, which Scryfall finds on the double-faced card.
  */
 function cardImage(name: string, face?: string, sources?: readonly string[]): string | null {
     const id = sources?.find((source) => /^(mtgo|arena):\d+$/.test(source));
 
     if (id) {
-        return `https://api.scryfall.com/cards/${id.replace(':', '/')}?format=image&version=normal`;
+        return `https://mymtgo.com/api/card-images/${id.replace(':', '/')}`;
     }
 
     const query = face && face !== name ? `exact=${encodeURIComponent(face)}&face=back` : `exact=${encodeURIComponent(name)}`;
