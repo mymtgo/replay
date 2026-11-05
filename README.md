@@ -22,7 +22,7 @@ const { games } = parse(text).file;
 <ReplayViewer :games="games" :game-index="0" :card-image="(name, face) => urlFor(name, face)" @select-game="index = $event" />
 ```
 
-`card-image` returns the image URL for a card name (and for a face of a double-faced card), or null when the host has none.
+`card-image` returns the image URL for a card name (and for a face of a double-faced card), or null when the host has none. When the file gives the card's source ids (`mtgo:19683`, `arena:75000`) and the card shows its own front face, they come as a third argument, so the host can show the printing that was played. mymtgo.com answers `GET /api/card-images/{mtgo|arena}/{id}` with a redirect to the card's image, for use as the URL directly.
 
 ## Snapshot replays
 

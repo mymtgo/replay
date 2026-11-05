@@ -6,8 +6,13 @@ import type { CardTypes, Choice, Id, ObjectKind, Player, StatementLine, Step, Ta
  * components never read the parser's types directly.
  */
 
-/** The image a host resolves for a card name, and for the face of a double-faced card. Null when it has none. */
-export type CardImageResolver = (name: string, face?: string) => string | null;
+/**
+ * The image a host resolves for a card name, and for the face of a
+ * double-faced card. Null when it has none. `sources` are the card's source
+ * ids from the file (`mtgo:19683`, `arena:75000`), given when the card shows
+ * its own front face, so a host can show the printing that was played.
+ */
+export type CardImageResolver = (name: string, face?: string, sources?: readonly string[]) => string | null;
 
 /** The zones a player's HUD can open as windows. */
 export type ReplayZone = 'Hand' | 'Graveyard' | 'Exile' | 'Sideboard';

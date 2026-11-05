@@ -1,6 +1,6 @@
 import type { Game, GameState, Player } from '@mtgreplay/mtgr';
 import { computed, type Ref } from 'vue';
-import type { ReplayGameInfo, ReplayTimeline } from './replayGame';
+import { cardSources, type ReplayGameInfo, type ReplayTimeline } from './replayGame';
 import { cardViews, effectViews, liveObjects, objectZone, playerView, stackItems, WINDOW_ZONES } from './replayState';
 import { tuckedKeys, tuckedUnder } from './replayLinks';
 import { NO_REVEAL } from './replayReveals';
@@ -45,7 +45,8 @@ export function useReplayBoard(
     const local = computed(() => players.value.find((player) => player.local) ?? players.value[0] ?? null);
     const opponent = computed(() => players.value.find((player) => player.id !== local.value?.id) ?? null);
 
-    const cardsByKey = computed(() => (state.value ? cardViews(state.value, derived.value, images.value) : new Map<string, ReplayCardView>()));
+    const sources = computed(() => cardSources(game.value));
+    const cardsByKey = computed(() => (state.value ? cardViews(state.value, derived.value, images.value, sources.value) : new Map<string, ReplayCardView>()));
     const cards = computed(() => [...cardsByKey.value.values()]);
     /** Each live object's zone by key, as the windows name zones. */
     const zones = computed(() => new Map(state.value ? liveObjects(state.value).map((object) => [`#${object.id.n}`, objectZone(object)]) : []));

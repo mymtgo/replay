@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { parse } from '@mtgreplay/mtgr';
-import { buildTimeline, gameInfo } from '../../resources/js/replayGame.ts';
+import { buildTimeline, cardSources, gameInfo } from '../../resources/js/replayGame.ts';
 import { cardViews, clockLeft, effectViews, playerView, stackItems } from '../../resources/js/replayState.ts';
 import { sideboardCards, sideboardChanges, sideboardNames } from '../../resources/js/replaySideboard.ts';
 
@@ -157,4 +157,25 @@ test("a chess clock runs only while its player holds priority, and stops where i
     assert.deepEqual(clocksAfter('pass', 'PlayerA'), { a: 9 * 60 + 20, b: 2 * 60 + 45, priority: 'PlayerA' });
     // The Bolt resolves and priority goes back to PlayerB: PlayerA's clock stays at 9:20.
     assert.deepEqual(clocksAfter('resolve'), { a: 9 * 60 + 20, b: 2 * 60 + 45, priority: 'PlayerB' });
+});
+
+test("the host gets each card's source ids with its name, and an ability gets its source's", () => {
+    const { state, derived } = at('1:57');
+    const byId = (name: string, face?: string, sources?: readonly string[]) => sources?.[0] ?? `name:${face ?? name}`;
+    const cards = cardViews(state, derived, byId, cardSources(mycospawn));
+    const [trigger] = stackItems(state, cards);
+
+    assert.equal(cards.get('#7')!.image, 'mtgo:126485');
+    // #17 is created hidden and gets its name and id from a later identify line.
+    assert.equal(cards.get('#17')!.image, 'mtgo:19607');
+    assert.equal(trigger.card.image, 'mtgo:125847');
+});
+
+test('a card the file gives no source ids is resolved by name alone', () => {
+    const { state, derived } = at('1:50');
+    const calls: unknown[][] = [];
+    cardViews(state, derived, (...args) => (calls.push(args), null));
+
+    assert.ok(calls.length > 0);
+    assert.ok(calls.every((args) => args[2] === undefined));
 });

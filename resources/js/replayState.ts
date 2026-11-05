@@ -20,16 +20,23 @@ export function objectZone(object: ObjectState): string | null {
     return object.zone.zone === 'outside' ? object.zone.label : object.zone.zone;
 }
 
-/** The image for an object: the face showing, else the card's name. Abilities borrow their source's. */
-function imageFor(object: ObjectState, state: GameState, images: CardImageResolver): string | null {
-    const source = object.source ? state.objects[idKey(object.source)] : null;
-    const name = object.name ?? source?.name ?? null;
+/**
+ * The image for an object: the face showing, else the card's name. Abilities
+ * borrow their source's. The card's source ids go along only while it shows
+ * its own front face, since a copy or a back face is not the printing they name.
+ */
+function imageFor(object: ObjectState, state: GameState, images: CardImageResolver, sources: ReadonlyMap<string, readonly string[]>): string | null {
+    const card = object.name ? object : object.source ? state.objects[idKey(object.source)] : null;
+    const name = card?.name ?? null;
 
-    if (!name) {
+    if (!card || !name) {
         return null;
     }
 
-    return images(name, object.face ?? undefined);
+    const ownFront = card.name === card.ownName && (card.face === null || card.face === name.split(' // ')[0]);
+    const ids = ownFront ? sources.get(idKey(card.id)) : undefined;
+
+    return ids ? images(name, object.face ?? undefined, ids) : images(name, object.face ?? undefined);
 }
 
 /** How many creatures attack what `matches` picks out this combat. */
@@ -37,7 +44,13 @@ function attackersOf(derived: ReplayDerived, matches: (target: Target) => boolea
     return [...derived.attacking.values()].filter(matches).length;
 }
 
-export function cardView(object: ObjectState, state: GameState, derived: ReplayDerived, images: CardImageResolver): ReplayCardView {
+export function cardView(
+    object: ObjectState,
+    state: GameState,
+    derived: ReplayDerived,
+    images: CardImageResolver,
+    sources: ReadonlyMap<string, readonly string[]> = new Map(),
+): ReplayCardView {
     const key = idKey(object.id);
     const source = object.source ? state.objects[idKey(object.source)] : null;
     const attacking = derived.attacking.get(key);
@@ -50,7 +63,7 @@ export function cardView(object: ObjectState, state: GameState, derived: ReplayD
         name: object.name,
         face: object.face,
         types: object.types,
-        image: imageFor(object, state, images),
+        image: imageFor(object, state, images, sources),
         text: object.text,
         sourceName: source?.name ?? null,
         owner: object.owner,
@@ -74,8 +87,13 @@ export function cardView(object: ObjectState, state: GameState, derived: ReplayD
 }
 
 /** Every drawable object at this moment, keyed by id. */
-export function cardViews(state: GameState, derived: ReplayDerived, images: CardImageResolver): Map<string, ReplayCardView> {
-    return new Map(liveObjects(state).map((object) => [idKey(object.id), cardView(object, state, derived, images)]));
+export function cardViews(
+    state: GameState,
+    derived: ReplayDerived,
+    images: CardImageResolver,
+    sources: ReadonlyMap<string, readonly string[]> = new Map(),
+): Map<string, ReplayCardView> {
+    return new Map(liveObjects(state).map((object) => [idKey(object.id), cardView(object, state, derived, images, sources)]));
 }
 
 const POOL_ORDER = ['W', 'U', 'B', 'R', 'G', 'C'];

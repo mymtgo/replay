@@ -1,4 +1,4 @@
-import { replay, tagValue, type Game, type Player, type ReplayStep, type StatementLine, type StatementType } from '@mtgreplay/mtgr';
+import { idKey, replay, tagValue, type Game, type Player, type ReplayStep, type StatementLine, type StatementType } from '@mtgreplay/mtgr';
 import { deriveReveals, type RevealView } from './replayReveals';
 import type { ReplayDerived, ReplayMatchGame, ReplayMoment, ReplayTurn } from './types';
 
@@ -27,6 +27,31 @@ export function gameInfo(game: Game): ReplayGameInfo {
         archetypes: { [players[0]]: tagValue(game, 'Player1Archetype'), [players[1]]: tagValue(game, 'Player2Archetype') },
         number: Number(tagValue(game, 'Game') ?? 1),
     };
+}
+
+/**
+ * Each card's source ids (`mtgo:19683`, `arena:75000`) by key, from the
+ * lines that name it. The parser's state drops them, and a host needs them
+ * to show the printing that was played.
+ */
+export function cardSources(game: Game): Map<string, readonly string[]> {
+    const sources = new Map<string, readonly string[]>();
+
+    for (const line of game.body) {
+        if (line.kind !== 'statement') {
+            continue;
+        }
+
+        const s = line.statement;
+
+        if (s.type === 'new-card' && s.src.length > 0) {
+            sources.set(idKey(s.id), s.src);
+        } else if (s.type === 'identify' && s.src.length > 0) {
+            sources.set(idKey(s.object.id), s.src);
+        }
+    }
+
+    return sources;
 }
 
 /** The games of the file as the picker lists them. */

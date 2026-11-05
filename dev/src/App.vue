@@ -64,8 +64,18 @@ function onPick(event: Event) {
     loadFile((event.target as HTMLInputElement).files?.[0]);
 }
 
-/** Scryfall's image for a card name; a back face by its own name, which Scryfall finds on the double-faced card. */
-function cardImage(name: string, face?: string): string | null {
+/**
+ * Scryfall's image for a card: by its MTGO or Arena id when the file gives one, so
+ * the printing played shows, else by name; a back face by its own name, which
+ * Scryfall finds on the double-faced card.
+ */
+function cardImage(name: string, face?: string, sources?: readonly string[]): string | null {
+    const id = sources?.find((source) => /^(mtgo|arena):\d+$/.test(source));
+
+    if (id) {
+        return `https://api.scryfall.com/cards/${id.replace(':', '/')}?format=image&version=normal`;
+    }
+
     const query = face && face !== name ? `exact=${encodeURIComponent(face)}&face=back` : `exact=${encodeURIComponent(name)}`;
 
     return `https://api.scryfall.com/cards/named?${query}&format=image&version=normal`;
