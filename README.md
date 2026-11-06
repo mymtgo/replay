@@ -22,7 +22,7 @@ const { games } = parse(text).file;
 <ReplayViewer :games="games" :game-index="0" :card-image="(name, face) => urlFor(name, face)" @select-game="index = $event" />
 ```
 
-`card-image` returns the image URL for a card name (and for a face of a double-faced card), or null when the host has none. When the file gives the card's source ids (`mtgo:19683`, `arena:75000`) and the card shows its own front face, they come as a third argument, so the host can show the printing that was played. mymtgo.com answers `GET /api/card-images/{mtgo|arena}/{id}` with a redirect to the card's image, for use as the URL directly.
+`card-image` returns the image URL for a card name (and for a face of a double-faced card), or null when the host has none. The preview shows a multi-faced card's other side next to the face in play, unless both resolve to the same URL (a split card or an Adventure, printed on one picture). When the file gives the card's source ids (`mtgo:19683`, `arena:75000`), they come as a third argument, so the host can show the printing that was played, unless the object is a copy of another card. A source id names the whole card: `face` (absent for the front) says which side to show, so a host that resolves by id must still honour it. mymtgo.com answers `GET /api/card-images/{mtgo|arena}/{id}` with a redirect to the card's image, for use as the URL directly.
 
 A card whose name the file records as `?` (spec decision 0048: the writer knew the card but not its name) comes with `name` null and only its source ids, so the host can still find its image. Without one it shows the card back, labelled "Unknown card" and its source id (`Unknown card #106504`); the same label names it in the log, the stack, the zone windows and the preview.
 

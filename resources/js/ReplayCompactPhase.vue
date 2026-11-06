@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Layers } from 'lucide-vue-next';
+import ReplayDayNight from './ReplayDayNight.vue';
 import ReplayManaPool from './ReplayManaPool.vue';
 import ReplayResultPill from './ReplayResultPill.vue';
 import type { ReplayPlayerView, ReplayResult, ReplayTurn } from './types';
@@ -18,6 +19,7 @@ defineProps<{
     /** Each side's floating mana sits against the line on that side. */
     opponentPlayer: ReplayPlayerView | null;
     localPlayer: ReplayPlayerView | null;
+    dayNight: 'day' | 'night' | null;
 }>();
 
 const emit = defineEmits<{
@@ -42,6 +44,7 @@ const emit = defineEmits<{
                         <span class="text-muted-foreground">·</span>
                         <span class="font-semibold">{{ stepLabel }}</span>
                     </template>
+                    <ReplayDayNight v-if="dayNight" :day-night="dayNight" compact />
                 </template>
                 <span v-else class="truncate text-muted-foreground">{{ missingText }}</span>
             </div>

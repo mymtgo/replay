@@ -19,6 +19,7 @@ const props = defineProps<{
     stepLabel: string | null;
     missingText: string;
     result: ReplayResult | null;
+    dayNight: 'day' | 'night' | null;
     stackCount: number;
 }>();
 
@@ -89,6 +90,7 @@ const localSide = computed(() => props.sides.find((side) => !side.opponent) ?? n
                 :opponent-player="opponentSide?.player ?? null"
                 :local-player="localSide?.player ?? null"
                 :stack-count="stackCount"
+                :day-night="dayNight"
                 @open-stack="emit('openStack')"
             />
 

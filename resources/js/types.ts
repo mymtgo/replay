@@ -9,8 +9,9 @@ import type { CardTypes, Choice, Id, ObjectKind, Player, StatementLine, Step, Ta
 /**
  * The image a host resolves for a card name, and for the face of a
  * double-faced card. Null when it has none. `sources` are the card's source
- * ids from the file (`mtgo:19683`, `arena:75000`), given when the card shows
- * its own front face, so a host can show the printing that was played.
+ * ids from the file (`mtgo:19683`, `arena:75000`), given unless the object is
+ * a copy of another card, so a host can show the printing that was played. A
+ * source id names the card; `face` (absent for the front) picks its side.
  * `name` is null for a card whose name the file records as `?` (decision
  * 0048): the host resolves it by `sources` alone, if it can.
  */
@@ -36,6 +37,8 @@ export type ReplayCardView = {
     /** The face showing when it is not the front, after a transform or a cast of the back face. */
     face: string | null;
     image: string | null;
+    /** The image of the face not showing, for a multi-faced card; undefined for a card with one face. */
+    otherImage?: string | null;
     /** Ability, effect or emblem text. */
     text: string | null;
     /** The card an ability or effect comes from. */

@@ -204,18 +204,10 @@ export function poolSymbols(pool: Record<string, number>): string[] {
 
 /**
  * The images the large preview shows: the face in play, then the card's
- * other side when it is double-faced, so a land played from a modal DFC
- * still shows the spell it could have been.
+ * other side when it has its own picture, so a land played from a modal DFC
+ * still shows the spell it could have been. A split card or an Adventure
+ * prints both halves on one picture, which shows once.
  */
-export function previewFaces(card: ReplayCardView, images: (name: string, face?: string) => string | null): (string | null)[] {
-    const faces = card.name?.split(' // ') ?? [];
-
-    if (faces.length < 2 || !card.name || card.nameUnknown) {
-        return [card.image];
-    }
-
-    const showing = card.face ?? faces[0];
-    const other = faces.find((face) => face !== showing) ?? faces[1];
-
-    return [card.image, images(card.name, other)];
+export function previewFaces(card: ReplayCardView): (string | null)[] {
+    return card.otherImage === undefined || card.otherImage === card.image ? [card.image] : [card.image, card.otherImage];
 }
