@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef, watch } from 'vue';
 import type { Step } from '@mtgreplay/mtgr';
+import ReplayDayNight from './ReplayDayNight.vue';
 import ReplayResultPill from './ReplayResultPill.vue';
 import type { ReplayResult, ReplayTurn } from './types';
 import { REPLAY_PHASES, REPLAY_STEP_ORDER, stepKey, stepLabel, type ReplayStepKey } from './replayPhases';
@@ -14,6 +15,7 @@ const props = defineProps<{
     missingText: string;
     /** Set on the final moment when the file records who won. */
     result: ReplayResult | null;
+    dayNight: 'day' | 'night' | null;
 }>();
 
 const current = computed(() => stepKey(props.step));
@@ -54,6 +56,7 @@ watch(
                 <span v-if="activeName" aria-hidden="true" class="text-muted-foreground">·</span>
                 <span class="text-sm font-bold">Turn {{ turn.playerTurn }}</span>
                 <span class="text-xs text-muted-foreground" title="The file's turn number counts both players' turns">game turn {{ turn.number }}</span>
+                <ReplayDayNight v-if="dayNight" :day-night="dayNight" />
             </div>
 
             <template v-if="step">

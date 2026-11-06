@@ -105,7 +105,7 @@ const sideboardSizes = computed(
     () => Object.fromEntries(info.value.players.map((player) => [player, [...(sideboards.value[player]?.values() ?? [])].reduce((sum, count) => sum + count, 0)])) as Record<Player, number>,
 );
 
-const { moment, local, opponent, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, reveal, chosenKeys, hand, opponentHand, sides, playerName, inZone } = useReplayBoard(
+const { moment, state, local, opponent, cardsByKey, zones, turn, activeId, step, incomplete, pairs, stack, effects, reveal, chosenKeys, hand, opponentHand, sides, playerName, inZone } = useReplayBoard(
     game,
     info,
     timeline,
@@ -135,7 +135,7 @@ const arrivalContext = (key: string) => {
         : null;
 };
 
-const preview = useCardPreview(root, cardsByKey, images, lastPointer, arrivalContext);
+const preview = useCardPreview(root, cardsByKey, lastPointer, arrivalContext);
 const { card: previewCard, position: previewPosition, chips: previewChips, pinned: previewPinned } = preview;
 
 const targets = useTargetHighlight(stack, zones, cardsByKey, lastPointer);
@@ -328,6 +328,8 @@ function windowCaptions(player: Player, zone: ReplayZone): Map<string, string> |
 const clockTime = computed(() => (moment.value ? timeLabel(moment.value.time) : ''));
 
 const currentStepLabel = computed(() => (step.value ? stepLabel(step.value) : null));
+/** Day or night (CR 731), once the game has become either. */
+const dayNight = computed(() => state.value?.dayNight ?? null);
 const missingText = computed(() => (turn.value?.number === null ? 'Pregame' : ''));
 
 const shareLink = useReplayShare(() => (props.shareUrl ? props.shareUrl(current.value) : null));
@@ -381,6 +383,7 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                     :step-label="currentStepLabel"
                     :missing-text="missingText"
                     :result="result"
+                    :day-night="dayNight"
                     :stack-count="stack.length"
                     @open-zone="(player, zone, event) => toggleZoneWindow(player, zone, event, player !== localId)"
                     @open-stack="openSheet('stack')"
@@ -413,7 +416,7 @@ function toggleZoneWindow(player: Player, zone: ReplayZone, event: MouseEvent, o
                             <ReplayShareCard v-else-if="!side.opponent && shareUrl" :moment="shareMoment" :copied="shareLink.copied.value" @share="shareLink.share(false)" />
                         </ReplaySide>
 
-                        <ReplayPhaseRail :turn="turn" :active-name="activeName" :active-is-local="activeIsLocal" :step="step" :missing-text="missingText" :result="result">
+                        <ReplayPhaseRail :turn="turn" :active-name="activeName" :active-is-local="activeIsLocal" :step="step" :missing-text="missingText" :result="result" :day-night="dayNight">
                             <ReplayStack v-if="stack.length" :items="stack" collapsible :collapsed="stackCollapsed" @toggle="stackCollapsed = !stackCollapsed" />
                         </ReplayPhaseRail>
                     </div>

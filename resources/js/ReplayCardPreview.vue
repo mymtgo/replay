@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import ReplayCardImage from './ReplayCardImage.vue';
 import { previewFaces } from './replayCards';
-import { useReplayContext } from './replayContext';
 import type { CardPreviewPosition, ReplayCardView } from './types';
 import { FACE_GAP_PX } from './useCardPreview';
 
@@ -18,9 +17,7 @@ const emit = defineEmits<{
     close: [];
 }>();
 
-const { images } = useReplayContext();
-
-const faces = computed(() => previewFaces(props.card, images));
+const faces = computed(() => previewFaces(props.card));
 const width = computed(() => props.position.width * faces.value.length + FACE_GAP_PX * (faces.value.length - 1));
 /** An ability borrows its source's picture, so the name on the fallback face is the source's. */
 const name = computed(() => props.card.name ?? props.card.sourceName);

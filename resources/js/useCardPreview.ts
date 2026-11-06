@@ -1,6 +1,6 @@
 import { computed, readonly, shallowRef, type Ref } from 'vue';
 import { counterLabel, isCreature, previewFaces } from './replayCards';
-import type { CardImageResolver, CardPreviewPosition, ReplayCardView } from './types';
+import type { CardPreviewPosition, ReplayCardView } from './types';
 
 /** Space under the preview image for the state chips. */
 const INFO_HEIGHT_PX = 54;
@@ -21,7 +21,6 @@ function spread(count: number, width: number): number {
 export function useCardPreview(
     root: Readonly<Ref<HTMLElement | null>>,
     cardsByKey: Readonly<Ref<Map<string, ReplayCardView>>>,
-    images: Readonly<Ref<CardImageResolver>>,
     /** Type of the latest press on the viewer; a tap pins the preview, a mouse click does not. */
     lastPointer: Readonly<Ref<string | null>>,
     /** Who exiled a card in exile and when; null when the file does not say or the card is not in exile. */
@@ -31,7 +30,7 @@ export function useCardPreview(
     const pinned = shallowRef(false);
 
     function cardsWide(card: ReplayCardView): number {
-        return previewFaces(card, images.value).length;
+        return previewFaces(card).length;
     }
 
     function showPreview(event: MouseEvent, card: ReplayCardView) {

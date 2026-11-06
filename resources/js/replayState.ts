@@ -20,12 +20,24 @@ export function objectZone(object: ObjectState): string | null {
     return object.zone.zone === 'outside' ? object.zone.label : object.zone.zone;
 }
 
+/** The other part of a `FRONT // BACK` name than `face` (null for the front), or undefined when the name has one part. */
+function otherFace(name: string, face: string | null): string | null | undefined {
+    const parts = name.split(' // ');
+
+    if (parts.length < 2) {
+        return undefined;
+    }
+
+    return face === null || face === parts[0] ? parts[1] : null;
+}
+
 /**
- * The image for an object: the face showing, else the card's name. Abilities
- * borrow their source's. The card's source ids go along only while it shows
- * its own front face, since a copy or a back face is not the printing they name.
+ * The image of `face` of an object (null for the front: a face equal to the
+ * front is no face, spec 7.1). Abilities borrow their source's. The card's
+ * source ids go along with the face unless it is a copy, whose name is not the
+ * card they name: a source id names the card, and the face picks its side.
  */
-function imageFor(object: ObjectState, state: GameState, images: CardImageResolver, sources: ReadonlyMap<string, readonly string[]>): string | null {
+function imageFor(object: ObjectState, face: string | null, state: GameState, images: CardImageResolver, sources: ReadonlyMap<string, readonly string[]>): string | null {
     const card = object.name || object.nameUnknown ? object : object.source ? state.objects[idKey(object.source)] : null;
 
     // A `?` card has no name to look up: the host may know it by its source ids.
@@ -39,10 +51,17 @@ function imageFor(object: ObjectState, state: GameState, images: CardImageResolv
         return null;
     }
 
-    const ownFront = card.name === card.ownName && (card.face === null || card.face === name.split(' // ')[0]);
-    const ids = ownFront ? sources.get(idKey(card.id)) : undefined;
+    const shown = face === null || face === name.split(' // ')[0] ? undefined : face;
+    const ids = card.name === card.ownName ? sources.get(idKey(card.id)) : undefined;
 
-    return ids ? images(name, object.face ?? undefined, ids) : images(name, object.face ?? undefined);
+    return ids ? images(name, shown, ids) : images(name, shown);
+}
+
+/** The image of a multi-faced card's face that is not showing; undefined for a card with one face, or one whose name is unknown. */
+function otherImageFor(object: ObjectState, state: GameState, images: CardImageResolver, sources: ReadonlyMap<string, readonly string[]>): string | null | undefined {
+    const other = object.name && !object.nameUnknown ? otherFace(object.name, object.face) : undefined;
+
+    return other === undefined ? undefined : imageFor(object, other, state, images, sources);
 }
 
 /** How many creatures attack what `matches` picks out this combat. */
@@ -70,7 +89,8 @@ export function cardView(
         nameUnknown: object.nameUnknown,
         face: object.face,
         types: object.types,
-        image: imageFor(object, state, images, sources),
+        image: imageFor(object, object.face, state, images, sources),
+        otherImage: otherImageFor(object, state, images, sources),
         text: object.text,
         sourceName: displayName(source),
         owner: object.owner,
